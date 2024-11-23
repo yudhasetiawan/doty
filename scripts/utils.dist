@@ -1,0 +1,173 @@
+#!/usr/bin/env sh
+
+# Header logging
+function header() {
+    text=${@}
+    total_chars=${#text}
+
+    if [ "$total_chars" -gt 80 ]; then
+        total_chars=80
+    fi
+
+    printf "$(tput setaf 7)%s$(tput sgr0)\n" "$text"
+    for ((i = 1; i <= $total_chars; i++)); do
+        printf "$(tput setaf 237)-$(tput sgr0)"
+    done
+    echo
+}
+
+# Success logging
+function success() {
+    printf "$(tput setaf 64)✓ %s$(tput sgr0)\n" "$@"
+}
+
+# Info logging
+function info() {
+    printf "$(tput setaf 27)INFO: %s$(tput sgr0)\n" "$@"
+}
+
+# Warning logging
+function warning() {
+    printf "$(tput setaf 136)WARN: %s$(tput sgr0)\n" "$@"
+}
+
+# Error logging
+function error() {
+    printf "$(tput setaf 1)ERR: %s$(tput sgr0)\n" "$@"
+}
+
+function echo_green() {
+    printf "$(tput setaf 64)%s$(tput sgr0)\n" "$@"
+}
+
+function echo_blue() {
+    printf "$(tput setaf 27)%s$(tput sgr0)\n" "$@"
+}
+
+function echo_yellow() {
+    printf "$(tput setaf 136)%s$(tput sgr0)\n" "$@"
+}
+
+function echo_red() {
+    printf "$(tput setaf 1)%s$(tput sgr0)\n" "$@"
+}
+
+function confirm() {
+    echo_yellow "$@"
+    while true; do
+        read -p "Continue? (Y/n) " yn
+        yn=${yn:-y}
+        case $yn in
+            [Yy]* )
+                return 0
+                ;;
+            [Nn]* )
+                return 1
+                ;;
+            * )
+                echo_red "Please answer yes or no."
+                ;;
+        esac
+    done
+}
+
+# Test whether a command exists
+# $1 - cmd to test
+function command_is_exists() {
+    if [ $(type -P $1) ]; then
+      return 0
+    fi
+    return 1
+}
+
+# Test whether a Homebrew formula is already installed
+# $1 - formula name (may include options)
+function formula_is_exists() {
+    if $(brew list $1 >/dev/null); then
+        info "$1 already installed."
+        return 0
+    fi
+
+    warning "Missing formula: $1"
+    return 1
+}
+
+# Test whether we're in a git repo
+function is_git_repo() {
+    $(git rev-parse --is-inside-work-tree &> /dev/null)
+}
+
+# function symlink_to_target_dir() {
+#     source="${DOTY_DIRECTORY}/${1}"
+
+#     echo_blue "Creating symlink for ${source}"
+#     # Force create/replace the symlink.
+#     ln -fs "${source}" "${TARGET_DIRECTORY}/${2}"
+# }
+
+# function symlink_files_from() {
+#     for file in $(get_linkable_files "${1}" 1) ; do
+#         file_name="$(basename "${file}")"
+#         # Skip file is prefixed with dot (.)
+#         if [[ $file_name != \.* ]]; then
+#             source_file="${1}/${file_name}"
+#             target_file=".${file_name}"
+
+#             symlink_to_target_dir "${source_file}" "$target_file"
+#         else
+#             warning "Skip symlink for file ${file_name}"
+#         fi
+#     done
+# }
+
+# function get_linkable_files() {
+#     find -H "${DOTY_DIRECTORY}/$1" -maxdepth $2 -type f -name '*'
+# }
+
+# function get_linkable_dirs() {
+#     find -H "${DOTY_DIRECTORY}/$1" -maxdepth $2 -type d -name '*'
+# }
+
+function install_iterm2_colors() {
+    filename="${1}"
+
+    if [[ ! -f "$filename" ]]; then
+        echo "File not found: \"$filename\". Skip." >&2
+        return 1
+    elif ! (echo "$filename" | grep -qF '.itermcolors'); then
+        echo "Invalid iTerm color scheme file: \"$filename\". Skip." >&2
+        return 1
+    fi
+
+    # Format the scheme name (capitalized)
+    name="$(echo "$filename" |
+        sed -E 's|.*/([^/]*)\.itermcolors|\1|g' |
+        sed -E 's/([0-9a-zA-Z])_([0-9a-zA-Z])/\1 \2/g; s/([0-9a-zA-Z])-([0-9a-zA-Z])/\1 \2/g;'
+    )"
+    name=($name)
+    name="${name[*]^}"
+    name="$(echo "$name" | sed -E 's| In | in |g; s| Of | of |g; s| And | and |g; s| V([0-9]+)$| v\1|g')"
+
+    # Create 'Custom Color Presets' entry if not exists
+    if ! /usr/libexec/PlistBuddy -c 'Print "Custom Color Presets"' \
+        "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
+        echo "Creating 'Custom Color Presets' entry ..."
+        /usr/libexec/PlistBuddy -c 'Add \"Custom Color Presets\" dict' \
+                    "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+    fi
+
+    # Import the color scheme
+    echo "Importing color scheme $name (\"$filename\") ..."
+    if /usr/libexec/PlistBuddy -c "Print \"Custom Color Presets:$name\"" \
+        "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
+        # If already installed, delete first 
+        /usr/libexec/PlistBuddy -c "Delete \"Custom Color Presets:$name\"" \
+                    "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+    fi
+
+    # Install directly
+    /usr/libexec/PlistBuddy \
+            -c "Add \"Custom Color Presets:$name\" dict" \
+            -c "Merge \"$filename\" \"Custom Color Presets:$name\"" \
+            "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+}

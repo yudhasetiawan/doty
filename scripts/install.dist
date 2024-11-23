@@ -1,0 +1,170 @@
+#!/usr/bin/env sh
+
+function update_brew() {
+    header "Updating Homebrew..."
+    # Use the latest version of Homebrew
+    brew update && echo_green "Done" || error "brew update not successfully"
+    echo
+}
+
+function upgrade_brew() {
+    header "Updating any existing Homebrew formulae..."
+    if [[ $SKIP_BREW_UPGRADE == 1 ]]; then
+        warning "Skip brew upgrade..."
+    else
+        # Upgrade any already-installed formulae
+        brew upgrade && echo_green "Done" || error "brew upgrade not successfully"
+    fi
+    echo
+}
+
+# Install Homebrew if not exists
+function install_homebrew() {
+    if ! command_is_exists "brew"; then
+        header "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        echo
+    fi
+}
+
+# Install Git if not exists
+function install_git() {
+    if ! command_is_exists "git"; then
+        update_brew
+
+        header "Installing Git with homebrew..."
+        brew install git
+        echo
+    fi
+}
+
+# Conditionally sync with the remote repository
+function update_git_state() {
+    # Initialize the git repository if it's missing
+    if ! is_git_repo; then
+        header "Initializing git repository..."
+        git init
+        git remote add origin ${DOTY_GIT_REMOTE}
+        git fetch origin master
+        # Reset the index and working tree to the fetched HEAD
+        # (submodules are cloned in the subsequent sync step)
+        git reset --hard FETCH_HEAD
+        # Remove any untracked files
+        git clean -fd
+    fi
+
+    if [[ $no_sync ]]; then
+        warning "Skipped dotfiles sync.\n"
+    else
+        info "Syncing dotfiles..."
+        # Pull down the latest changes
+        git pull --rebase origin master
+        # Update submodules
+        git submodule update --recursive --init --quiet
+    fi
+
+    echo
+}
+
+function install_packages() {
+    # Check for Homebrew
+    if ! command_is_exists "brew"; then
+        echo
+        error "Error: Homebrew not found."
+        echo_red "Aborting..."
+        exit
+    fi
+    
+    update_brew
+    upgrade_brew
+
+    header "Install brew bundle"
+    brew bundle install --global --file="${DOTY_DIRECTORY}/Brewfile"
+
+    # Install GNU core utilities (those that come with macOS are outdated).
+    # Don’t forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
+    ln -s "$(brew --prefix)/bin/gsha256sum" "$(brew --prefix)/bin/sha256sum"
+
+    # Switch to using brew-installed bash as default shell
+    if ! fgrep -q "${BREW_PREFIX}/bin/bash" /etc/shells; then
+        echo "${BREW_PREFIX}/bin/bash" | sudo tee -a /etc/shells;
+        chsh -s "${BREW_PREFIX}/bin/bash";
+    fi;
+
+    if formula_is_exists "asdf"; then
+        asdf_dir="${ASDF_DIR:-"${DOTY_DEVELOPMENT_DIRECTORY}/asdf"}"
+        git clone https://github.com/asdf-vm/asdf-plugins.git "${asdf_dir}/repository"
+    fi
+
+    # Remove outdated versions from the Cellar
+    brew cleanup
+}
+
+# function install_dotfiles() {
+#     # Create the necessary symbolic links between the `.dotfiles` and `HOME`
+#     # directory. The `bash_profile` sources other files directly from the
+#     # `.dotfiles` repository.
+#     header "Mirroring config files"
+#     symlink_files_from "shell"
+
+#     header "Mirroring git files"
+#     symlink_files_from "git"
+#     git config --global include.path "${DOTY_DIRECTORY}/git/gitconfig"
+
+#     info "Installing to ~/.config"
+#     target_dir="${TARGET_DIRECTORY}/.config"
+#     mkdir -p "${target_dir}"
+#     config_dirs=$(find "${DOTY_DIRECTORY}/config" -maxdepth 1 -mindepth 1 -type d 2>/dev/null)
+#     for dir in $config_dirs; do
+#         target="${target_dir}/$(basename "$dir")"
+#         # Force remove the vim directory if it's already there.
+#         if [ -d "$target" ]; then
+#             warning "${target} already exists... Removing."
+#             rm -Rf "$target"
+#         fi
+        
+#         info "Creating symlink for $dir"
+#         ln -f -s "$dir" "$target"
+#     done
+
+#     success "Dotfiles update complete!"
+# }
+
+# function backup_dotfiles() {
+#     header "Backup config files"
+
+#     backup_dir="${TARGET_DIRECTORY}/.dotybackup_$(date +%s)"
+#     mkdir -p "${backup_dir}"
+
+#     info "Backup dotfiles..."
+#     for file in $(get_linkable_files "shell" 1) ; do
+#         source_file="${HOME}/.$(basename "$file")"
+#         if [[ -f "${source_file}" ]]; then
+#             target_file="${backup_dir}/.$(basename "$file")"
+
+#             cp -Pfv "${source_file}" "${target_file}"
+#         fi
+#     done
+#     for file in $(get_linkable_files "shell/config" 1) ; do
+#         source_file="${HOME}/.$(basename "$file")"
+#         if [[ -f "${source_file}" ]]; then
+#             target_file="${backup_dir}/.$(basename "$file")"
+
+#             cp -Pfv "${source_file}" "${target_file}"
+#         fi
+#     done
+
+#     echo
+#     info "Backup contents from config directory..."
+#     for dir in $(get_linkable_dirs "config" 1) ; do
+#         source_dir="${HOME}/.config/$(basename "${dir}")"
+
+#         if [[ -d "${source_dir}" ]]; then
+#             cp -PRfv "${source_dir}" "${backup_dir}/.config/"
+#         fi
+#     done
+
+#     echo
+#     success "backup old dotfiles on ${backup_dir}"
+#     echo
+# }

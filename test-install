@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+export ZDOTDIR="${HOME}/zdotdir-test"
+export DOTY_REPOSITORY_REMOTE="file://${HOME}/.doty"
+
+rm -Rf "${ZDOTDIR}"
+
+./scripts/install

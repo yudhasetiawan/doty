@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+
+function _install_kube_krew() {
+    krew_filename="krew-${OS}_${ARCH}"
+    krew_dir="$(mktemp -d)"
+    krew_file="${krew_dir}/${krew_filename}.tar.gz"
+    curl -fsSL "https://github.com/kubernetes-sigs/krew/releases/latest/download/${krew_filename}.tar.gz" -o "${krew_file}"
+    tar zxvf "${krew_file}" -C "${krew_dir}"
+    chmod +x "${krew_dir}/${KREW}"
+    "${krew_dir}/${krew_filename}" install krew
+}
+
+# Issue:
+# - https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+function install_kube_tools() {
+    header "Installing kubectl tools"
+
+    _install_kube_krew
+
+    kubectl krew install tree
+    kubectl krew install neat
+    kubectl krew install ctx
+    kubectl krew install ns
+
+    curl -L https://rawgit.com/kubermatic/fubectl/master/fubectl.source -o "${TARGET_DIRECTORY}/fubectl.source"
+    echo
+}
