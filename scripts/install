@@ -3,14 +3,14 @@
 # This script is based on https://github.com/ohmyzsh/ohmyzsh.
 #
 # This script should be run via curl:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/master/scripts/install)"
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
 # or via wget:
-#   sh -c "$(wget -qO- https://raw.githubusercontent.com/kw-yud/doty/master/scripts/install)"
+#   sh -c "$(wget -qO- https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
 # or via fetch:
-#   sh -c "$(fetch -o - https://raw.githubusercontent.com/kw-yud/doty/master/scripts/install)"
+#   sh -c "$(fetch -o - https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
 #
 # As an alternative, you can first download the install script and run it afterwards:
-#   wget https://raw.githubusercontent.com/kw-yud/doty/master/scripts/install
+#   wget https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install
 #   sh install
 #
 # You can tweak the install behavior by setting variables when running the script. For
@@ -23,7 +23,7 @@
 #             [2] https://zsh.sourceforge.io/Doc/Release/Files.html#index-ZDOTDIR_002c-use-of
 #   DOTY    - path to the Doty repository folder (default: $HOME/.doty)
 #   REMOTE  - full remote URL of the git repo to install (default: GitHub via HTTPS https://github.com/kw-yud/doty.git)
-#   BRANCH  - branch to check out immediately after install (default: master)
+#   BRANCH  - branch to check out immediately after install (default: main)
 #
 # Other options:
 #   CHANGE_SHELL  - 'no' means the installer will not change the default shell (default: yes)
@@ -41,7 +41,7 @@
 # For example:
 #   sh install --unattended
 # or:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/master/scripts/install)" "" --unattended
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)" "" --unattended
 
 set -e
 
@@ -102,10 +102,22 @@ command_exists() {
     command -v "$@" >/dev/null 2>&1
 }
 
+# Test whether a Homebrew formula is already installed
+# $1 - formula name (may include options)
+function formula_is_exists() {
+    if $(brew list $1 >/dev/null); then
+        info "$1 already installed."
+        return 0
+    fi
+
+    warning "Missing formula: $1"
+    return 1
+}
+
 prompt() {
-    printf '%s%s%s' $FMT_YELLOW $FMT_RESET "$1"
+    printf '%s%s%s' $FMT_YELLOW $FMT_RESET "$1" >&2
     read -p " ${FMT_BLACK}[y/N]${FMT_RESET} ${FMT_BOLD}" a
-    printf "${FMT_RESET}"
+    printf "${FMT_RESET}" >&2
     if [[ $a == "y" || $a == "Y" ]]; then
         return 1
     fi
@@ -221,26 +233,31 @@ supports_hyperlinks() {
     return 1
 }
 
-fmt_underline() {
-    is_tty && printf '\033[4m%s\033[24m\n' "$*" || printf '%s\n' "$*"
+underline() {
+    is_tty && printf '\033[4m%s\033[24m' "$*" >&2 || printf '%s' "$*" >&2
 }
 
-fmt_link() {
+link() {
     # $1: text, $2: url, $3: fallback mode
     if supports_hyperlinks; then
-        printf '\033]8;;%s\033\\%s\033]8;;\033\\\n' "$2" "$1"
+        printf '\033]8;;%s\033\\%s\033]8;;\033\\' "$2" "$1" >&2
         return
     fi
 
     case "$3" in
-    --text) printf '%s\n' "$1" ;;
-    --url | *) fmt_underline "$2" ;;
+    --text) printf '%s\n' "$1" >&2 ;;
+    --url | *) underline "$2" ;;
     esac
 }
 
 # shellcheck disable=SC2016 # backtick in single-quote
 fmt_code() {
-    is_tty && printf '`\033[2m%s\033[22m`\n' "$*" || printf '`%s`\n' "$*"
+    is_tty && printf '\033[2m%s\033[22m' "$*" >&2 || printf '`%s`' "$*" >&2
+}
+
+codeblock() {
+    codeblock $*
+    printf '\n' >&2
 }
 
 success() {
@@ -304,28 +321,95 @@ setup_color() {
     FMT_RESET=$(printf '\033[0m')
 }
 
+get_linkable_files() {
+    find -H "${DOTY}" -type f -name '*' -maxdepth $2
+}
+
 symlink_files_from() {
+    # TODO: Add supports nested directory
     for source_file in $(get_linkable_files "${1}" 1) ; do
         file_name="$(basename "${source_file}")"
-        # Skip file is prefixed with dot (.)
-        if [[ $file_name != \.* ]]; then
-            target_file="${zdot}/.${file_name}"
+        target_file="${zdot}/${file_name}"
 
-            if [ -f "$target_file" ] || [ -h "$target_file" ]; then
-                mv "$target_file" "${backup_dir}/.${file_name}"
-            fi
-
-            info "Creating symlink for ${file} to ${target_file}"
-            # Force create/replace the symlink.
-            ln -fs "${source}" "${target_file}"
-        else
-            warning "Skip symlink for file ${file_name}"
+        if [ -f "$target_file" ] || [ -h "$target_file" ]; then
+            mv "$target_file" "${backup_dir}/${file_name}"
         fi
+
+        info "Creating symlink for $(fmt_code "${file}") to $(fmt_code "${target_file}")"
+        # Force create/replace the symlink.
+        ln -fs "${source_file}" "${target_file}"
     done
 }
 
-get_linkable_files() {
-    find -H "${DOTY}/$1.symlink" -maxdepth $2 -type f -name '*'
+shellcheck_git_alias() {
+    shellcheck --version
+
+    info "Checking git aliases $(fmt_code "$1")..."
+
+    git config --file="$1" --null --get-regexp '^alias\.' '^!' |
+    while read -r -d $'\n' key
+    do
+        read -r -d $'\0' value
+        info "    Checking $(fmt_code "${key:6}")..."  
+        shellcheck --exclude SC2094,SC2119,SC2120 --shell=sh --color=always - <<< "${value:1}"
+        success "    Successfully checked $(fmt_code "${key:6}")."
+    done
+
+    success "Successfully checked all aliases for $(fmt_code "$1")."
+}
+
+register_git_config() {
+    shellcheck_git_alias "$2"
+
+    if git config --global --get-all "$1" | grep -q "$2"; then
+        warning "Git config $(fmt_code "$2") is already loaded"
+    else
+       git config --global --add "$1" "$2"
+    fi
+}
+
+install_iterm2_colors() {
+    filename="${1}"
+
+    if [[ ! -f "$filename" ]]; then
+        error "File not found: \"$filename\"."
+        return 1
+    elif ! (echo "$filename" | grep -qF '.itermcolors'); then
+        error "Invalid iTerm color scheme file: \"$filename\"."
+        return 1
+    fi
+
+    # Format the scheme name (capitalized)
+    name="$(echo "$filename" |
+        sed -E 's|.*/([^/]*)\.itermcolors|\1|g' |
+        sed -E 's/([0-9a-zA-Z])_([0-9a-zA-Z])/\1 \2/g; s/([0-9a-zA-Z])-([0-9a-zA-Z])/\1 \2/g;'
+    )"
+    name=($name)
+    name="${name[*]^}"
+    name="$(echo "$name" | sed -E 's| In | in |g; s| Of | of |g; s| And | and |g; s| V([0-9]+)$| v\1|g')"
+
+    # Create 'Custom Color Presets' entry if not exists
+    if ! /usr/libexec/PlistBuddy -c 'Print "Custom Color Presets"' \
+        "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
+        info "Creating 'Custom Color Presets' entry ..."
+        /usr/libexec/PlistBuddy -c 'Add \"Custom Color Presets\" dict' \
+                    "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+    fi
+
+    # Import the color scheme
+    info "Importing color scheme $name (\"$filename\") ..."
+    if /usr/libexec/PlistBuddy -c "Print \"Custom Color Presets:$name\"" \
+        "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
+        # If already installed, delete first 
+        /usr/libexec/PlistBuddy -c "Delete \"Custom Color Presets:$name\"" \
+                    "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+    fi
+
+    # Install directly
+    /usr/libexec/PlistBuddy \
+            -c "Add \"Custom Color Presets:$name\" dict" \
+            -c "Merge \"$filename\" \"Custom Color Presets:$name\"" \
+            "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
 }
 
 # Header logging
@@ -337,55 +421,60 @@ header() {
         total_chars=80
     fi
 
-    printf "$(tput setaf 7)%s$(tput sgr0)\n" "$text"
+    printf "$(tput setaf 7)%s$(tput sgr0)\n" "$text" >&2
     for ((i = 1; i <= $total_chars; i++)); do
-        printf "$(tput setaf 237)-$(tput sgr0)"
+        printf "$(tput setaf 237)-$(tput sgr0)" >&2
     done
-    echo
+    printf '\n'  >&2
 }
 
 # shellcheck disable=SC2183  # printf string has more %s than arguments ($FMT_RAINBOW expands to multiple arguments)
 print_header() {
-    printf '%s       __%s\n' "${FMT_PURPLE}" "${FMT_RESET}"
-    printf '%s  ____/ /%s\n' "${FMT_PURPLE}" "${FMT_RESET}"
-    printf '%s / __  /%s\n' "${FMT_PURPLE}" "${FMT_RESET}"
-    printf '%s/ /_/ /%s\n' "${FMT_PURPLE}" "${FMT_RESET}"
-    printf '%s\\____/%s    %s.... %s%s\n' "${FMT_PURPLE}" "${FMT_BOLD}" "${FMT_GREEN}" "$*" "${FMT_RESET}"
-    printf '\n'
-    printf '\n'
+    printf '%s       __%s\n' "${FMT_PURPLE}" "${FMT_RESET}" >&2
+    printf '%s  ____/ /%s\n' "${FMT_PURPLE}" "${FMT_RESET}" >&2
+    printf '%s / __  /%s\n' "${FMT_PURPLE}" "${FMT_RESET}" >&2
+    printf '%s/ /_/ /%s\n' "${FMT_PURPLE}" "${FMT_RESET}" >&2
+    printf '%s\\____/%s    %s.... %s%s\n' "${FMT_PURPLE}" "${FMT_BOLD}" "${FMT_GREEN}" "$*" "${FMT_RESET}" >&2
+    printf '\n' >&2
+    printf '\n' >&2
     printf '%s %s %s\n' \
         "Before you scream ${FMT_BOLD}${FMT_YELLOW}Doty!${FMT_RESET} look over the" \
-        "$(fmt_code "$(fmt_link ".zshrc" "file://$zdot/.zshrc" --text)")" \
-        "file to select plugins, themes, and options."
-    printf '\n%s-------------------------------------------------------------------------------------------%s\n\n' "${FMT_BOLD}" "${FMT_RESET}"
+        "$(codeblock "$(link ".zshrc" "file://$zdot/.zshrc" --text)")\n" \
+        "file to select plugins, themes, and options." >&2
+    printf '\n%s-------------------------------------------------------------------------------------------%s\n\n' "${FMT_BOLD}" "${FMT_RESET}" >&2
 }
 
 validate_requirements() {
     if ! command_exists zsh; then
-        echo "${FMT_YELLOW}Zsh is not installed.${FMT_RESET} Please install zsh first."
+        error "Zsh is not installed. Please install zsh first."
+        exit 1
+    fi
+
+    if ! command_exists git; then
+        error "git is not installed. Please install git first."
         exit 1
     fi
 
     # Before relying on Homebrew, check that packages can be compiled
     if ! command_exists 'gcc' && [[ "${OSTYPE}" == darwin* ]]; then
         error "The XCode Command Line Tools must be installed first."
-        echo
-        echo "Download them from: https://developer.apple.com/downloads"
+        printf '\n' >&2
+        printf 'Download them from: %s' "$(link "https://developer.apple.com/downloads")" >&2
         exit 2
     fi
 
     if [ -e "$backup_dir" ]; then
-        error "$backup_dir exists."
+        error "Backup directory $(fmt_code "$backup_dir") already exists."
         error "Can't back up files re-run the installer again in a couple of seconds."
         exit 1
     fi
 
     if [ -d "$DOTY" ]; then
-        warning "The \$DOTY folder already exists ($DOTY)."
+        warning "The $(fmt_code "\$DOTY")  folder already exists ($DOTY)."
         if [ "$custom_doty" = yes ]; then
             cat <<EOF
 
-You run the installer with the \$DOTY setting or the \$DOTY variable
+You run the installer with the $(fmt_code "\$DOTY") setting or the $(fmt_code "\$DOTY")  variable
 is exported. You have 3 options:
 
 1. Unset the DOTY variable when calling the installer:
@@ -414,11 +503,6 @@ clone_doty() {
 
     header "Cloning Doty"
 
-    command_exists git || {
-        error "git is not installed"
-        exit 1
-    }
-
     ostype=$(uname)
     if [ -z "${ostype%CYGWIN*}" ] && git --version | grep -Eq 'msysgit|windows'; then
         error "Windows/MSYS Git is not supported on Cygwin"
@@ -442,7 +526,7 @@ clone_doty() {
             cd -
             rm -rf "$DOTY" 2>/dev/null
         }
-        error "git clone of doty repository failed"
+        error "git clone $(fmt_code "$DOTY_REPOSITORY_REMOTE") repository failed"
         exit 1
     }
 
@@ -457,7 +541,7 @@ clone_doty() {
     cd -
 
     info "Doty is cloned on $DOTY"
-    echo
+    printf '\n' >&2
 }
 
 setup_zshrc() {
@@ -470,30 +554,30 @@ setup_zshrc() {
     if [ -f "$zdot/.zshrc" ] || [ -h "$zdot/.zshrc" ]; then
         # Skip this if the user doesn't want to replace an existing .zshrc
         if [ "$KEEP_ZSHRC" = yes ]; then
-            echo "${FMT_YELLOW}Found ${zdot}/.zshrc.${FMT_RESET} ${FMT_GREEN}Keeping...${FMT_RESET}"
+            printf '%sFound %s.%s %sKeeping...%s\n' "${FMT_YELLOW}" "${zdot}/.zshrc" "${FMT_RESET}" "${FMT_GREEN}" "${FMT_RESET}" >&2
             return
         fi
 
         if [ -e "$OLD_ZSHRC" ]; then
-            error "$OLD_ZSHRC exists."
+            error "Backup .zshrc file $OLD_ZSHRC already exists."
             error "Can't back up ${zdot}/.zshrc re-run the installer again in a couple of seconds."
             exit 1
         fi
 
-        warning "Found old ${zdot}/.zshrc."
-        info "Backing up to ${OLD_ZSHRC}"
+        warning "Found old $(fmt_code "${zdot}/.zshrc")."
+        info "Backing up to $(fmt_code "${OLD_ZSHRC}")."
         cp "$zdot/.zshrc" "$OLD_ZSHRC"
     fi
 
-    success "Using the Doty template file and adding it to $zdot/.zshrc."
+    success "Using the Doty template file and adding it to $(fmt_code "$zdot/.zshrc")."
 
     if grep -q "^source .*\/doty" "$zdot/.zshrc"; then
-        warning "${DOTY}/doty is already sourced on your .zshrc"
+        warning "$(fmt_code "${DOTY}/doty") is already sourced on your .zshrc"
     else
         # Source $DOTY/doty in .zshrc directory to use the literal $ZDOTDIR or $HOME
         echo "source \"${DOTY}/doty\"" >> "$zdot/.zshrc"
     fi
-    echo
+    printf '\n' >&2
 }
 
 setup_shell() {
@@ -511,27 +595,24 @@ setup_shell() {
 
     # If this platform doesn't provide a "chsh" command, bail out.
     if ! command_exists chsh; then
-        cat <<EOF
-I can't change your shell automatically because this system does not have chsh.
-${FMT_BLUE}Please manually change your default shell to zsh${FMT_RESET}
-EOF
+        error "Doty can't change your shell automatically because this system does not have chsh."
+        info "Please manually change your default shell to zsh!"
         return
     fi
 
-    info "Time to change your default shell to zsh:"
+    info "Time to change your default shell to zsh!"
 
     # Prompt for user choice on changing the default login shell
-    printf '%sDo you want to change your default shell to zsh? [Y/n]%s ' \
-        "$FMT_YELLOW" "$FMT_RESET"
+    printf '%sDo you want to change your default shell to zsh? [Y/n]%s ' "$FMT_YELLOW" "$FMT_RESET" >&2
     read -r opt
     case $opt in
     y* | Y* | "") ;;
     n* | N*)
-        echo "Shell change skipped."
+        warning "Shell change skipped."
         return
         ;;
     *)
-        echo "Invalid choice. Shell change skipped."
+        error "Invalid choice. Shell change skipped."
         return
         ;;
     esac
@@ -552,7 +633,8 @@ EOF
         elif [ -f /usr/share/defaults/etc/shells ]; then # Solus OS
             shells_file=/usr/share/defaults/etc/shells
         else
-            error "could not find /etc/shells file. Change your default shell manually."
+            error "Could not find $(fmt_code "/etc/shells") file."
+            error "Please manually change your default shell!"
             return
         fi
 
@@ -561,8 +643,8 @@ EOF
         # 2. If that fails, get a zsh path from the shells file, then check it actually exists
         if ! zsh=$(command -v zsh) || ! grep -qx "$zsh" "$shells_file"; then
             if ! zsh=$(grep '^/.*/zsh$' "$shells_file" | tail -n 1) || [ ! -f "$zsh" ]; then
-                error "no zsh binary found or not present in '$shells_file'"
-                error "change your default shell manually."
+                error "No zsh binary found or not present in $(fmt_code "$shells_file")"
+                error "Please manually change your default shell!"
                 return
             fi
         fi
@@ -570,12 +652,17 @@ EOF
 
     # We're going to change the default shell, so back up the current one
     if [ -n "$SHELL" ]; then
-        echo "$SHELL" >"$backup_dir/.shell"
+        echo "$SHELL" > "$backup_dir/.shell"
     else
         grep "^$USER:" /etc/passwd | awk -F: '{print $7}' >"$backup_dir/.shell"
     fi
 
-    info "Changing your shell to $zsh..."
+    info "Changing your shell to $(fmt_code "$zsh")..."
+
+    info "Installing iterm2 color scheme..."
+    install_iterm2_colors "${zdot}/config/solarized/iterm2-colors-solarized/Solarized Dark.itermcolors"
+    install_iterm2_colors "${zdot}/config/solarized/iterm2-colors-solarized/Solarized Light.itermcolors"
+    cp "${zdot}/config/solarized/apple-colorpalette-solarized/solarized.clr" "${HOME}/Library/Colors/"
 
     # Check if user has sudo privileges to run `chsh` with or without `sudo`
     #
@@ -594,13 +681,14 @@ EOF
 
     # Check if the shell change was successful
     if [ $? -ne 0 ]; then
-        error "chsh command unsuccessful. Change your default shell manually."
+        error "chsh command unsuccessful."
+        error "Please manually change your default shell!"
     else
         export SHELL="$zsh"
-        success "Shell successfully changed to '$zsh'."
+        success "Shell successfully changed to $(fmt_code "$zsh")."
     fi
 
-    echo
+    printf '\n' >&2
 }
 
 setup_tmux() {
@@ -613,39 +701,39 @@ setup_tmux() {
     if [ -f "${zdot}/.tmux.conf" ] || [ -h "${zdot}/.tmux.conf" ]; then
         # Skip this if the user doesn't want to replace an existing .zshrc
         if [ "$KEEP_TMUXCONF" = yes ]; then
-            echo "${FMT_YELLOW}Found ${zdot}/.tmux.conf.${FMT_RESET} ${FMT_GREEN}Keeping...${FMT_RESET}"
+            printf '%sFound %s.%s %sKeeping...%s\n' "${FMT_YELLOW}" "${zdot}/.tmux.conf" "${FMT_RESET}" "${FMT_GREEN}" "${FMT_RESET}" >&2
             
             info "You need manually add doty tmux config to your existing tmux config file"
-            echo
-            fmt_code "run \"\$DOTY_DIRECTORY/config/tmux/doty/doty\""
-            echo
+            printf '\n' >&2
+            codeblock "    run \"\$DOTY_DIRECTORY/config/tmux/doty/doty\""
+            printf '\n' >&2
             return
         fi
 
         if [ -e "$OLD_TMUX" ]; then
-            error "$OLD_TMUX exists."
+            error "Backup .tmux.conf file $OLD_TMUX already exists."
             error "Can't back up ${zdot}/.tmux.conf re-run the installer again in a couple of seconds."
-            
+
             info "Or, you need manually add doty tmux config to your existing tmux config file"
-            echo
-            fmt_code "run \"\$DOTY_DIRECTORY/config/tmux/doty/doty\""
-            echo
+            printf '\n' >&2
+            codeblock "    run \"\$DOTY_DIRECTORY/config/tmux/doty/doty\""
+            printf '\n' >&2
             exit 1
         fi
 
-        warning "Found old ${zdot}/.tmux.conf."
-        info "Backing up to ${OLD_TMUX}"
+        warning "Found existing $(fmt_code "${zdot}/.tmux.conf")."
+        info "Backing up to $(fmt_code "${OLD_TMUX}")."
         cp "$zdot/.tmux.conf" "$OLD_TMUX"
     fi
 
-    success "Load Doty tmux configuration file and adding it to ${zdot}/.tmux.conf."
+    success "Load Doty tmux configuration file and adding it to $(fmt_code "${zdot}/.tmux.conf")."
 
     if grep -q "^run .*\/config\/tmux\/doty\/doty" "${zdot}/.tmux.conf"; then
-        warning "${DOTY}/config/tmux/doty/doty is already sourced on your .tmux.conf"
+        warning "$(fmt_code "${DOTY}/config/tmux/doty/doty") is already sourced on your .tmux.conf"
     else
         echo "run '\$DOTY_DIRECTORY/config/tmux/doty/doty'" >> ${zdot}/.tmux.conf
     fi
-    echo
+    printf '\n' >&2
 }
 
 setup_nvim() {
@@ -658,36 +746,36 @@ setup_nvim() {
     if [ -f "${zdot}/.config/nvim/init.lua" ] || [ -h "${zdot}/.config/nvim/init.lua" ]; then
         # Skip this if the user doesn't want to replace an existing .zshrc
         if [ "$KEEP_NVIMCONF" = yes ]; then
-            echo "${FMT_YELLOW}Found ${zdot}/.config/nvim/init.lua.${FMT_RESET} ${FMT_GREEN}Keeping...${FMT_RESET}"
+            printf '%sFound %s.%s %sKeeping...%s\n' "${FMT_YELLOW}" "${zdot}/.config/nvim/init.lua" "${FMT_RESET}" "${FMT_GREEN}" "${FMT_RESET}" >&2
 
             info "You need manually load doty nvim plugin to your existing nvim config file"
-            echo
-            fmt_code "vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim/after\")"
-            fmt_code "vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim\")"
-            fmt_code "require(\"doty\")"
-            echo
+            printf '\n' >&2
+            codeblock "    vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim/after\")"
+            codeblock "    vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim\")"
+            codeblock "    require(\"doty\")"
+            printf '\n' >&2
             return
         fi
 
         if [ -e "$OLD_NVIM" ]; then
-            error "$OLD_NVIM exists."
+            error "Backup nvim file $OLD_NVIM already exists."
             error "Can't back up ${zdot}/.config/nvim/init.lua re-run the installer again in a couple of seconds."
 
             info "Or, you need manually load doty nvim plugin to your existing nvim config file"
-            echo
-            fmt_code "vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim/after\")"
-            fmt_code "vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim\")"
-            fmt_code "require(\"doty\")"
-            echo
+            printf '\n' >&2
+            codeblock "    vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim/after\")"
+            codeblock "    vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim\")"
+            codeblock "    require(\"doty\")"
+            printf '\n' >&2
             exit 1
         fi
 
-        warning "Found old ${zdot}/.config/nvim/init.lua."
-        info "Backing up to ${OLD_NVIM}"
+        warning "Found existing $(fmt_code "${zdot}/.config/nvim/init.lua")."
+        info "Backing up to $(fmt_code "${OLD_NVIM}")."
         cp "${zdot}/.config/nvim/init.lua" "$OLD_NVIM"
     fi
 
-    success "Load Doty nvim plugin file and adding it to ${zdot}/.config/nvim/init.lua."
+    success "Load Doty nvim plugin file and adding it to $(fmt_code "${zdot}/.config/nvim/init.lua")."
 
     if grep -q "^require.*\"doty\"" "${zdot}/.config/nvim/init.lua"; then
         warning "Doty nvim plugin is already loaded on your .config/nvim/init.lua"
@@ -699,21 +787,20 @@ vim.opt.rtp:prepend(os.getenv("DOTY_DIRECTORY") .. "/config/nvim")
 require("doty")
 EOT
     fi
-    echo
+    printf '\n' >&2
 }
 
-setup_symlink() {
-    # Create the necessary symbolic links between the `.dotfiles` and `HOME`
-    # directory. The `bash_profile` sources other files directly from the
-    # `.dotfiles` repository.
-    header "Mirroring config files"
-    
-    symlink_files_from "config"
+setup_git() {
+    #  Set git global options and install commons tools
+    header "Configure global git options"
 
     info "Load git config"
-    git config --global --add --path core.excludesfile "${DOTY}/config/git/gitignore"
-    git config --global --add --path core.attributesfile "${DOTY}/config/git/gitattributes"
-    git config --global --includes --path include.path "${DOTY}/config/git/.gitconfig"
+    
+    register_git_config include.path "${DOTY}/libraries/gitalias/gitalias.txt"
+
+    register_git_config include.path "${DOTY}/config/git/.gitconfig"
+    register_git_config core.excludesfile "${DOTY}/config/git/gitignore"
+    register_git_config core.attributesfile "${DOTY}/config/git/gitattributes"
 
     info "Install git integration tools..."
     # Git integration
@@ -728,8 +815,20 @@ setup_symlink() {
     # Exit installation directory
     cd -
 
+    success "Git configured!"
+    printf '\n' >&2
+}
+
+setup_symlink() {
+    # Create the necessary symbolic links between the `.dotfiles` and `HOME`
+    # directory. The `bash_profile` sources other files directly from the
+    # `.dotfiles` repository.
+    header "Mirroring config files"
+    
+    symlink_files_from "config/symlink"
+
     success "Symlink dotfiles complete!"
-    echo
+    printf '\n' >&2
 }
 
 install() {
@@ -750,17 +849,18 @@ install() {
     setup_shell
     setup_tmux
     setup_nvim
+    setup_git
     setup_symlink
 
     success "Doty is now installed!"
 
     if [ $RUN_ZSH = no ]; then
         warning "Run zsh to try it out."
-        printf '\n\n'
+        printf '\n\n' >&2
         exit
     fi
 
-    printf '\n\n'
+    printf '\n\n' >&2
     exec zsh -l
 }
 
@@ -799,9 +899,7 @@ main() {
     done
 
     setup_color
-
     validate_requirements
-
     install
 }
 

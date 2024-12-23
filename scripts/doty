@@ -1,0 +1,115 @@
+#!/usr/bin/env sh
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+DOTY_DIRECTORY="$(realpath ${SCRIPT_DIR}/..)"
+TARGET_DIRECTORY="$(realpath ${TARGET_DIRECTORY:-$HOME})"
+# DOTY_TARBALL_PATH="https://github.com/yudhasetiawan/doty/tarball/master"
+# DOTY_GIT_REMOTE="git@github.com:yudhasetiawan/doty.git"
+SKIP_BREW_UPGRADE=${SKIP_BREW_UPGRADE:-0}
+
+OS="$(uname | tr '[:upper:]' '[:lower:]')"
+ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')"
+
+# If missing, download and extract the dotfiles repository
+if [[ ! -d ${DOTY_DIRECTORY} ]]; then
+    printf "$(tput setaf 7)Downloading dotfiles...\033[m\n"
+    mkdir ${DOTY_DIRECTORY}
+    # Get the tarball
+    curl -fsSLo ${HOME}/dotfiles.tar.gz ${DOTY_TARBALL_PATH}
+    # Extract to the dotfiles directory
+    tar -zxf ${HOME}/dotfiles.tar.gz --strip-components 1 -C ${DOTY_DIRECTORY}
+    # Remove the tarball
+    rm -rf ${HOME}/dotfiles.tar.gz
+fi
+
+source "${SCRIPT_DIR}/../scripts/utils"
+source "${SCRIPT_DIR}/../scripts/help"
+source "${SCRIPT_DIR}/../scripts/list"
+source "${SCRIPT_DIR}/../scripts/install"
+source "${SCRIPT_DIR}/../scripts/kube"
+
+if [[ "${OSTYPE}" == darwin* ]]; then
+    source "${SCRIPT_DIR}/../scripts/osx"
+fi
+
+function validate_requirements() {
+  # Before relying on Homebrew, check that packages can be compiled
+  if ! command_is_exists 'gcc' && [[ "${OSTYPE}" == darwin* ]]; then
+      error "The XCode Command Line Tools must be installed first."
+      echo
+      echo "Download them from: https://developer.apple.com/downloads"
+      exit 2
+  fi
+}
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        # Help text
+        -h|--help)
+            run_help
+            exit 1
+            ;;
+        # List additional software to install
+        -l|--list)
+            run_list
+            exit 1
+            ;;
+        --no-brew-upgrade)
+            SKIP_BREW_UPGRADE=1
+            shift
+            ;;
+        --dry-run)
+            if [[ "${TARGET_DIRECTORY}"  == "$(realpath ${HOME})" ]]; then
+                TARGET_DIRECTORY=$(mktemp -d)
+            fi
+
+            info "Using ${TARGET_DIRECTORY} as destination directory"
+            
+            shift
+            ;;
+        *)
+            error "Unknown argument \"${1}\""
+            echo
+
+            run_help
+            exit 2
+            ;;
+    esac
+done
+
+validate_requirements
+install_homebrew
+install_git
+# update_git_state
+
+backup_dotfiles
+
+# Ask before potentially overwriting files
+echo
+warning "This step may overwrite your existing dotfiles."
+if confirm "Install dotfiles."; then
+    echo
+    install_dotfiles
+    source ${TARGET_DIRECTORY}/.bash_profile
+else
+    echo_red "Aborting dotfile installation...\n"
+    exit 1
+fi
+
+install_packages
+
+if [[ "${OSTYPE}" == darwin* ]]; then
+    # Ask before potentially overwriting OS X defaults
+    echo
+    warning "Warning: This step may modify your OS X system defaults."
+    if confirm "Override OS X system configuration."; then
+        set_default_osx_settings
+        success "OS X settings updated! You may need to restart."
+    else
+        echo_yellow "Skipped OS X settings update."
+    fi
+fi
+
+install_kube_tools
+
+exit 1

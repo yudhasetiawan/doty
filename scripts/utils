@@ -124,3 +124,8 @@ function separator() {
     done
     echo
 }
+
+# Test whether we're in a git repo
+function is_git_repo() {
+    $(git rev-parse --is-inside-work-tree &> /dev/null)
+}
