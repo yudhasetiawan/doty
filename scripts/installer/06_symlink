@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+
+__06_symlink_files_from() {
+    # TODO: Add supports nested directory
+    for source_file in $(find -H "${1}" -type f -name '*' -maxdepth 1) ; do
+        file_name="$(basename "${source_file}")"
+        target_file="${zdot}/${file_name}"
+
+        if [ -f "$target_file" ] || [ -h "$target_file" ]; then
+            mv "$target_file" "${backup_dir}/${file_name}"
+        fi
+
+        info "Creating symlink for $(fmt_code "${file_name}") to $(fmt_code "${target_file}")"
+        # Force create/replace the symlink.
+        ln -fs "${source_file}" "${target_file}"
+    done
+}
+
+setup_symlink() {
+    # Create the necessary symbolic links between the `.dotfiles` and `HOME`
+    # directory. The `bash_profile` sources other files directly from the
+    # `.dotfiles` repository.
+    header "Mirroring config files"
+    
+    __06_symlink_files_from "${DOTY}/config/symlink"
+
+    success "Symlink dotfiles complete!"
+    printf '\n' >&2
+}
+
+setup_symlink

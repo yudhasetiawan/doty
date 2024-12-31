@@ -1,0 +1,67 @@
+#!/usr/bin/env sh
+
+# Install Homebrew if not exists
+install_homebrew() {
+    if ! command_exists "brew"; then
+        header "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+}
+
+homebrew_update() {
+    header "Updating Homebrew..."
+    # Use the latest version of Homebrew
+    brew update && success "Done" || error "brew update not successfully"
+}
+
+homebrew_upgrade() {
+    header "Updating any existing Homebrew formulae..."
+    if [ "$SKIP_BREW_UPGRADE" = yes ]; then
+        warning "Skip brew upgrade..."
+    else
+        # Upgrade any already-installed formulae
+        brew upgrade && echo_green "Done" || error "brew upgrade not successfully"
+    fi
+}
+
+homebrew_install_packages() {
+    # Check for Homebrew
+    if ! command_is_exists "brew"; then
+        error "Homebrew not found. Aborting..."
+        exit 1
+    fi
+    
+    homebrew_update
+    homebrew_upgrade
+
+    if [ "$SKIP_BREW_BUNDLE" = yes ]; then
+        warning "Skip install brew packages..."
+
+        return
+    fi
+
+    header "Install brew bundle"
+    brew bundle install --global --file="${DOTY}/Brewfile"
+
+    # Install GNU core utilities (those that come with macOS are outdated).
+    # Don’t forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
+    ln -s "$(brew --prefix)/bin/gsha256sum" "$(brew --prefix)/bin/sha256sum"
+
+    # Switch to using brew-installed bash as default shell
+    if ! fgrep -q "$(brew --prefix)/bin/bash" /etc/shells; then
+        echo "$(brew --prefix)/bin/bash" | sudo tee -a /etc/shells;
+        chsh -s "$(brew --prefix)/bin/bash";
+    fi;
+
+    # if formula_is_exists "asdf"; then
+    #     DOTY_DEVELOPMENT_DIRECTORY="${HOME}/.local/share"
+    #     asdf_dir="${ASDF_DIR:-"${DOTY_DEVELOPMENT_DIRECTORY}/asdf"}"
+    #     git clone https://github.com/asdf-vm/asdf-plugins.git "${asdf_dir}/repository"
+    # fi
+
+    # Remove outdated versions from the Cellar
+    brew cleanup
+}
+
+# install_homebrew
+# homebrew_install_packages

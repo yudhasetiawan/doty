@@ -196,39 +196,38 @@ user_can_sudo() {
 }
 
 prompt() {
-    printf '%s%s%s' $FMT_YELLOW $FMT_RESET "$1" >&2
-    read -p " ${FMT_BLACK}[y/N]${FMT_RESET} ${FMT_BOLD}" a
-    printf "${FMT_RESET}" >&2
+    printf '%s%s%s' "${FMT_YELLOW}" "$1" "${FMT_RESET}" >&2
+    read -p " ${FMT_BOLD}[y/N]${FMT_RESET} " a
     if [[ $a == "y" || $a == "Y" ]]; then
-        return 1
+        return 0
     fi
-    return 0
+    return 1
 }
 
 underline() {
-    is_tty && printf '\033[4m%s\033[24m' "$*" >&2 || printf '%s' "$*" >&2
+    is_tty && printf '\033[4m%s\033[24m' "$*" || printf '%s' "$*"
 }
 
 link() {
     # $1: text, $2: url, $3: fallback mode
     if supports_hyperlinks; then
-        printf '\033]8;;%s\033\\%s\033]8;;\033\\' "$2" "$1" >&2
+        printf '\033]8;;%s\033\\%s\033]8;;\033\\' "$2" "$1"
         return
     fi
 
     case "$3" in
-    --text) printf '%s\n' "$1" >&2 ;;
+    --text) printf '%s\n' "$1" ;;
     --url | *) underline "$2" ;;
     esac
 }
 
 # shellcheck disable=SC2016 # backtick in single-quote
 fmt_code() {
-    is_tty && printf '\033[2m%s\033[22m' "$*" >&2 || printf '`%s`' "$*" >&2
+    is_tty && printf '\033[2m%s\033[22m' "$*" || printf '`%s`' "$*"
 }
 
 codeblock() {
-    fmt_code $*
+    fmt_code $* >&2
     printf '\n' >&2
 }
 

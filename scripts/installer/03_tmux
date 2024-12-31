@@ -1,0 +1,53 @@
+#!/usr/bin/env sh
+
+setup_tmux() {
+    # Keep most recent old .tmux.conf at $backup_dir/.tmux.conf,
+    # so we never actually destroy a user's original .tmux.conf.
+    header "Looking for an existing tmux config"
+
+    tmux_conf="${zdot}/.tmux.conf"
+    # Must use this exact name so uninstall.sh can find it
+    backup_tmux="$backup_dir/.tmux.conf"
+    if [ -f "${tmux_conf}" ] || [ -h "${tmux_conf}" ]; then
+        # Skip this if the user doesn't want to replace an existing .zshrc
+        if [ "$KEEP_TMUXCONF" = yes ]; then
+            warning "Found $(fmt_code "${tmux_conf}"). Keep it..."
+            
+            info "You need manually add doty tmux config to your existing tmux config file"
+            printf '\n' >&2
+            codeblock "    run \"\$DOTY_DIRECTORY/config/tmux/doty/doty\""
+            printf '\n' >&2
+            return
+        fi
+
+        if [ -e "$backup_tmux" ]; then
+            error "Backup .tmux.conf file $backup_tmux already exists."
+            error "Can't back up ${tmux_conf} re-run the installer again in a couple of seconds."
+            printf '\n' >&2
+            exit 1
+        fi
+
+        warning "Found existing $(fmt_code "${tmux_conf}")."
+        info "Backing up to $(fmt_code "${backup_tmux}")."
+        cp "${tmux_conf}" "$backup_tmux"
+    fi
+
+    # Create tmux.conf file if it doesn't exist
+    if [ -n "${tmux_conf}" ]; then
+        warning "No .tmux.conf founds on $(fmt_code "${tmux_conf}"). Creating it..."
+        touch "${tmux_conf}"
+    fi
+
+    success "Load Doty tmux configuration file and adding it to $(fmt_code "${tmux_conf}")."
+
+    if grep -q "^run .*\/config\/tmux\/doty\/doty" "${tmux_conf}"; then
+        warning "$(fmt_code "${DOTY}/config/tmux/doty/doty") is already sourced on your .tmux.conf"
+    else
+        echo "run '\$DOTY_DIRECTORY/config/tmux/doty/doty'" >> "${tmux_conf}"
+    fi
+
+    success "Successfully add Doty to Tmux config $(fmt_code "${tmux_conf}")."
+    printf '\n' >&2
+}
+
+setup_tmux

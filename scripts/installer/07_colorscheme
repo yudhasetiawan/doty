@@ -1,0 +1,71 @@
+#!/usr/bin/env sh
+
+__07_install_iterm2_colors() {
+    filename="${1}"
+
+    if [[ ! -f "$filename" ]]; then
+        error "File not found: \"$filename\"."
+        return 1
+    elif ! (echo "$filename" | grep -qF '.itermcolors'); then
+        error "Invalid iTerm color scheme file: \"$filename\"."
+        return 1
+    fi
+
+    # Format the scheme name (capitalized)
+    name="$(echo "$filename" |
+        sed -E 's|.*/([^/]*)\.itermcolors|\1|g' |
+        sed -E 's/([0-9a-zA-Z])_([0-9a-zA-Z])/\1 \2/g; s/([0-9a-zA-Z])-([0-9a-zA-Z])/\1 \2/g;'
+    )"
+    name=($name)
+    name="${name[*]^}"
+    name="$(echo "$name" | sed -E 's| In | in |g; s| Of | of |g; s| And | and |g; s| V([0-9]+)$| v\1|g')"
+
+    preset_name="Doty Color Presets"
+    # Create '$preset_name' entry if not exists
+    if ! /usr/libexec/PlistBuddy -c "Print \"${preset_name}\"" \
+        "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
+        info "Creating $(fmt_code "${preset_name}") entry ..."
+        /usr/libexec/PlistBuddy -c "Add \"${preset_name}\" dict" \
+                    "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+    fi
+
+    # Import the color scheme
+    info "Importing color scheme $name ($(fmt_code "$filename"))..."
+    if /usr/libexec/PlistBuddy -c "Print \"${preset_name}:$name\"" \
+        "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
+        # If already installed, delete first 
+        /usr/libexec/PlistBuddy -c "Delete \"${preset_name}:$name\"" \
+                    "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+    fi
+
+    # Install directly
+    /usr/libexec/PlistBuddy \
+            -c "Add \"${preset_name}:$name\" dict" \
+            -c "Merge \"$filename\" \"${preset_name}:$name\"" \
+            "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+}
+
+install_fonts() {
+    # TODO: Check if fonts already exists
+    header "Installing fonts"
+
+    outfile="$(mktemp -d)/meslo.zip"
+    curl -s "https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest" \
+        | jq -r '.assets[] | .browser_download_url | select(contains("Meslo.zip"))' \
+        | wget -O "${outfile}" -i - 
+
+    unzip "${outfile}" -d ~/Library/Fonts
+    printf '\n' >&2
+}
+
+install_iterm() {
+    header "Installing iterm2 color scheme"
+
+    __07_install_iterm2_colors "${zdot}/config/solarized/iterm2-colors-solarized/Solarized Dark.itermcolors"
+    __07_install_iterm2_colors "${zdot}/config/solarized/iterm2-colors-solarized/Solarized Light.itermcolors"
+    
+    cp -f "${zdot}/config/solarized/apple-colorpalette-solarized/solarized.clr" "${HOME}/Library/Colors/"
+}
+
+# install_fonts
+# install_iterm

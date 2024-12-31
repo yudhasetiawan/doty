@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+
+__install_kube_krew() {
+    if command_exists "kubectl-krew"; then
+        success "Kube Krew already installed"
+        return
+    fi
+
+    info "Installing Kube Krew..."
+
+    krew_filename="krew-${OS}_${ARCH}"
+    krew_dir="$(mktemp -d)"
+    krew_file="${krew_dir}/${krew_filename}.tar.gz"
+    curl -fsSL "https://github.com/kubernetes-sigs/krew/releases/latest/download/${krew_filename}.tar.gz" -o "${krew_file}"
+    tar zxvf "${krew_file}" -C "${krew_dir}"
+    chmod +x "${krew_dir}/${KREW}"
+    "${krew_dir}/${krew_filename}" install krew
+}
+
+__install_kube_krew_plugin() {
+    if kubectl krew list | grep -E "^${1}$"; then
+        info "kubectl $(fmt_code "${1}") krew plugin is already installed"
+    else
+        kubectl krew install "${1}"
+    fi
+}
+
+# Issue:
+# - https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+install_kube_tools() {
+    header "Installing kubectl tools"
+
+    _install_kube_krew
+    __install_kube_krew_plugin "tree"
+    __install_kube_krew_plugin "neat"
+    __install_kube_krew_plugin "ctx"
+    __install_kube_krew_plugin "ns"
+
+    mkdir -p "$zdot/.kube"
+    curl -L https://rawgit.com/kubermatic/fubectl/master/fubectl.source -o "$zdot/.kube/fubectl.source"
+    printf '\n' >&2
+}
+
+# install_kube_tools
