@@ -47,21 +47,9 @@ homebrew_install_packages() {
     # Don’t forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
     ln -s "$(brew --prefix)/bin/gsha256sum" "$(brew --prefix)/bin/sha256sum"
 
-    # Switch to using brew-installed bash as default shell
-    if ! fgrep -q "$(brew --prefix)/bin/bash" /etc/shells; then
-        echo "$(brew --prefix)/bin/bash" | sudo tee -a /etc/shells;
-        chsh -s "$(brew --prefix)/bin/bash";
-    fi;
-
-    # if formula_is_exists "asdf"; then
-    #     DOTY_DEVELOPMENT_DIRECTORY="${HOME}/.local/share"
-    #     asdf_dir="${ASDF_DIR:-"${DOTY_DEVELOPMENT_DIRECTORY}/asdf"}"
-    #     git clone https://github.com/asdf-vm/asdf-plugins.git "${asdf_dir}/repository"
-    # fi
-
     # Remove outdated versions from the Cellar
     brew cleanup
 }
 
-# install_homebrew
-# homebrew_install_packages
+install_homebrew
+homebrew_install_packages

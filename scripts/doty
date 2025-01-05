@@ -26,20 +26,24 @@
 #   BRANCH  - branch to check out immediately after install (default: main)
 #
 # Other options:
-#   CHANGE_SHELL    - 'no' means the installer will not change the default shell (default: yes)
-#   RUN_ZSH         - 'no' means the installer will not run zsh after the install (default: yes)
-#   KEEP_ZSHRC      - 'yes' means the installer will not replace an existing .zshrc (default: no)
-#   KEEP_TMUXCONF   - 'yes' means the installer will not replace an existing .tmux.conf (default: no)
-#   KEEP_NVIMCONF   - 'yes' means the installer will not replace an existing nvim/init.lua (default: no)
-#   KEEP_SYMLINK    - 'yes' means the installer will not replace all symlinked files under `config/symlink` (default: no)
+#   CHANGE_SHELL         - 'no' means the installer will not change the default shell (default: yes)
+#   RUN_ZSH              - 'no' means the installer will not run zsh after the install (default: yes)
+#   KEEP_ZSHRC           - 'yes' means the installer will not replace an existing .zshrc (default: no)
+#   KEEP_TMUXCONF        - 'yes' means the installer will not replace an existing .tmux.conf (default: no)
+#   KEEP_NVIMCONF        - 'yes' means the installer will not replace an existing nvim/init.lua (default: no)
+#   KEEP_SYMLINK         - 'yes' means the installer will not replace all symlinked files under `config/symlink` (default: no)
+#   SKIP_BREW_UPGRADE    - 'yes' means the installer will not upgrade brew (default: no)
+#   SKIP_BREW_BUNDLE     - 'yes' means the installer will not install the brew bundle (default: no)
 #
 # You can also pass some arguments to the install script to set some these options:
-#   --no-change-shell: has the same behavior as setting CHANGE_SHELL to 'no'
-#   --unattended:      sets both CHANGE_SHELL and RUN_ZSH to 'no'
-#   --keep-zshrc:      sets KEEP_ZSHRC to 'yes'
-#   --keep-tmux:       sets KEEP_TMUXCONF to 'yes'
-#   --keep-nvim:       sets KEEP_NVIMCONF to 'yes'
-#   --keep-symlink:    sets KEEP_SYMLINK to 'yes'
+#   --no-change-shell:     has the same behavior as setting CHANGE_SHELL to 'no'
+#   --unattended:          sets both CHANGE_SHELL and RUN_ZSH to 'no'
+#   --keep-zshrc:          sets KEEP_ZSHRC to 'yes'
+#   --keep-tmux:           sets KEEP_TMUXCONF to 'yes'
+#   --keep-nvim:           sets KEEP_NVIMCONF to 'yes'
+#   --keep-symlink:        sets KEEP_SYMLINK to 'yes'
+#   --skip-brewupgrade:    sets SKIP_BREW_UPGRADE to 'yes'
+#   --skip-brewbundle:     sets SKIP_BREW_BUNDLE to 'yes'
 # For example:
 #   sh install --unattended
 # or:
@@ -361,6 +365,14 @@ main() {
             ;;
         --keep-symlink)
             KEEP_SYMLINK=yes
+            shift
+            ;;
+        --skip-brewupgrade)
+            SKIP_BREW_UPGRADE=yes
+            shift
+            ;;
+        --skip-brewbundle)
+            SKIP_BREW_BUNDLE=yes
             shift
             ;;
         esac
