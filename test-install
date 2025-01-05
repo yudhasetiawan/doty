@@ -1,8 +1,14 @@
 #!/usr/bin/env sh
 
-export ZDOTDIR="${HOME}/zdotdir-test"
-export DOTY_REPOSITORY_REMOTE="file://${HOME}/.doty"
+ZDOTDIR="${HOME}/zdotdir-test"
+DOTY="$ZDOTDIR/.clone-doty"
+DOTY_REPOSITORY_REMOTE="file://${HOME}/.doty" # "git@github.com:kw-yud/doty.git"
+DOTY_REPOSITORY_BRANCH="feat/installer"
+
+RUN_ZSH=no
+GIT_CONFIG_GLOBAL="${ZDOTDIR}/.gitconfig"
+DOTY_GIT_INSTALL_INTEGRATION="no"
 
 rm -Rf "${ZDOTDIR}"
 
-./scripts/install
+source "./scripts/doty"
