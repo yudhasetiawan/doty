@@ -1,0 +1,372 @@
+[
+  {
+    "key": "alt+cmd+up",
+    "desc": "Add Cursor Above",
+    "command": "editor.action.insertCursorAbove",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "alt+cmd+down",
+    "desc": "Add Cursor Below",
+    "command": "editor.action.insertCursorBelow",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "alt+cmd+.",
+    "desc": "Auto Fix...",
+    "command": "editor.action.autoFix",
+    "when": "textInputFocus && !editorReadonly && supportedCodeAction =~ /(\\s|^)quickfix\\b/"
+  },
+  {
+    "key": "cmd+.",
+    "desc": "Quick Fix...",
+    "command": "editor.action.quickFix",
+    "when": "editorHasCodeActionsProvider && textInputFocus && !editorReadonly"
+  },
+  {
+    "key": "shift+alt+down",
+    "desc": "Copy Line Down",
+    "command": "editor.action.copyLinesDownAction",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "shift+alt+up",
+    "desc": "Copy Line Up",
+    "command": "editor.action.copyLinesUpAction",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+backspace",
+    "desc": "Delete All Left",
+    "command": "deleteAllLeft",
+    "when": "textInputFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+delete",
+    "desc": "Delete All Right",
+    "command": "deleteAllRight",
+    "when": "textInputFocus && !editorReadonly"
+  },
+  {
+    "key": "shift+cmd+k",
+    "desc": "Delete Line",
+    "command": "editor.action.deleteLines",
+    "when": "textInputFocus && !editorReadonly"
+  },
+  {
+    "key": "shift+cmd+r",
+    "desc": "Developer: Reload Window",
+    "command": "workbench.action.reloadWindow",
+    "when": "false"
+  },
+  {
+    "key": "cmd+l",
+    "desc": "Expand Line Selection",
+    "command": "expandLineSelection",
+    "when": "textInputFocus"
+  },
+  {
+    "key": "ctrl+shift+right",
+    "desc": "Expand Selection",
+    "command": "editor.action.smartSelect.expand",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+cmd+right",
+    "desc": "Expand Selection",
+    "command": "editor.action.smartSelect.expand",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "cmd+k c",
+    "desc": "File: Compare Active File with Clipboard",
+    "command": "workbench.files.action.compareWithClipboard"
+  },
+  {
+    "key": "alt+cmd+c",
+    "desc": "File: Copy Path of Active File",
+    "command": "copyFilePath",
+    "when": "!editorFocus"
+  },
+  {
+    "key": "shift+alt+cmd+c",
+    "desc": "File: Copy Relative Path of Active File",
+    "command": "copyRelativeFilePath",
+    "when": "!editorFocus"
+  },
+  {
+    "key": "cmd+k s",
+    "desc": "File: Save without Formatting",
+    "command": "workbench.action.files.saveWithoutFormatting"
+  },
+  {
+    "key": "cmd+f",
+    "desc": "Find",
+    "command": "actions.find",
+    "when": "editorFocus || editorIsOpen"
+  },
+  {
+    "key": "f3",
+    "desc": "Find Next",
+    "command": "editor.action.nextMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+g",
+    "desc": "Find Next",
+    "command": "editor.action.nextMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+f3",
+    "desc": "Find Next Selection",
+    "command": "editor.action.nextSelectionMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "shift+f3",
+    "desc": "Find Previous",
+    "command": "editor.action.previousMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "shift+cmd+g",
+    "desc": "Find Previous",
+    "command": "editor.action.previousMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "shift+enter",
+    "desc": "Find Previous",
+    "command": "editor.action.previousMatchFindAction",
+    "when": "editorFocus && findInputFocussed"
+  },
+  {
+    "key": "shift+cmd+f3",
+    "desc": "Find Previous Selection",
+    "command": "editor.action.previousSelectionMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "shift+alt+f",
+    "desc": "Format Document",
+    "command": "editor.action.formatDocument",
+    "when": "editorHasDocumentFormattingProvider && editorTextFocus && !editorReadonly && !inCompositeEditor"
+  },
+  {
+    "key": "cmd+k cmd+f",
+    "desc": "Format Selection",
+    "command": "editor.action.formatSelection",
+    "when": "editorHasDocumentSelectionFormattingProvider && editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "f12",
+    "desc": "Go to Definition",
+    "command": "editor.action.revealDefinition",
+    "when": "editorHasDefinitionProvider && editorTextFocus"
+  },
+  {
+    "key": "ctrl+cmd+j",
+    "desc": "Go to Implementations",
+    "command": "editor.action.goToImplementation",
+    "when": "editorHasImplementationProvider && editorTextFocus && !isInEmbeddedEditor"
+  },
+  {
+    "key": "shift+f12",
+    "desc": "Go to References",
+    "command": "editor.action.goToReferences",
+    "when": "editorHasReferenceProvider && editorTextFocus && !inReferenceSearchEditor && !isInEmbeddedEditor"
+  },
+  {
+    "key": "cmd+]",
+    "command": "editor.action.indentLines",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+]",
+    "desc": "Indent Line",
+    "command": "editor.action.indentLines",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+[",
+    "desc": "ReIndent Line",
+    "command": "editor.action.indentLines",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "shift+cmd+enter",
+    "desc": "Insert Line Above",
+    "command": "editor.action.insertLineBefore",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+enter",
+    "desc": "Insert Line Below",
+    "command": "editor.action.insertLineAfter",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "alt+down",
+    "desc": "Move Line Down",
+    "command": "editor.action.moveLinesDownAction",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "alt+up",
+    "desc": "Move Line Up",
+    "command": "editor.action.moveLinesUpAction",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+k f12",
+    "desc": "Open Definition to the Side",
+    "command": "editor.action.revealDefinitionAside",
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+  },
+  {
+    "key": "cmd+k cmd+f12",
+    "desc": "Open Definition to the Side",
+    "command": "editor.action.revealDefinitionAside",
+    "when": "editorHasDefinitionProvider && editorTextFocus && isWeb && !isInEmbeddedEditor"
+  },
+  {
+    "key": "shift+alt+o",
+    "desc": "Organize Imports",
+    "command": "editor.action.organizeImports",
+    "when": "textInputFocus && !editorReadonly && supportedCodeAction =~ /(\\s|^)source\\.organizeImports\\b/"
+  },
+  {
+    "key": "ctrl+shift+r",
+    "desc": "Refactor...",
+    "command": "editor.action.refactor",
+    "when": "editorHasCodeActionsProvider && textInputFocus && !editorReadonly"
+  },
+  {
+    "key": "shift+alt+f12",
+    "desc": "References: Find All References",
+    "command": "references-view.findReferences",
+    "when": "editorHasReferenceProvider"
+  },
+  {
+    "key": "f2",
+    "desc": "Rename Symbol",
+    "command": "editor.action.rename",
+    "when": "editorHasRenameProvider && editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "shift+alt+a",
+    "desc": "Toggle Block Comment",
+    "command": "editor.action.blockComment",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+k cmd+x",
+    "desc": "Trim Trailing Whitespace",
+    "command": "editor.action.trimTrailingWhitespace",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+k cmd+i",
+    "desc": "Show Definition Preview Hover",
+    "command": "editor.action.showHover",
+    "when": "editorTextFocus"
+  },
+  // {
+  //   "key": "cmd+/",
+  //   "desc":"Toggle Line Comment",
+  //   "command": "editor.action.commentLine",
+  //   "when": "editorTextFocus && !editorReadonly"
+  // },
+  // {
+  //   "key": "ctrl+cmd+u",
+  //   "desc":"Transform to Uppercase",
+  //   "command": "editor.action.transformToUppercase"
+  // },
+  {
+    "key": "cmd+k cmd+l",
+    "desc": "Toggle Fold",
+    "command": "editor.toggleFold",
+    "when": "editorTextFocus && foldingEnabled"
+  },
+  {
+    "key": "alt+cmd+[",
+    "desc": "Fold / Collapsse",
+    "command": "editor.fold",
+    "when": "editorTextFocus && foldingEnabled"
+  },
+  {
+    "key": "cmd+k cmd+0",
+    "desc": "Fold All",
+    "command": "editor.foldAll",
+    "when": "editorTextFocus && foldingEnabled"
+  },
+  {
+    "key": "cmd+k cmd+/",
+    "desc": "Fold All Block Comments",
+    "command": "editor.foldAllBlockComments",
+    "when": "editorTextFocus && foldingEnabled"
+  },
+  {
+    "key": "cmd+k cmd+[",
+    "desc": "Fold Recursively",
+    "command": "editor.foldRecursively",
+    "when": "editorTextFocus && foldingEnabled"
+  },
+  {
+    "key": "alt+cmd+]",
+    "desc": "Unfold",
+    "command": "editor.unfold",
+    "when": "editorTextFocus && foldingEnabled"
+  },
+  {
+    "key": "cmd+k cmd+j",
+    "desc": "Unfold All",
+    "command": "editor.unfoldAll",
+    "when": "editorTextFocus && foldingEnabled"
+  },
+  {
+    "key": "cmd+k cmd+=",
+    "desc": "Unfold All Except Selected",
+    "command": "editor.unfoldAllExcept",
+    "when": "editorTextFocus && foldingEnabled"
+  },
+  {
+    "key": "cmd+k cmd+]",
+    "desc": "Unfold Recursively",
+    "command": "editor.unfoldRecursively",
+    "when": "editorTextFocus && foldingEnabled"
+  },
+  // {
+  //   "key": "ctrl+tab",
+  //   "desc":"View: Switch Editor in Tab Group",
+  //   "command": "workbench.action.quickOpenPreviousRecentlyUsedEditorInGroup",
+  //   "when": "!activeEditorGroupEmpty"
+  // },
+  {
+    "key": "cmd+a",
+    "desc": "Select All",
+    "command": "editor.action.selectAll"
+  },
+  {
+    "key": "cmd+x",
+    "desc": "Cut",
+    "command": "editor.action.clipboardCutAction"
+  },
+  {
+    "key": "shift+cmd+z",
+    "desc": "Redo",
+    "command": "redo"
+  },
+  {
+    "key": "cmd+z",
+    "desc": "Undo",
+    "command": "undo"
+  },
+  {
+    "key": "cmd+u",
+    "desc": "Cursor Undo",
+    "command": "cursorUndo",
+    "when": "textInputFocus"
+  }
+]
