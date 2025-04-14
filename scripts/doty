@@ -90,9 +90,6 @@ DOTY="${DOTY:-$HOME/.doty}"
 DOTY_REPOSITORY_REMOTE=${DOTY_REPOSITORY_REMOTE:-https://github.com/kw-yud/doty.git}
 DOTY_REPOSITORY_BRANCH=${DOTY_REPOSITORY_BRANCH:-main}
 
-# Installer options.
-DOTY_GIT_INSTALL_INTEGRATION=${DOTY_GIT_INSTALL_INTEGRATION:-yes}
-
 # Other options.
 CHANGE_SHELL=${CHANGE_SHELL:-yes}
 RUN_ZSH=${RUN_ZSH:-yes}
@@ -190,11 +187,6 @@ __validate_requirements() {
         exit 2
     fi
 
-    if ! command -v "make" >/dev/null 2>&1 && [ "$DOTY_GIT_INSTALL_INTEGRATION" = yes ]; then
-        __print_error "make is not installed. Please install make first or set DOTY_GIT_INSTALL_INTEGRATION to no."
-        exit 2
-    fi
-
     if [ -e "$backup_dir" ]; then
         __print_error "Backup directory $(__print_code "$backup_dir") already exists."
         __print_error "Can't back up files re-run the installer again in a couple of seconds."
@@ -274,12 +266,12 @@ __install_doty() {
         exit 1
     }
 
-    # git submodule update --init --recursive
-	# git submodule foreach 'git fetch origin; \
-	# 	git checkout $(git rev-parse --abbrev-ref HEAD); \
-	# 	git reset --hard origin/$(git rev-parse --abbrev-ref HEAD); \
-	# 	git submodule update --recursive --progress; \
-	# 	git clean -dfx'
+    git submodule update --init --recursive
+	git submodule foreach 'git fetch origin; \
+		git checkout $(git rev-parse --abbrev-ref HEAD); \
+		git reset --hard origin/$(git rev-parse --abbrev-ref HEAD); \
+		git submodule update --recursive --progress; \
+		git clean -dfx'
 
     # Exit installation directory
     cd -

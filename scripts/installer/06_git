@@ -41,21 +41,6 @@ setup_git() {
     __06_register_git_config core.excludesfile "${DOTY}/config/git/gitignore"
     __06_register_git_config core.attributesfile "${DOTY}/config/git/gitattributes"
 
-    if [ "$DOTY_GIT_INSTALL_INTEGRATION" = yes ]; then
-        info "Install git integration tools..."
-        # Git integration
-        integration_dir=$(mktemp -d)
-        git clone https://github.com/johnkeeping/git-integration ${integration_dir}
-        cd ${integration_dir}
-        echo "${zdot}/.local" > config.mak
-        make install
-        make install-doc
-        make install-completion
-
-        # Exit installation directory
-        cd -
-    fi
-
     success "Git configured!"
     printf '\n' >&2
 }
