@@ -10,8 +10,12 @@ install_homebrew() {
 
 homebrew_update() {
     header "Updating Homebrew..."
+    if [ "$SKIP_BREW_UPDATE" = yes ]; then
+        warning "Skip brew update..."
+    else
     # Use the latest version of Homebrew
     brew update && success "Done" || error "brew update not successfully"
+    fi
 }
 
 homebrew_upgrade() {

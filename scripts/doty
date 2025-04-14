@@ -32,8 +32,10 @@
 #   KEEP_TMUXCONF        - 'yes' means the installer will not replace an existing .tmux.conf (default: no)
 #   KEEP_NVIMCONF        - 'yes' means the installer will not replace an existing nvim/init.lua (default: no)
 #   KEEP_SYMLINK         - 'yes' means the installer will not replace all symlinked files under `config/symlink` (default: no)
+#   SKIP_BREW_UPDATE     - 'yes' means the installer will not update brew (default: no)
 #   SKIP_BREW_UPGRADE    - 'yes' means the installer will not upgrade brew (default: no)
 #   SKIP_BREW_BUNDLE     - 'yes' means the installer will not install the brew bundle (default: no)
+#   SKIP_OSX_SETTINGS    - 'yes' means the installer will not re-configure default OS X system settings (default: yes)
 #
 # You can also pass some arguments to the install script to set some these options:
 #   --no-change-shell:     has the same behavior as setting CHANGE_SHELL to 'no'
@@ -42,8 +44,14 @@
 #   --keep-tmux:           sets KEEP_TMUXCONF to 'yes'
 #   --keep-nvim:           sets KEEP_NVIMCONF to 'yes'
 #   --keep-symlink:        sets KEEP_SYMLINK to 'yes'
-#   --skip-brewupgrade:    sets SKIP_BREW_UPGRADE to 'yes'
-#   --skip-brewbundle:     sets SKIP_BREW_BUNDLE to 'yes'
+#   --allow-brew-update:   sets SKIP_BREW_UPDATE to 'no'
+#   --skip-brew-update:    sets SKIP_BREW_UPDATE to 'yes'
+#   --allow-brew-upgrade:  sets SKIP_BREW_UPGRADE to 'no'
+#   --skip-brew-upgrade:   sets SKIP_BREW_UPGRADE to 'yes'
+#   --allow-brew-bundle:   sets SKIP_BREW_BUNDLE to 'no'
+#   --skip-brew-bundle:    sets SKIP_BREW_BUNDLE to 'yes'
+#   --allow-osx-settings:  sets SKIP_OSX_SETTINGS to 'no'
+#   --skip-osx-settings:   sets SKIP_OSX_SETTINGS to 'yes'
 # For example:
 #   sh install --unattended
 # or:
@@ -70,6 +78,7 @@ custom_doty=${DOTY:+yes}
 # Use $zdot to keep track of where the directory is for zsh dotfiles.
 # To check if $ZDOTDIR was provided, explicitly check for $ZDOTDIR.
 zdot="${ZDOTDIR:-$HOME}"
+backup_dir="${DOTY_BACKUP_DIR:-"${zdot}/.config/doty-backups"}/$(date +%Y%m%d%H%M%S)"
 
 # Default value for $DOTY:
 # a) if $ZDOTDIR is supplied and not $HOME: $ZDOTDIR/.doty
@@ -91,10 +100,15 @@ KEEP_ZSHRC=${KEEP_ZSHRC:-no}
 KEEP_TMUXCONF=${KEEP_TMUXCONF:-no}
 KEEP_NVIMCONF=${KEEP_NVIMCONF:-no}
 KEEP_SYMLINK=${KEEP_SYMLINK:-no}
+SKIP_BREW_UPDATE=${SKIP_BREW_UPDATE:-no}
 SKIP_BREW_UPGRADE=${SKIP_BREW_UPGRADE:-no}
 SKIP_BREW_BUNDLE=${SKIP_BREW_BUNDLE:-no}
+SKIP_OSX_SETTINGS=${SKIP_OSX_SETTINGS:-yes}
 
-backup_dir="${DOTY}/.backups/$(date +%Y%m%d%H%M%S)"
+# Installer options
+INSTALL_ZSHRC_FILE="${INSTALL_ZSHRC_FILE:-"${zdot}/.zshrc"}"
+INSTALL_TMUX_CONF="${INSTALL_TMUX_CONF:-"${zdot}/.tmux.conf"}"
+INSTALL_NVIM_FILE="${INSTALL_NVIM_FILE:-"${zdot}/.config/nvim/init.lua"}"
 
 _FMT_RED=$(printf '\033[31m')
 _FMT_GREEN=$(printf '\033[32m')
@@ -311,13 +325,6 @@ __install() {
         source "${__installer}" || exit 1
     done
 
-    # setup_zshrc
-    # setup_shell
-    # setup_tmux
-    # setup_nvim
-    # setup_git
-    # setup_symlink
-
     printf '\n' >&2
     printf "$(tput setaf 64)✓$(tput sgr0) %s%s%s\n" "${_FMT_BOLD}${_FMT_PURPLE}" "Doty is now installed!" "${_FMT_RESET}" >&2
 
@@ -367,12 +374,36 @@ main() {
             KEEP_SYMLINK=yes
             shift
             ;;
-        --skip-brewupgrade)
+        --allow-brew-update)
+            SKIP_BREW_UPDATE=no
+            shift
+            ;;
+        --skip-brew-update)
+            SKIP_BREW_UPDATE=yes
+            shift
+            ;;
+        --allow-brew-upgrade)
+            SKIP_BREW_UPGRADE=no
+            shift
+            ;;
+        --skip-brew-upgrade)
             SKIP_BREW_UPGRADE=yes
             shift
             ;;
-        --skip-brewbundle)
+        --allow-brew-bundle)
+            SKIP_BREW_BUNDLE=no
+            shift
+            ;;
+        --skip-brew-bundle)
             SKIP_BREW_BUNDLE=yes
+            shift
+            ;;
+        --allow-osx-settings)
+            SKIP_OSX_SETTINGS=no
+            shift
+            ;;
+        --skip-osx-settings)
+            SKIP_OSX_SETTINGS=yes
             shift
             ;;
         esac

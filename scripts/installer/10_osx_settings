@@ -193,6 +193,12 @@ set_default_osx_settings() {
 
 if [[ "${OSTYPE}" == darwin* ]]; then
     # Ask before potentially overwriting OS X defaults
+    if [ "$SKIP_OSX_SETTINGS" = yes ]; then
+        warning "Skip OS X system defaults..."
+
+        return
+    fi
+
     warning "Warning: This step may modify your OS X system defaults."
     if prompt "Override OS X system configuration."; then
         # set_default_osx_settings

@@ -5,7 +5,7 @@ setup_tmux() {
     # so we never actually destroy a user's original .tmux.conf.
     header "Looking for an existing tmux config"
 
-    tmux_conf="${zdot}/.tmux.conf"
+    tmux_conf="${INSTALL_TMUX_CONF}"
     # Must use this exact name so uninstall.sh can find it
     backup_tmux="$backup_dir/.tmux.conf"
     if [ -f "${tmux_conf}" ] || [ -h "${tmux_conf}" ]; then

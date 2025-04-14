@@ -47,7 +47,7 @@ setup_git() {
         integration_dir=$(mktemp -d)
         git clone https://github.com/johnkeeping/git-integration ${integration_dir}
         cd ${integration_dir}
-        echo "${HOME}/.local" > config.mak
+        echo "${zdot}/.local" > config.mak
         make install
         make install-doc
         make install-completion

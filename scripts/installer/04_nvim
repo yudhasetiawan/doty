@@ -5,7 +5,7 @@ setup_nvim() {
     # so we never actually destroy a user's original nvim/init.lua.
     header "Looking for an existing nvim config"
 
-    nvim_file="${zdot}/.config/nvim/init.lua"
+    nvim_file="${INSTALL_NVIM_FILE}"
     # Must use this exact name so uninstall.sh can find it
     backup_nvim="$backup_dir/.config/nvim/init.lua"
     if [ -f "${nvim_file}" ] || [ -h "${nvim_file}" ]; then

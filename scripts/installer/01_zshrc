@@ -5,7 +5,7 @@ setup_zshrc() {
     # so we never actually destroy a user's original zshrc.
     header "Looking for an existing zsh config"
 
-    zshrc_file="${zdot}/.zshrc"
+    zshrc_file="${INSTALL_ZSHRC_FILE}"
     # Must use this exact name so uninstall.sh can find it
     backup_zshrc="$backup_dir/.zshrc"
     if [ -f "${zshrc_file}" ] || [ -h "${zshrc_file}" ]; then
@@ -43,7 +43,7 @@ setup_zshrc() {
     if grep -q "^source .*\/doty" "${zshrc_file}"; then
         warning "$(fmt_code "${DOTY}/doty") is already sourced on your .zshrc"
     else
-        # Source $DOTY/doty in .zshrc directory to use the literal $ZDOTDIR or $HOME
+        # Source $DOTY/doty in .zshrc directory
         echo "source \"${DOTY}/doty\"" >> "${zshrc_file}"
     fi
 
