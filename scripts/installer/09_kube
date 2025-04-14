@@ -35,10 +35,13 @@ setup_k8s() {
     header "Installing kubectl tools"
 
     __09_k8s_install_kube_krew
-    __09_k8s_install_krew_plugin "tree"
-    __09_k8s_install_krew_plugin "neat"
     __09_k8s_install_krew_plugin "ctx"
+    __09_k8s_install_krew_plugin "images"
+    __09_k8s_install_krew_plugin "neat"
     __09_k8s_install_krew_plugin "ns"
+    __09_k8s_install_krew_plugin "tail"
+    __09_k8s_install_krew_plugin "tree"
+    __09_k8s_install_krew_plugin "view-secret"
 
     mkdir -p "$zdot/.kube"
     curl -L https://rawgit.com/kubermatic/fubectl/master/fubectl.source -o "$zdot/.kube/fubectl.source"
