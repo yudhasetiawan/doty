@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-__05_shellcheck_git_alias() {
+__06_shellcheck_git_alias() {
     info "Checking git aliases $(fmt_code "$1")..."
 
     git config --file="$1" --null --get-regexp '^alias\.' '^!' |
@@ -15,9 +15,9 @@ __05_shellcheck_git_alias() {
     success "Successfully checked all aliases for $(fmt_code "$1")."
 }
 
-__05_register_git_config() {
+__06_register_git_config() {
     if command_exists "shellcheck"; then
-        __05_shellcheck_git_alias "$2"
+        __06_shellcheck_git_alias "$2"
     else
         warning "WARNING: Add include $(fmt_code "$1") file without shellcheck: $2"
     fi
@@ -35,11 +35,11 @@ setup_git() {
 
     info "Load git config"
     
-    __05_register_git_config include.path "${DOTY}/libraries/gitalias/gitalias.txt"
+    __06_register_git_config include.path "${DOTY}/libraries/gitalias/gitalias.txt"
 
-    __05_register_git_config include.path "${DOTY}/config/git/.gitconfig"
-    __05_register_git_config core.excludesfile "${DOTY}/config/git/gitignore"
-    __05_register_git_config core.attributesfile "${DOTY}/config/git/gitattributes"
+    __06_register_git_config include.path "${DOTY}/config/git/.gitconfig"
+    __06_register_git_config core.excludesfile "${DOTY}/config/git/gitignore"
+    __06_register_git_config core.attributesfile "${DOTY}/config/git/gitattributes"
 
     if [ "$DOTY_GIT_INSTALL_INTEGRATION" = yes ]; then
         info "Install git integration tools..."

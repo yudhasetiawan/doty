@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-__06_symlink_files_from() {
+__07_symlink_files_from() {
     # TODO: Add supports nested directory
     for source_file in $(find -H "${1}" -type f -name '*' -maxdepth 1) ; do
         file_name="$(basename "${source_file}")"
@@ -22,7 +22,7 @@ setup_symlink() {
     # `.dotfiles` repository.
     header "Mirroring config files"
     
-    __06_symlink_files_from "${DOTY}/config/symlink"
+    __07_symlink_files_from "${DOTY}/config/symlink"
 
     success "Symlink dotfiles complete!"
     printf '\n' >&2

@@ -1,24 +1,16 @@
 #!/usr/bin/env sh
 
-# Install Homebrew if not exists
-install_homebrew() {
-    if ! command_exists "brew"; then
-        header "Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
-}
-
-homebrew_update() {
+__01_homebrew_update() {
     header "Updating Homebrew..."
     if [ "$SKIP_BREW_UPDATE" = yes ]; then
         warning "Skip brew update..."
     else
-    # Use the latest version of Homebrew
-    brew update && success "Done" || error "brew update not successfully"
+        # Use the latest version of Homebrew
+        brew update && success "Done" || error "brew update not successfully"
     fi
 }
 
-homebrew_upgrade() {
+__01_homebrew_upgrade() {
     header "Updating any existing Homebrew formulae..."
     if [ "$SKIP_BREW_UPGRADE" = yes ]; then
         warning "Skip brew upgrade..."
@@ -28,15 +20,23 @@ homebrew_upgrade() {
     fi
 }
 
-homebrew_install_packages() {
+# Install Homebrew if not exists
+setup_homebrew_install() {
+    if ! command_exists "brew"; then
+        header "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+}
+
+setup_homebrew_packages() {
     # Check for Homebrew
     if ! command_is_exists "brew"; then
         error "Homebrew not found. Aborting..."
         exit 1
     fi
     
-    homebrew_update
-    homebrew_upgrade
+    __01_homebrew_update
+    __01_homebrew_upgrade
 
     if [ "$SKIP_BREW_BUNDLE" = yes ]; then
         warning "Skip install brew packages..."
@@ -55,5 +55,5 @@ homebrew_install_packages() {
     brew cleanup
 }
 
-install_homebrew
-homebrew_install_packages
+setup_homebrew_install
+setup_homebrew_packages

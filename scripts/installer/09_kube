@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-__install_kube_krew() {
+__09_k8s_install_kube_krew() {
     if command_exists "kubectl-krew"; then
         success "Kube Krew already installed"
         return
@@ -15,9 +15,13 @@ __install_kube_krew() {
     tar zxvf "${krew_file}" -C "${krew_dir}"
     chmod +x "${krew_dir}/${KREW}"
     "${krew_dir}/${krew_filename}" install krew
+    rm -Rf "${krew_dir}"
+
+    success "Successfully installing Kube Krew!"
+    printf '\n' >&2
 }
 
-__install_kube_krew_plugin() {
+__09_k8s_install_krew_plugin() {
     if kubectl krew list | grep -E "^${1}$"; then
         info "kubectl $(fmt_code "${1}") krew plugin is already installed"
     else
@@ -27,18 +31,18 @@ __install_kube_krew_plugin() {
 
 # Issue:
 # - https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
-install_kube_tools() {
+setup_k8s() {
     header "Installing kubectl tools"
 
-    _install_kube_krew
-    __install_kube_krew_plugin "tree"
-    __install_kube_krew_plugin "neat"
-    __install_kube_krew_plugin "ctx"
-    __install_kube_krew_plugin "ns"
+    __09_k8s_install_kube_krew
+    __09_k8s_install_krew_plugin "tree"
+    __09_k8s_install_krew_plugin "neat"
+    __09_k8s_install_krew_plugin "ctx"
+    __09_k8s_install_krew_plugin "ns"
 
     mkdir -p "$zdot/.kube"
     curl -L https://rawgit.com/kubermatic/fubectl/master/fubectl.source -o "$zdot/.kube/fubectl.source"
     printf '\n' >&2
 }
 
-install_kube_tools
+setup_k8s
