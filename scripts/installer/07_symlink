@@ -2,11 +2,14 @@
 
 __07_symlink_files_from() {
     # TODO: Add supports nested directory
+    # shellcheck disable=SC2044
     for source_file in $(find -H "${1}" -type f -name '*' -maxdepth 1) ; do
         file_name="$(basename "${source_file}")"
+        # shellcheck disable=SC2154
         target_file="${zdot}/${file_name}"
 
         if [ -f "$target_file" ] || [ -h "$target_file" ]; then
+            # shellcheck disable=SC2154
             mv "$target_file" "${backup_dir}/${file_name}"
         fi
 

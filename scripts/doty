@@ -309,6 +309,7 @@ __install() {
     fi
 
     for __installer in $(find -H "${DOTY}/scripts/installer" -type f -name '*' -maxdepth 1 | sort -u); do
+        info "Prepare installer: ${__installer}"
         # TODO: Ensure to run shellcheck properly
         if command_exists "shellcheck"; then
             shellcheck --shell=sh --color=always - <<< "$(cat "${__installer}")"

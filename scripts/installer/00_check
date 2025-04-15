@@ -4,7 +4,9 @@ header "Check variables"
 
 echo "USER: $USER"
 echo "HOME: $HOME"
+# shellcheck disable=SC2154
 echo "Custom Doty: $custom_doty"
+# shellcheck disable=SC2154
 echo "zDot: $zdot"
 echo "ZDOTDIR: $ZDOTDIR"
 echo "DOTY_BACKUP_DIR: $DOTY_BACKUP_DIR"

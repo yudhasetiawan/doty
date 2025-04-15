@@ -8,7 +8,10 @@ __09_k8s_install_kube_krew() {
 
     info "Installing Kube Krew..."
 
-    krew_filename="krew-${OS}_${ARCH}"
+    __doty_os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    __doty_arch="$(uname -m)"
+
+    krew_filename="krew-${__doty_os}_${__doty_arch}"
     krew_dir="$(mktemp -d)"
     krew_file="${krew_dir}/${krew_filename}.tar.gz"
     curl -fsSL "https://github.com/kubernetes-sigs/krew/releases/latest/download/${krew_filename}.tar.gz" -o "${krew_file}"

@@ -3,12 +3,16 @@
 __06_shellcheck_git_alias() {
     info "Checking git aliases $(fmt_code "$1")..."
 
+    # shellcheck disable=SC3045,SC3003
     git config --file="$1" --null --get-regexp '^alias\.' '^!' |
     while read -r -d $'\n' key
     do
         read -r -d $'\0' value
+        # shellcheck disable=SC3057
         info "    Checking $(fmt_code "${key:6}")..."  
+        # shellcheck disable=SC3011,SC3057
         shellcheck --exclude SC2094,SC2119,SC2120 --shell=sh --color=always - <<< "${value:1}"
+        # shellcheck disable=SC3057
         success "    Successfully checked $(fmt_code "${key:6}")."
     done
 
@@ -16,6 +20,7 @@ __06_shellcheck_git_alias() {
 }
 
 __06_register_git_config() {
+    info "Prepare git config: ${2}"
     if command_exists "shellcheck"; then
         __06_shellcheck_git_alias "$2"
     else

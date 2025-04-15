@@ -147,7 +147,7 @@
     # Show the diff between the latest commit and the current state.
     d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
     # `git di $number` shows the diff between the state `$number` revisions ago and the current state.
-    di = !"d() { git diff --patch-with-stat HEAD~$1; }; git diff-index --quiet HEAD -- || clear; d"
+    di = !"d() { # shellcheck disable=SC2086\ngit diff --patch-with-stat HEAD~\"$1\";}; git diff-index --quiet HEAD -- || clear; d"
 
     # Pull in remote changes for the current repository and all its submodules.
     p = pull --recurse-submodules
@@ -195,19 +195,19 @@
     aliases = config --get-regexp alias
 
     # Interactive rebase with the given number of latest commits.
-    reb = "!r() { git rebase -i HEAD~$1; }; r"
+    reb = "!r() { # shellcheck disable=SC2086\ngit rebase -i HEAD~\"$1\"; }; r"
 
     # Remove the old tag with this name and tag the latest commit with it.
-    retag = "!r() { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1; }; r"
+    retag = "!r() { git tag -d \"$1\" && git push origin \":refs/tags/$1\" && git tag \"$1\"; }; r"
 
     # Find branches containing commit
-    fb = "!f() { git branch -a --contains $1; }; f"
+    fb = "!f() { git branch -a --contains \"$1\"; }; f"
     # Find tags containing commit
-    ft = "!f() { git describe --always --contains $1; }; f"
+    ft = "!f() { git describe --always --contains \"$1\"; }; f"
     # Find commits by source code
-    fc = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short -S$1; }; f"
+    fc = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short -S \"$1\"; }; f"
     # Find commits by commit message
-    fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=$1; }; f"
+    fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=\"$1\"; }; f"
 
     p = push
     pf = push -f
@@ -224,13 +224,14 @@
 
     module-rm = "!f() { \
         _submodule_dir=$(git config --file .gitmodules --get \"submodule.$1.path\"); \
-        git submodule deinit -f -- $_submodule_dir; \
+        git submodule deinit -f -- \"$_submodule_dir\"; \
         rm -rf \".git/modules/$1\"; \
-        git rm -f $_submodule_dir; \
+        git rm -f \"$_submodule_dir\"; \
         git add .gitmodules; \
     }; f"
     module-update = "!f() { \
         git submodule update --init --recursive; \
+        # shellcheck disable=SC2016\n \
 	    git submodule foreach 'git fetch origin; \
             git checkout $(git rev-parse --abbrev-ref HEAD); \
             git reset --hard origin/$(git rev-parse --abbrev-ref HEAD); \

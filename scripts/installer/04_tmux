@@ -7,6 +7,7 @@ setup_tmux() {
 
     tmux_conf="${INSTALL_TMUX_CONF}"
     # Must use this exact name so uninstall.sh can find it
+    # shellcheck disable=SC2154
     backup_tmux="$backup_dir/.tmux.conf"
     if [ -f "${tmux_conf}" ] || [ -h "${tmux_conf}" ]; then
         # Skip this if the user doesn't want to replace an existing .zshrc

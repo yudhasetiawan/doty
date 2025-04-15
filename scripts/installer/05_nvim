@@ -7,6 +7,7 @@ setup_nvim() {
 
     nvim_file="${INSTALL_NVIM_FILE}"
     # Must use this exact name so uninstall.sh can find it
+    # shellcheck disable=SC2154
     backup_nvim="$backup_dir/.config/nvim/init.lua"
     if [ -f "${nvim_file}" ] || [ -h "${nvim_file}" ]; then
         # Skip this if the user doesn't want to replace an existing .zshrc
@@ -31,6 +32,7 @@ setup_nvim() {
 
         warning "Found existing $(fmt_code "${nvim_file}")."
         info "Backing up to $(fmt_code "${backup_nvim}")."
+        mkdir -p "$backup_dir/.config/nvim"
         cp "${nvim_file}" "${backup_nvim}"
     fi
 
@@ -46,7 +48,7 @@ setup_nvim() {
     if grep -q "^require.*\"doty\"" "${nvim_file}"; then
         warning "Doty nvim plugin is already loaded on your .config/nvim/init.lua"
     else
-        cat <<EOT >>${nvim_file}
+        cat <<EOT >>"${nvim_file}"
 vim.opt.rtp:prepend(os.getenv("DOTY_DIRECTORY") .. "/config/nvim/after")
 vim.opt.rtp:prepend(os.getenv("DOTY_DIRECTORY") .. "/config/nvim")
 

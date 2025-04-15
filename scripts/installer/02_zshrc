@@ -7,6 +7,7 @@ setup_zshrc() {
 
     zshrc_file="${INSTALL_ZSHRC_FILE}"
     # Must use this exact name so uninstall.sh can find it
+    # shellcheck disable=SC2154
     backup_zshrc="$backup_dir/.zshrc"
     if [ -f "${zshrc_file}" ] || [ -h "${zshrc_file}" ]; then
         # Skip this if the user doesn't want to replace an existing .zshrc

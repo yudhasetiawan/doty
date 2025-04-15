@@ -62,8 +62,8 @@ setup_colorscheme_fonts() {
 setup_colorscheme_iterm() {
     header "Installing iterm2 color scheme"
 
-    __08_install_iterm2_colors "${DOTY}/config/solarized/iterm2-colors-solarized/Solarized Dark.itermcolors"
-    __08_install_iterm2_colors "${DOTY}/config/solarized/iterm2-colors-solarized/Solarized Light.itermcolors"
+    __08_colorscheme_iterm2_colors "${DOTY}/config/solarized/iterm2-colors-solarized/Solarized Dark.itermcolors"
+    __08_colorscheme_iterm2_colors "${DOTY}/config/solarized/iterm2-colors-solarized/Solarized Light.itermcolors"
     
     cp -f "${DOTY}/config/solarized/apple-colorpalette-solarized/solarized.clr" "${HOME}/Library/Colors/"
 }

@@ -65,8 +65,10 @@ setup_shell() {
 
     # We're going to change the default shell, so back up the current one
     if [ -n "$SHELL" ]; then
+        # shellcheck disable=SC2154
         echo "$SHELL" > "$backup_dir/.shell"
     else
+        # shellcheck disable=SC2154
         grep "^$USER:" /etc/passwd | awk -F: '{print $7}' >"$backup_dir/.shell"
     fi
 
@@ -88,6 +90,7 @@ setup_shell() {
     fi
 
     # Check if the shell change was successful
+    # shellcheck disable=SC2181
     if [ $? -ne 0 ]; then
         error "chsh command unsuccessful."
         error "Please manually change your default shell!"
