@@ -97,6 +97,7 @@ KEEP_ZSHRC=${KEEP_ZSHRC:-no}
 KEEP_TMUXCONF=${KEEP_TMUXCONF:-no}
 KEEP_NVIMCONF=${KEEP_NVIMCONF:-no}
 KEEP_SYMLINK=${KEEP_SYMLINK:-no}
+SKIP_DOTY_CLONE=${SKIP_DOTY_CLONE:-no}
 SKIP_BREW_UPDATE=${SKIP_BREW_UPDATE:-no}
 SKIP_BREW_UPGRADE=${SKIP_BREW_UPGRADE:-no}
 SKIP_BREW_BUNDLE=${SKIP_BREW_BUNDLE:-no}
@@ -193,7 +194,7 @@ __validate_requirements() {
         exit 1
     fi
 
-    if [ -d "$DOTY" ]; then
+    if [ -d "$DOTY" ] && [ "$SKIP_DOTY_CLONE" = no ]; then
         __print_warning "The $(__print_code "\$DOTY") folder already exists ($DOTY)."
 
         if [ "$custom_doty" = yes ]; then
@@ -251,10 +252,9 @@ __install_doty() {
         git config fsck.zeroPaddedFilemode ignore &&
         git config fetch.fsck.zeroPaddedFilemode ignore &&
         git config receive.fsck.zeroPaddedFilemode ignore &&
+        git remote add origin "$DOTY_REPOSITORY_REMOTE" &&
         git config doty.remote origin &&
-        git config doty.branch "$DOTY_REPOSITORY_BRANCH" &&
-        (git remote rm origin || true) &&
-        git remote add origin "$DOTY_REPOSITORY_REMOTE"
+        git config doty.branch "$DOTY_REPOSITORY_BRANCH"
     
     git fetch --depth=1 origin &&
         git checkout -b "$DOTY_REPOSITORY_BRANCH" "origin/$DOTY_REPOSITORY_BRANCH" || {
@@ -288,7 +288,11 @@ __install() {
 
     __print_welcome "is now installing"
 
-    __install_doty
+    if [ -d "$DOTY" ] && [ "$SKIP_DOTY_CLONE" = yes ]; then
+        __print_warning "WARNING: re-use existing doty directory ($DOTY)"
+    else
+        __install_doty
+    fi
 
     # Create backup_dir folder structure if it doesn't exist
     if [ -n "$backup_dir" ]; then
