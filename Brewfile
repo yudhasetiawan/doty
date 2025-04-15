@@ -1,6 +1,3 @@
-tap "homebrew/bundle"
-tap "homebrew/cask-fonts"
-tap "homebrew/services"
 tap "jesseduffield/lazygit"
 
 ### Commons
@@ -52,7 +49,7 @@ brew "openjdk"
 brew "podman-compose"
 brew "podman"
 brew "pre-commit"
-cask "vscode"
+cask "visual-studio-code"
 brew "wrk"
 
 ### GIT
@@ -94,7 +91,7 @@ brew "yq"
 # brew "cifer"
 # brew "dex2jar"
 # brew "dns2tcp"
-brew "dnsutils"
+brew "bind"
 # brew "fcrackzip"
 # brew "foremost"
 # brew "hashpump"
@@ -110,7 +107,6 @@ brew "nmap"
 brew "tcpflow"
 # brew "tcpreplay"
 brew "tcptrace"
-brew "traceroute"
 # brew "ucspi-tcp" # `tcpserver` etc.
 brew "whois"
 # brew "xpdf"
