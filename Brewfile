@@ -74,6 +74,7 @@ brew "mold"
 
 ### UTILITIES
 brew "btop"
+brew "google-cloud-sdk"
 brew "htop"
 brew "jq"
 brew "jsonnet-bundler"
