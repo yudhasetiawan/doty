@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
-KREW_ROOT="${KREW_ROOT:-"$HOME/.kube/kube-krew"}"
+export KREW_ROOT="${KREW_ROOT:-"$HOME/.kube/kube-krew"}"
+export PATH="${KREW_ROOT}/bin:$PATH"
 
 __09_k8s_install_kube_krew() {
     if command_exists "kubectl-krew"; then
