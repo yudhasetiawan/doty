@@ -45,12 +45,10 @@ brew "webp"
 ### Development
 brew "lima"
 # brew "nodenv"
-brew "openjdk"
 brew "podman-compose"
 brew "podman"
 brew "pre-commit"
 cask "visual-studio-code"
-brew "vsce"
 brew "wrk"
 
 ### GIT
