@@ -3,6 +3,7 @@
 __08_colorscheme_iterm2_colors() {
     filename="${1}"
 
+    # shellcheck disable=SC3010
     if [[ ! -f "$filename" ]]; then
         error "File not found: \"$filename\"."
         return 1
@@ -16,12 +17,16 @@ __08_colorscheme_iterm2_colors() {
         sed -E 's|.*/([^/]*)\.itermcolors|\1|g' |
         sed -E 's/([0-9a-zA-Z])_([0-9a-zA-Z])/\1 \2/g; s/([0-9a-zA-Z])-([0-9a-zA-Z])/\1 \2/g;'
     )"
+    # shellcheck disable=SC3030,SC2206
     name=($name)
+    # shellcheck disable=SC2178,SC3059
     name="${name[*]^}"
+    # shellcheck disable=SC2178,SC2128
     name="$(echo "$name" | sed -E 's| In | in |g; s| Of | of |g; s| And | and |g; s| V([0-9]+)$| v\1|g')"
 
     preset_name="Doty Color Presets"
     # Create '$preset_name' entry if not exists
+    # shellcheck disable=SC3020
     if ! /usr/libexec/PlistBuddy -c "Print \"${preset_name}\"" \
         "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
         info "Creating $(fmt_code "${preset_name}") entry ..."
@@ -30,7 +35,9 @@ __08_colorscheme_iterm2_colors() {
     fi
 
     # Import the color scheme
+    # shellcheck disable=SC2128
     info "Importing color scheme $name ($(fmt_code "$filename"))..."
+    # shellcheck disable=SC2128,SC3020
     if /usr/libexec/PlistBuddy -c "Print \"${preset_name}:$name\"" \
         "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
         # If already installed, delete first 
@@ -39,6 +46,7 @@ __08_colorscheme_iterm2_colors() {
     fi
 
     # Install directly
+    # shellcheck disable=SC2128
     /usr/libexec/PlistBuddy \
             -c "Add \"${preset_name}:$name\" dict" \
             -c "Merge \"$filename\" \"${preset_name}:$name\"" \

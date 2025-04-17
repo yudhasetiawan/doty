@@ -48,6 +48,7 @@ setup_k8s() {
     __09_k8s_install_krew_plugin "tree"
     __09_k8s_install_krew_plugin "view-secret"
 
+    # shellcheck disable=SC2154
     mkdir -p "$zdot/.kube"
     curl -L https://rawgit.com/kubermatic/fubectl/master/fubectl.source -o "$zdot/.kube/fubectl.source"
     printf '\n' >&2
