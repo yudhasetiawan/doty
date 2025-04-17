@@ -73,7 +73,14 @@ setup_colorscheme_iterm() {
     __08_colorscheme_iterm2_colors "${DOTY}/config/solarized/iterm2-colors-solarized/Solarized Dark.itermcolors"
     __08_colorscheme_iterm2_colors "${DOTY}/config/solarized/iterm2-colors-solarized/Solarized Light.itermcolors"
     
+    eval "${DOTY}/config/color-schemes/tools/import-scheme.sh ${DOTY}/config/color-schemes/schemes/*"
+
     cp -f "${DOTY}/config/solarized/apple-colorpalette-solarized/solarized.clr" "${HOME}/Library/Colors/"
+
+    cat "${DOTY}/config/iTerm/itermprofiles.json" \
+        | sed "s;__DOTY_PROFILE_NAME__;$(whoami);g" \
+        | sed "s;__DOTY_DIRECTORY__;$(echo "$DOTY" | sed "s;\\/;\\\\\\\/;g");" \
+        > "${HOME}/Library/Application Support/iTerm2/DynamicProfiles/itermprofiles.json"
 }
 
 setup_colorscheme_fonts
