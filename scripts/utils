@@ -311,4 +311,84 @@ is_git_repo() {
     $(git rev-parse --is-inside-work-tree &> /dev/null)
 }
 
+# Detect the OS/distribution
+detect_os() {
+    # Default to unknown
+    OS_TYPE="unknown"
+
+    # Check for macOS first
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        OS_TYPE="macos"
+        return
+    fi
+
+    # Check for Termux (Android)
+    if [[ -n "$PREFIX" ]] && [[ "$PREFIX" == *com.termux* ]]; then
+        OS_TYPE="termux"
+        return
+    fi
+
+    # Check for various Linux distributions
+    if command -v lsb_release >/dev/null 2>&1; then
+        local distribution=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
+        case "$distribution" in
+            ubuntu)
+                OS_TYPE="ubuntu"
+                ;;
+            debian)
+                OS_TYPE="debian"
+                ;;
+            fedora)
+                OS_TYPE="fedora"
+                ;;
+            archlinux|arch)
+                OS_TYPE="arch"
+                ;;
+            *)
+                OS_TYPE="linux"
+                ;;
+        esac
+        return
+    fi
+
+    # Alternative detection methods for distributions without lsb_release
+    if [[ -f /etc/os-release ]]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        local id=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
+        case "$id" in
+            ubuntu)
+                OS_TYPE="ubuntu"
+                ;;
+            debian)
+                OS_TYPE="debian"
+                ;;
+            fedora)
+                OS_TYPE="fedora"
+                ;;
+            arch)
+                OS_TYPE="arch"
+                ;;
+            *)
+                OS_TYPE="linux"
+                ;;
+        esac
+        return
+    fi
+
+    # Fallback for other Unix-like systems
+    if command -v uname >/dev/null 2>&1; then
+        local uname_output=$(uname -s | tr '[:upper:]' '[:lower:]')
+        case "$uname_output" in
+            linux)
+                OS_TYPE="linux"
+                ;;
+            *)
+                OS_TYPE="unix"
+                ;;
+        esac
+        return
+    fi
+}
+
 setup_color

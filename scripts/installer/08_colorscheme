@@ -59,15 +59,57 @@ setup_colorscheme_fonts() {
         return
     fi
 
-    # TODO: Check if fonts already exists
-    header "Installing fonts"
+    # Detect OS
+    detect_os
+    header "Installing fonts on $OS_TYPE"
 
+    # Create temporary file for download
     outfile="$(mktemp -d)/meslo.zip"
+
+    # Download the latest Meslo Nerd Font
+    info "Downloading latest Meslo Nerd Font..."
     curl -s "https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest" \
         | jq -r '.assets[] | .browser_download_url | select(contains("Meslo.zip"))' \
         | wget -O "${outfile}" -i - 
 
-    unzip "${outfile}" -d "${HOME}/Library/Fonts"
+    # Install fonts based on OS type
+    case "$OS_TYPE" in
+        macos)
+            # macOS - install to ~/Library/Fonts
+            info "Installing fonts to ~/Library/Fonts..."
+            unzip -o "${outfile}" -d "${HOME}/Library/Fonts"
+            ;;
+        termux)
+            # Termux (Android) - install to ~/.termux/fonts
+            info "Installing fonts to ~/.termux/fonts..."
+            mkdir -p "${HOME}/.termux/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.termux/fonts"
+            # Restart termux to apply fonts
+            info "Please restart Termux to apply the new fonts"
+            ;;
+        ubuntu|debian|fedora|arch|linux)
+            # Generic Linux - install to ~/.local/share/fonts
+            info "Installing fonts to ~/.local/share/fonts..."
+            mkdir -p "${HOME}/.local/share/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
+            # Update font cache if available
+            if command -v fc-cache >/dev/null 2>&1; then
+                fc-cache -fv "${HOME}/.local/share/fonts"
+            fi
+            ;;
+        *)
+            # Unknown OS - try generic approach
+            warning "Unknown OS type. Installing fonts to ~/.local/share/fonts..."
+            mkdir -p "${HOME}/.local/share/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
+            # Update font cache if available
+            if command -v fc-cache >/dev/null 2>&1; then
+                fc-cache -fv "${HOME}/.local/share/fonts"
+            fi
+            ;;
+    esac
+
+    # Clean up temporary file
     rm -Rf "${outfile}"
     printf '\n' >&2
 }
@@ -75,6 +117,15 @@ setup_colorscheme_fonts() {
 setup_colorscheme_iterm() {
     if [ "$SKIP_COLORSCHEME_INSTALL" = yes ]; then
         warning "Skip iTerm color scheme installation..."
+        return
+    fi
+
+    # Detect OS
+    detect_os
+
+    # iTerm is only available on macOS
+    if [ "$OS_TYPE" != "macos" ]; then
+        info "Skipping iTerm color scheme installation on non-macOS system..."
         return
     fi
 
