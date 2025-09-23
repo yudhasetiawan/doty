@@ -44,10 +44,11 @@ brew "webp"
 
 ### Development
 brew "lima"
-# brew "nodenv"
 brew "podman-compose"
 brew "podman"
 brew "pre-commit"
+brew "git-delta" # Syntax-highlighting pager for git
+brew "gh" # GitHub CLI
 cask "visual-studio-code"
 brew "wrk"
 

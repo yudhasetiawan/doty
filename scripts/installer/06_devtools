@@ -1,0 +1,86 @@
+#!/usr/bin/env sh
+
+# Install development tools needed for Neovim LSP and other features using mise as the tool version manager
+
+setup_devtools() {
+    header "Installing development tools for Neovim using mise"
+
+    # Check for mise
+    if ! command -v "mise" >/dev/null 2>&1; then
+        warning "mise not found. Please install mise first. Skipping development tools installation."
+        return
+    fi
+
+    info "Setting up development tools with mise..."
+
+    # Install core runtime environments
+    info "Installing core runtime environments..."
+    mise use -g node@latest
+    mise use -g python@latest
+    mise use -g rust@latest
+    mise use -g go@latest
+    mise use -g lua@latest
+
+    # Install language servers
+    info "Installing language servers..."
+    mise use -g bash-language-server@latest
+    mise use -g dockerfile-language-server@latest
+    mise use -g helm-ls@latest
+    mise use -g lua-language-server@latest
+    mise use -g marksman@latest
+    mise use -g pyright@latest
+    mise use -g rust-analyzer@latest
+    mise use -g taplo@latest
+    mise use -g terraform-ls@latest
+    mise use -g vim-language-server@latest
+    mise use -g yaml-language-server@latest
+
+    # Special handling for ansible-language-server which might need to be installed via npm
+    if command -v "npm" >/dev/null 2>&1; then
+        info "Installing ansible-language-server via npm..."
+        npm install -g @ansible/ansible-language-server
+    fi
+
+    # Install formatters
+    info "Installing formatters..."
+    mise use -g black@latest
+    mise use -g prettier@latest
+    mise use -g shfmt@latest
+    mise use -g stylua@latest
+
+    # Install linters
+    info "Installing linters..."
+    mise use -g ansible-lint@latest
+    mise use -g golangci-lint@latest
+    mise use -g hadolint@latest
+    mise use -g luacheck@latest
+    mise use -g shellcheck@latest
+    mise use -g yamllint@latest
+
+    # Install additional tools that might be needed by Mason
+    info "Installing additional tools for Mason..."
+
+    # Install tree-sitter CLI for Treesitter parsers
+    if ! command -v "tree-sitter" >/dev/null 2>&1; then
+        warning "tree-sitter not found. You may need to install it separately."
+    fi
+
+    # Install Python tools via pip
+    if command -v "pip3" >/dev/null 2>&1; then
+        info "Installing Python development tools via pip..."
+        pip3 install --upgrade pip
+        # Install tools that are commonly used with Neovim
+        pip3 install --user neovim
+    fi
+
+    # Install Rust tools via cargo
+    if command -v "cargo" >/dev/null 2>&1; then
+        info "Installing Rust development tools via cargo..."
+        # Install tools that are commonly used with Neovim
+        cargo install stylua 2>/dev/null || true # Might already be installed via mise
+    fi
+
+    success "Development tools installation completed with mise."
+}
+
+setup_devtools
