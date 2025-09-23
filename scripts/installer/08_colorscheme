@@ -54,6 +54,11 @@ __08_colorscheme_iterm2_colors() {
 }
 
 setup_colorscheme_fonts() {
+    if [ "$SKIP_COLORSCHEME_INSTALL" = yes ]; then
+        warning "Skip color scheme fonts installation..."
+        return
+    fi
+
     # TODO: Check if fonts already exists
     header "Installing fonts"
 
@@ -68,6 +73,11 @@ setup_colorscheme_fonts() {
 }
 
 setup_colorscheme_iterm() {
+    if [ "$SKIP_COLORSCHEME_INSTALL" = yes ]; then
+        warning "Skip iTerm color scheme installation..."
+        return
+    fi
+
     header "Installing iterm2 color scheme"
 
     __08_colorscheme_iterm2_colors "${DOTY}/config/solarized/iterm2-colors-solarized/Solarized Dark.itermcolors"

@@ -22,6 +22,11 @@ __01_homebrew_upgrade() {
 
 # Install Homebrew if not exists
 setup_homebrew_install() {
+    if [ "$SKIP_BREW_INSTALL" = yes ]; then
+        warning "Skip Homebrew installation..."
+        return
+    fi
+
     if ! command -v "brew" >/dev/null 2>&1; then
         header "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -31,8 +36,13 @@ setup_homebrew_install() {
 setup_homebrew_packages() {
     # Check for Homebrew
     if ! command -v "brew" >/dev/null 2>&1; then
-        error "Homebrew not found. Aborting..."
-        exit 1
+        if [ "$SKIP_BREW_INSTALL" = yes ]; then
+            warning "Homebrew not found, but SKIP_BREW_INSTALL is set. Skipping Homebrew packages installation."
+            return
+        else
+            error "Homebrew not found. Aborting..."
+            exit 1
+        fi
     fi
     
     __01_homebrew_update
