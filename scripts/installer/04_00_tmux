@@ -1,6 +1,30 @@
 #!/usr/bin/env sh
 
 setup_tmux() {
+    # Install tmux if not skipped
+    if [ "$SKIP_TMUX_INSTALL" = no ]; then
+        if ! command -v "brew" >/dev/null 2>&1; then
+            error "Cannot install tmux. Homebrew is not installed."
+            return
+        fi
+
+        header "Installing tmux package"
+        if brew list tmux &>/dev/null; then
+            info "tmux is already installed"
+        else
+            brew install tmux
+        fi
+    else
+        warning "SKIP_TMUX_INSTALL is set to 'yes'. Skipping tmux package installation."
+    fi
+
+    # Check if tmux configuration should be skipped
+    if [ "$SKIP_TMUX_CONFIG" = yes ]; then
+        warning "SKIP_TMUX_CONFIG is set to 'yes'. Skipping Tmux configuration setup."
+        printf '\n' >&2
+        return
+    fi
+
     # Keep most recent old .tmux.conf at $backup_dir/.tmux.conf,
     # so we never actually destroy a user's original .tmux.conf.
     header "Looking for an existing tmux config"

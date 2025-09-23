@@ -1,0 +1,42 @@
+// Default layout similar to tmux configuration
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="zjstatus" {
+                format_left   "{mode} #[fg=#80D4FF,bold]{session}"
+                format_center "{tabs}"
+                format_right  "{pipe_zjstatus_hints}{datetime}"
+                format_space  ""
+
+                border_enabled  "false"
+                border_char     "─"
+                border_format   "#[fg=#5C6773]{char}"
+                border_position "top"
+
+                hide_frame_for_single_pane "true"
+
+                mode_normal  "#[bg=blue] "
+                mode_tmux    "#[bg=#FFC44C] "
+
+                tab_normal   "#[fg=#607080] {name} "
+                tab_active   "#[fg=#D9D7CE,bold,italic] {name} "
+
+                datetime        "#[fg=#607080,bold] {format} "
+                datetime_format "%A, %d %b %Y %H:%M"
+                datetime_timezone "UTC"
+
+                // zjstatus-hints integration
+                pipe_zjstatus_hints_format "{output}"
+            }
+        }
+    }
+
+    // Flexible main pane - only one pane by default (simpler than the original)
+    pane {
+        // Main content pane
+        pane {
+            // Default command that can be overridden - runs shell by default
+        }
+    }
+}

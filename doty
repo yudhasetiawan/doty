@@ -110,6 +110,7 @@ if [[ -z $plugins ]]; then
         tmux
 
         doty
+        zellij
         zsh-autosuggestions
         zsh-syntax-highlighting
     )

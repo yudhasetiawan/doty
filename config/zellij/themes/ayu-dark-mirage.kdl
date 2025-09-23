@@ -1,0 +1,134 @@
+themes {
+    // Custom ayu-dark-mirage theme based on the neovim-ayu theme colors
+    ayu-dark-mirage {
+       // emphasis_0 255 102 102 // #FF6666 - error
+       // emphasis_1 117 123 132 // #757B84 - gutter_active
+       // emphasis_1 108 122 139 // #6C7A8B - comment
+       // emphasis_0 255 223 179 // #FFDFB3 - special
+       text_unselected {
+            base 204 202 194 // #CCCAC2 - fg
+            background 31 36 48 // #1F2430 - bg
+            emphasis_0 255 223 179 // #FFDFB3 - special
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 92 207 230 // #5CCFE6 - tag
+            emphasis_3 223 191 255 // #DFBFFF - constant
+        }
+        text_selected {
+            base 204 202 194 // #CCCAC2 - fg
+            background 39 67 100 // #274364 - selection_bg
+            emphasis_0 255 204 102 // #FFCC66 - accent
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 92 207 230 // #5CCFE6 - tag
+            emphasis_3 223 191 255 // #DFBFFF - constant
+        }
+        ribbon_unselected {
+            base 204 202 194 // #CCCAC2 - fg
+            background 35 52 75 // #23344B - selection_inactive
+            emphasis_0 255 223 179 // #FFDFB3 - special
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 92 207 230 // #5CCFE6 - tag
+            emphasis_3 223 191 255 // #DFBFFF - constant
+        }
+        ribbon_selected {
+            base 204 202 194 // #CCCAC2 - fg
+            background 39 67 100 // #274364 - selection_bg
+            emphasis_0 255 204 102 // #FFCC66 - accent
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 92 207 230 // #5CCFE6 - tag
+            emphasis_3 223 191 255 // #DFBFFF - constant
+        }
+        table_title {
+            base 213 255 128 // #D5FF80 - string
+            background 0 // #000000
+            emphasis_0 255 223 179 // #FFDFB3 - special
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 92 207 230 // #5CCFE6 - tag
+            emphasis_3 223 191 255 // #DFBFFF - constant
+        }
+        table_cell_unselected {
+            base 204 202 194 // #CCCAC2 - fg
+            background 31 36 48 // #1F2430 - bg
+            emphasis_0 255 223 179 // #FFDFB3 - special
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 92 207 230 // #5CCFE6 - tag
+            emphasis_3 223 191 255 // #DFBFFF - constant
+        }
+        table_cell_selected {
+            base 204 202 194 // #CCCAC2 - fg
+            background 39 67 100 // #274364 - selection_bg
+            emphasis_0 255 204 102 // #FFCC66 - accent
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 92 207 230 // #5CCFE6 - tag
+            emphasis_3 223 191 255 // #DFBFFF - constant
+        }
+        list_unselected {
+            base 204 202 194 // #CCCAC2 - fg
+            background 31 36 48 // #1F2430 - bg
+            emphasis_0 255 223 179 // #FFDFB3 - special
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 92 207 230 // #5CCFE6 - tag
+            emphasis_3 223 191 255 // #DFBFFF - constant
+        }
+        list_selected {
+            base 204 202 194 // #CCCAC2 - fg
+            background 39 67 100 // #274364 - selection_bg
+            emphasis_0 255 204 102 // #FFCC66 - accent
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 92 207 230 // #5CCFE6 - tag
+            emphasis_3 223 191 255 // #DFBFFF - constant
+        }
+        frame_unselected {
+            base 112 122 140 // #707A8C - fg_idle
+            background 35 52 75 // #23344B - selection_inactive
+            emphasis_0 255 223 179 // #FFDFB3 - special
+            emphasis_1 213 255 128 // #D5FF80 - string
+            emphasis_2 223 191 255 // #DFBFFF - constant
+            emphasis_3 92 207 230 // #5CCFE6 - tag
+        }
+        frame_selected {
+            base 255 204 102 // #FFCC66 - accent
+            background 28 33 43 // #1C212B - panel_bg
+            emphasis_0 204 202 194 // #CCCAC2 - fg
+            emphasis_1 108 122 139 // #6C7A8B - comment
+            emphasis_2 223 191 255 // #DFBFFF - constant
+            emphasis_3 255 204 102 // #FFCC66 - accent
+        }
+        frame_highlight {
+            base 255 204 102 // #FFCC66 - accent
+            background 242 158 116 // #F29E74 - operator (accent-related)
+            emphasis_0 223 191 255 // #DFBFFF - constant
+            emphasis_1 255 204 102 // #FFCC66 - accent
+            emphasis_2 255 204 102 // #FFCC66 - accent
+            emphasis_3 255 204 102 // #FFCC66 - accent
+        }
+        exit_code_success {
+            base 213 255 128 // #D5FF80 - string
+            background 0 // #000000
+            emphasis_0 108 122 139 // #6C7A8B - comment
+            emphasis_1 31 36 48 // #1F2430 - bg
+            emphasis_2 223 191 255 // #DFBFFF - constant
+            emphasis_3 92 207 230 // #5CCFE6 - tag
+        }
+        exit_code_error {
+            base 255 102 102 // #FF6666 - error
+            background 0 // #000000
+            emphasis_0 255 204 102 // #FFCC66 - accent
+            emphasis_1 0 // #000000
+            emphasis_2 0 // #000000
+            emphasis_3 0 // #000000
+        }
+        multiplayer_user_colors {
+            player_1 223 191 255 // #DFBFFF - constant
+            player_2 92 207 230 // #5CCFE6 - tag
+            player_3 115 208 255 // #73D0FF - entity
+            player_4 255 204 102 // #FFCC66 - accent
+            player_5 108 122 139 // #6C7A8B - comment
+            player_6 242 158 116 // #F29E74 - operator
+            player_7 255 102 102 // #FF6666 - error
+            player_8 147 217 108 // #93D96C - vcs_added
+            player_9 128 191 255 // #80BFFF - vcs_modified
+            player_10 242 121 131 // #F27983 - vcs_removed
+        }
+    }
+  }
+

@@ -28,7 +28,7 @@ brew "fzf"
 brew "hey"
 brew "neovim"
 brew "thefuck"
-brew "tmux"
+brew "zellij"
 cask "font-hack-nerd-font"
 cask "iterm2"
 
@@ -50,7 +50,7 @@ brew "pre-commit"
 brew "git-delta" # Syntax-highlighting pager for git
 brew "gh" # GitHub CLI
 cask "visual-studio-code"
-brew "wrk"
+brew "work"
 
 ### GIT
 brew "git"

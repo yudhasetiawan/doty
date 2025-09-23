@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+
+setup_development_directories() {
+    header "Setting up development directories"
+
+    # Ensure development directories exist
+    info "Creating development directories..."
+
+    if [ ! -d "${DOTY_DEVELOPMENT_DIRECTORY}" ]; then
+        mkdir -p "${DOTY_DEVELOPMENT_DIRECTORY}"
+        info "Created $(fmt_code "${DOTY_DEVELOPMENT_DIRECTORY}")"
+    fi
+
+    if [ ! -d "${DOTY_DEVELOPMENT_CONFIG_DIRECTORY}" ]; then
+        mkdir -p "${DOTY_DEVELOPMENT_CONFIG_DIRECTORY}"
+        info "Created $(fmt_code "${DOTY_DEVELOPMENT_CONFIG_DIRECTORY}")"
+    fi
+
+    if [ ! -d "${DOTY_DEVELOPMENT_CACHE_DIRECTORY}" ]; then
+        mkdir -p "${DOTY_DEVELOPMENT_CACHE_DIRECTORY}"
+        info "Created $(fmt_code "${DOTY_DEVELOPMENT_CACHE_DIRECTORY}")"
+    fi
+
+    if [ ! -d "${DOTY_DEVELOPMENT_SDK_DIRECTORY}" ]; then
+        mkdir -p "${DOTY_DEVELOPMENT_SDK_DIRECTORY}"
+        info "Created $(fmt_code "${DOTY_DEVELOPMENT_SDK_DIRECTORY}")"
+    fi
+
+    success "Development directories are ready!"
+    printf '\n' >&2
+}
+
+setup_development_directories

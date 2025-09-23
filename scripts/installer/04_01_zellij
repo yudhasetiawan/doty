@@ -1,0 +1,71 @@
+#!/usr/bin/env sh
+
+setup_zellij() {
+  # Setup Zellij configuration directory
+  header "Setting up Zellij configuration"
+
+  # Check if zellij configuration should be skipped
+  if [ "$SKIP_ZELLIJ_CONFIG" = yes ]; then
+    warning "SKIP_ZELLIJ_CONFIG is set to 'yes'. Skipping Zellij configuration setup."
+    printf '\n' >&2
+    return
+  fi
+
+  # Check if zellij is installed
+  if ! command_exists "zellij"; then
+    warning "Zellij is not installed. Skipping Zellij configuration setup."
+    printf '\n' >&2
+    return
+  fi
+
+  # Define source and target directories
+  source_dir="${DOTY}/config/zellij"
+  target_dir="${DOTY_DEVELOPMENT_CONFIG_DIRECTORY}/zellij"
+
+  # Check if source directory exists
+  if [ ! -d "${source_dir}" ]; then
+    warning "Zellij config directory not found at $(fmt_code "${source_dir}"). Skipping setup."
+    printf '\n' >&2
+    return
+  fi
+
+  # Check if target directory already exists
+  if [ -d "${target_dir}" ] || [ -L "${target_dir}" ]; then
+    # Skip this if the user doesn't want to replace existing config
+    if [ "$KEEP_SYMLINK" = yes ]; then
+      warning "Found existing Zellij config at $(fmt_code "${target_dir}"). Keeping it..."
+      printf '\n' >&2
+      return
+    fi
+
+    # Backup existing configuration
+    # shellcheck disable=SC2154
+    backup_zellij_dir="${backup_dir}/.local/config/zellij"
+    mkdir -p "$(dirname "${backup_zellij_dir}")"
+
+    if [ -d "${backup_zellij_dir}" ]; then
+      error "Backup Zellij directory ${backup_zellij_dir} already exists."
+      error "Can't back up ${target_dir}. Please re-run the installer again in a couple of seconds."
+      printf '\n' >&2
+      exit 1
+    fi
+
+    warning "Found existing Zellij config at $(fmt_code "${target_dir}")."
+    info "Backing up to $(fmt_code "${backup_zellij_dir}")."
+    mv "${target_dir}" "${backup_zellij_dir}"
+  fi
+
+  # Create symlink for Zellij configuration
+  info "Creating symlink for Zellij configuration"
+  info "From: $(fmt_code "${source_dir}")"
+  info "To:   $(fmt_code "${target_dir}")"
+
+  ln -sf "${source_dir}" "${target_dir}"
+
+  zellij setup --generate-auto-start ${SHELL} >>"$HOME/.${SHELL}rc"
+
+  success "Zellij configuration successfully set up!"
+  printf '\n' >&2
+}
+
+setup_zellij

@@ -38,6 +38,9 @@
 #   SKIP_BREW_BUNDLE          - 'yes' means the installer will not install the brew bundle (default: no)
 #   SKIP_COLORSCHEME_INSTALL  - 'yes' means the installer will not install color schemes (default: no)
 #   SKIP_OSX_SETTINGS         - 'yes' means the installer will not re-configure default OS X system settings (default: yes)
+#   SKIP_ZELLIJ_CONFIG        - 'yes' means the installer will not install zellij configuration (default: no)
+#   SKIP_TMUX_CONFIG          - 'yes' means the installer will not install tmux configuration (default: no)
+#   SKIP_TMUX_INSTALL         - 'yes' means the installer will not install tmux package (default: no)
 #
 # You can also pass some arguments to the install script to set some these options:
 #   --no-change-shell:        has the same behavior as setting CHANGE_SHELL to 'no'
@@ -58,6 +61,12 @@
 #   --skip-colorscheme-install:  sets SKIP_COLORSCHEME_INSTALL to 'yes'
 #   --allow-osx-settings:     sets SKIP_OSX_SETTINGS to 'no'
 #   --skip-osx-settings:      sets SKIP_OSX_SETTINGS to 'yes'
+#   --allow-zellij-config:    sets SKIP_ZELLIJ_CONFIG to 'no'
+#   --skip-zellij-config:     sets SKIP_ZELLIJ_CONFIG to 'yes'
+#   --allow-tmux-config:      sets SKIP_TMUX_CONFIG to 'no'
+#   --skip-tmux-config:       sets SKIP_TMUX_CONFIG to 'yes'
+#   --allow-tmux-install:     sets SKIP_TMUX_INSTALL to 'no'
+#   --skip-tmux-install:      sets SKIP_TMUX_INSTALL to 'yes'
 # For example:
 #   sh install --unattended
 # or:
@@ -110,6 +119,9 @@ SKIP_BREW_UPGRADE=${SKIP_BREW_UPGRADE:-no}
 SKIP_BREW_BUNDLE=${SKIP_BREW_BUNDLE:-no}
 SKIP_COLORSCHEME_INSTALL=${SKIP_COLORSCHEME_INSTALL:-no}
 SKIP_OSX_SETTINGS=${SKIP_OSX_SETTINGS:-yes}
+SKIP_ZELLIJ_CONFIG=${SKIP_ZELLIJ_CONFIG:-no}
+SKIP_TMUX_CONFIG=${SKIP_TMUX_CONFIG:-no}
+SKIP_TMUX_INSTALL=${SKIP_TMUX_INSTALL:-no}
 
 # Installer options
 INSTALL_ZSHRC_FILE="${INSTALL_ZSHRC_FILE:-"${zdot}/.zshrc"}"
@@ -425,6 +437,30 @@ main() {
             ;;
         --skip-osx-settings)
             SKIP_OSX_SETTINGS=yes
+            shift
+            ;;
+        --allow-zellij-config)
+            SKIP_ZELLIJ_CONFIG=no
+            shift
+            ;;
+        --skip-zellij-config)
+            SKIP_ZELLIJ_CONFIG=yes
+            shift
+            ;;
+        --allow-tmux-config)
+            SKIP_TMUX_CONFIG=no
+            shift
+            ;;
+        --skip-tmux-config)
+            SKIP_TMUX_CONFIG=yes
+            shift
+            ;;
+        --allow-tmux-install)
+            SKIP_TMUX_INSTALL=no
+            shift
+            ;;
+        --skip-tmux-install)
+            SKIP_TMUX_INSTALL=yes
             shift
             ;;
         esac
