@@ -201,7 +201,7 @@ masonlspconfig.setup_handlers({
     settings = {
       pylsp = {
         plugins = {
-          pycodsyle = {
+          pycodestyle = {
             ignore = { "W391", "E501" },
             maxLineLength = 120,
           },
