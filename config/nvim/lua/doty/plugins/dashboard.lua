@@ -56,4 +56,11 @@ require("dashboard").setup({
       action = "Telescope find_files cwd=",
     },
   },
+  hide = {
+    -- this is expected to be 'disabled' by some but NOT ALL
+    enabled = true,
+    filetype = { 'alpha', 'dashboard', 'startup', 'snacks_dashboard' },
+    buftype = { 'terminal', 'help', 'alpha', 'dashboard', 'startup', 'snacks_dashboard' },
+  }
 })
+

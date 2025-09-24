@@ -31,12 +31,17 @@ return {
   },
   {
     "VonHeikemen/lsp-zero.nvim",
-    branch = "v3.x",
+    branch = "v5.x", -- Updated to latest version
     lazy = true,
     dependencies = {
-      "kevinhwang91/nvim-ufo",
-      "nvim-lua/lsp-status.nvim",
-      "SmiteshP/nvim-navic",
+      "mason.nvim",
+      "mason-lspconfig.nvim",
+      "neovim/nvim-lspconfig",
+      "hrsh7th/nvim-cmp",
+      "hrsh7th/cmp-nvim-lsp",
+      "williamboman/mason.nvim",
+      "williamboman/mason-lspconfig.nvim",
+      "stevearc/conform.nvim",
     },
     init = function()
       -- Disable automatic setup, we are doing it manually
@@ -56,10 +61,10 @@ return {
     end,
   },
   {
-    --
     "williamboman/mason-lspconfig.nvim",
     dependencies = {
       "williamboman/mason.nvim",
+      "neovim/nvim-lspconfig",
     },
     config = function()
       require("doty.plugins.mason-lspconfig")
@@ -72,17 +77,14 @@ return {
       "VonHeikemen/lsp-zero.nvim",
       "hrsh7th/nvim-cmp",
     },
-    event = {
-      "BufReadPre",
-      "BufNewFile",
-      "BufEnter",
-    },
+    event = { "BufReadPre", "BufNewFile" },
     config = function()
       require("doty.plugins.nvim-lspconfig")
     end,
   },
   {
     "stevearc/conform.nvim",
+    event = { "BufReadPre", "BufNewFile" },
     config = function()
       require("doty.plugins.nvim-lspconfig-conform")
     end,
@@ -113,13 +115,26 @@ return {
   -- JSON -------------------------------------------------------------
   -- towolf/vim-helm provides basic syntax highlighting and filetype detection
   -- ft = "helm" is important to not start yamlls
-  "b0o/SchemaStore.nvim",
+  {
+    "b0o/SchemaStore.nvim",
+    init = function()
+      -- This plugin provides JSON schemas for LSP
+      -- Useful for validating configuration files
+    end,
+  },
   -- END ---
 
   -- Helm -------------------------------------------------------------
   -- towolf/vim-helm provides basic syntax highlighting and filetype detection
   -- ft = "helm" is important to not start yamlls
-  { "towolf/vim-helm", ft = "helm" },
+  {
+    "towolf/vim-helm",
+    ft = "helm",
+    init = function()
+      -- Syntax highlighting for Helm templates
+      -- Only loads when Helm files are opened
+    end,
+  },
   -- END ---
 
   -- Markdown ---------------------------------------------------------

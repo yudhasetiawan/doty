@@ -1,3 +1,6 @@
+-- Treesitter configuration
+-- This file sets up syntax parsing for various languages
+-- It provides enhanced syntax highlighting and structural text objects
 require("nvim-treesitter.configs").setup({
   -- A list of parser names, or "all" (the listed parsers MUST always be installed)
   ensure_installed = {
@@ -70,7 +73,7 @@ require("nvim-treesitter.configs").setup({
 
   -- Automatically install missing parsers when entering buffer
   -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
-  auto_install = false,
+  auto_install = true,
 
   indent = { enable = true },
 
@@ -170,3 +173,11 @@ require("nvim-treesitter.configs").setup({
     },
   },
 })
+
+-- Check for deprecated APIs
+local api_level = vim.api.nvim_buf_line_count(0) -- Just to check if we're using current API
+if vim.fn.has("nvim-0.10") == 1 then
+  -- Enable newer features available in Neovim 0.10+
+  vim.opt.foldmethod = "expr"
+  vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+end

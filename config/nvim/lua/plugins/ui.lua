@@ -1,6 +1,8 @@
+-- UI and visual enhancement plugins
 return {
   {
     "nvim-lualine/lualine.nvim",
+    event = "VeryLazy",
     dependencies = {
       "yamatsum/nvim-nonicons",
       "nvim-tree/nvim-web-devicons",
@@ -14,6 +16,7 @@ return {
   },
   {
     "utilyre/barbecue.nvim",
+    event = "VeryLazy",
     dependencies = {
       "SmiteshP/nvim-navic",
       "nvim-tree/nvim-web-devicons", -- optional dependency

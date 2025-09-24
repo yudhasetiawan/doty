@@ -22,6 +22,9 @@ if not ok then
   return
 end
 
+-- Define the DOTY_DIRECTORY variable to avoid repeated calls
+local doty_directory = os.getenv("DOTY_DIRECTORY")
+
 lazy.setup("plugins", {
   defaults = {
     lazy = false,
@@ -42,7 +45,7 @@ lazy.setup("plugins", {
   },
   dev = {
     -- directory where you store your local plugin projects
-    path = os.getenv("DOTY_DIRECTORY") .. "/config/nvim/plugins",
+    path = doty_directory .. "/config/nvim/plugins",
     -- Fallback to git when local plugin doesn't exist
     fallback = false,
   },
@@ -67,8 +70,8 @@ lazy.setup("plugins", {
       reset = true,        -- reset the runtime path to $VIMRUNTIME and your config directory
       ---@type string[]
       paths = {            -- add any custom paths here that you want to includes in the rtp
-        os.getenv("DOTY_DIRECTORY") .. "/config/nvim/after",
-        os.getenv("DOTY_DIRECTORY") .. "/config/nvim",
+        doty_directory .. "/config/nvim/after",
+        doty_directory .. "/config/nvim",
       },
       ---@type string[] list any plugins you want to disable here
       disabled_plugins = {
