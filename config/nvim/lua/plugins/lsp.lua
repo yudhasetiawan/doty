@@ -56,6 +56,9 @@ return {
   {
     --
     "williamboman/mason.nvim",
+    dependencies = {
+      "WhoIsSethDaniel/mason-tool-installer.nvim",
+    },
     config = function()
       require("doty.plugins.mason")
     end,
@@ -172,16 +175,43 @@ return {
   --     config = function() require("doty.plugins.go") end
   -- },
   -- END ---
-  -- {
-  --     "WhoIsSethDaniel/mason-tool-installer.nvim",
-  --     config = function()
-  --         require("mason-tool-installer").setup {
-  --             auto_update = true,
-  --             debounce_hours = 24,
-  --             ensure_installed = {}
-  --         }
-  --     end
-  -- },
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    lazy = false,
+    config = function()
+      require("mason-tool-installer").setup {
+        auto_update = true,
+        debounce_hours = 24,
+        ensure_installed = {
+          -- LSP servers
+          "bash-language-server",
+          "lua-language-server",
+          "typescript-language-server",
+          "eslint-lsp",
+          "jsonls",
+          "yamlls",
+          "dockerls",
+          "terraformls",
+          "gopls",
+          "pylsp",
+          "rust-analyzer",
+          -- Formatters & linters
+          "stylua",
+          "prettier",
+          "eslint_d",
+          "shellcheck",
+          "shfmt",
+          "golangci-lint",
+          "gofumpt",
+          "goimports",
+          "yamllint",
+          "flake8",
+          -- DAP debuggers
+          "codelldb",
+        }
+      }
+    end,
+  },
   -- Linters: { "jose-elias-alvarez/null-ls.nvim" } or { "mfussenegger/nvim-lint" }
   {
     "nvimtools/none-ls.nvim",
