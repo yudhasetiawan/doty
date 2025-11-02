@@ -31,7 +31,7 @@ return {
   },
   {
     "VonHeikemen/lsp-zero.nvim",
-    branch = "v5.x", -- Updated to latest version
+    branch = "v4.x", -- Updated to latest version
     lazy = true,
     dependencies = {
       "mason.nvim",
@@ -48,6 +48,8 @@ return {
       vim.g.lsp_zero_extend_cmp = false
       vim.g.lsp_zero_extend_capabilities = true
       vim.g.lsp_zero_extend_lspconfig = false
+      -- For v4.x, we need to disable the legacy setup
+      vim.g.lsp_zero_use_mason = false
     end,
     config = function()
       require("doty.plugins.lsp-zero")
