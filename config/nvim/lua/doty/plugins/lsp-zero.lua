@@ -3,7 +3,7 @@ local lsp_zero = require("lsp-zero")
 local icons = require("doty.config").icons
 local keymap = require("doty.utils.functions").keymap
 
-lsp_zero.set_server_config({
+lsp_zero.extend_lspconfig({
   capabilities = vim.tbl_deep_extend("force", {
     textDocument = {
       -- Tell the server the capability of foldingRange,
@@ -25,7 +25,7 @@ lsp_zero.format_on_save({
   },
 })
 
-lsp_zero.set_preferences({ suggest_lsp_servers = false })
+
 
 -----------------------------------------------------------
 -- UI settings
