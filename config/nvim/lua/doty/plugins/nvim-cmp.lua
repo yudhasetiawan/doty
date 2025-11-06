@@ -1,11 +1,10 @@
 local buffers = require("doty.utils.buffers")
 local cmp = require("cmp")
-local lsp_zero = require("lsp-zero")
+local cmp_action = require("doty.utils.cmp-action")
 local lspkind = require("lspkind")
-local cmp_action = lsp_zero.cmp_action()
 local icons = require("doty.config").icons
 local autocmd_group =
-    vim.api.nvim_create_augroup("DotyNvimCMP", { clear = true })
+  vim.api.nvim_create_augroup("DotyNvimCMP", { clear = true })
 
 require("luasnip.loaders.from_vscode").lazy_load()
 
@@ -20,7 +19,7 @@ local cmp_source_lsp = {
   --   end
   -- },
   { name = "treesitter" },
-  { name = "luasnip",   option = { show_autosnippets = true } }, -- For luasnip users.
+  { name = "luasnip", option = { show_autosnippets = true } }, -- For luasnip users.
   -- TODO: Should be registered for specified FileType?
   { name = "nvim_lua" },
   -- TODO: Should be registered for specified FileType?
@@ -88,7 +87,13 @@ cmp.setup({
     end, { "i", "s" }),
     -- If the completion menu is visible navigate to the previous item
     -- in the list. Else, uses the fallback.
-    ["<S-Tab>"] = cmp_action.select_prev_or_fallback(),
+    ["<S-Tab>"] = function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      else
+        fallback()
+      end
+    end,
 
     ["<Up>"] = cmp.mapping(
       cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
@@ -156,7 +161,7 @@ cmp.setup({
         tmux = "(TMUX)",
         treesitter = "(TreeSitter)",
       },
-      ellipsis_char = "...",    -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
+      ellipsis_char = "...", -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
       show_labelDetails = true, -- show labelDetails in menu. Disabled by default
 
       -- The function below will be called before any actual modifications from lspkind
@@ -165,11 +170,11 @@ cmp.setup({
         local max_width = 0
         if max_width ~= 0 and #vim_item.abbr > max_width then
           vim_item.abbr = string.sub(vim_item.abbr, 1, max_width - 1)
-              .. icons.ui.Ellipsis
+            .. icons.ui.Ellipsis
         end
         vim_item.kind = (require("lspkind").symbol_map[vim_item.kind] or "")
-            .. " "
-            .. vim_item.kind
+          .. " "
+          .. vim_item.kind
 
         if entry.source.name == "cody" then
           vim_item.kind = icons.git.Octoface

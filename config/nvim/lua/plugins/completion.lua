@@ -20,7 +20,6 @@ return {
       "saadparwaiz1/cmp_luasnip",
       "saecki/crates.nvim",
       "tamago324/cmp-zsh",
-      "VonHeikemen/lsp-zero.nvim",
     },
     config = function()
       require("doty.plugins.nvim-cmp")
@@ -55,7 +54,8 @@ return {
       completion = {
         completeopt = "menu,menuone,noinsert,noselect",
       },
-    }
+    },
+    config = function() end,
   },
   {
     "saecki/crates.nvim",

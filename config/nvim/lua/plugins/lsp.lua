@@ -1,14 +1,5 @@
 return {
   {
-    "folke/neodev.nvim",
-    dependencies = {
-      "rcarriga/nvim-dap-ui",
-    },
-    opts = function()
-      return require("doty.plugins.neodev")
-    end,
-  },
-  {
     "kevinhwang91/nvim-ufo", -- Enable folds with nvim-ufo
     dependencies = {
       "kevinhwang91/promise-async",
@@ -19,6 +10,9 @@ return {
   },
   {
     "nvim-lua/lsp-status.nvim",
+    dependencies = {
+      "neovim/nvim-lspconfig",
+    },
     config = function()
       require("doty.plugins.lsp-status")
     end,
@@ -30,36 +24,10 @@ return {
     end,
   },
   {
-    "VonHeikemen/lsp-zero.nvim",
-    branch = "v4.x", -- Updated to latest version
-    lazy = true,
-    dependencies = {
-      "mason.nvim",
-      "mason-lspconfig.nvim",
-      "neovim/nvim-lspconfig",
-      "hrsh7th/nvim-cmp",
-      "hrsh7th/cmp-nvim-lsp",
-      "williamboman/mason.nvim",
-      "williamboman/mason-lspconfig.nvim",
-      "stevearc/conform.nvim",
-    },
-    init = function()
-      -- Disable automatic setup, we are doing it manually
-      vim.g.lsp_zero_extend_cmp = false
-      vim.g.lsp_zero_extend_capabilities = true
-      vim.g.lsp_zero_extend_lspconfig = false
-      -- For v4.x, we need to disable the legacy setup
-      vim.g.lsp_zero_use_mason = false
-    end,
-    config = function()
-      require("doty.plugins.lsp-zero")
-    end,
-  },
-  {
     --
     "williamboman/mason.nvim",
     dependencies = {
-      "WhoIsSethDaniel/mason-tool-installer.nvim",
+      -- "WhoIsSethDaniel/mason-tool-installer.nvim",
     },
     config = function()
       require("doty.plugins.mason")
@@ -77,12 +45,10 @@ return {
   },
   {
     "neovim/nvim-lspconfig",
-    dependencies = {
-      "williamboman/mason-lspconfig.nvim",
-      "VonHeikemen/lsp-zero.nvim",
-      "hrsh7th/nvim-cmp",
-    },
-    event = { "BufReadPre", "BufNewFile" },
+    -- dependencies = {
+    --   "hrsh7th/nvim-cmp",
+    -- },
+    -- event = { "BufReadPre", "BufNewFile" },
     config = function()
       require("doty.plugins.nvim-lspconfig")
     end,
@@ -118,8 +84,6 @@ return {
   },
 
   -- JSON -------------------------------------------------------------
-  -- towolf/vim-helm provides basic syntax highlighting and filetype detection
-  -- ft = "helm" is important to not start yamlls
   {
     "b0o/SchemaStore.nvim",
     init = function()
@@ -162,7 +126,7 @@ return {
   -- END ---
 
   -- Golang -----------------------------------------------------------
-  "fatih/vim-go",
+  -- "fatih/vim-go",
   -- "tjdevries/green_light.nvim", -- go test in nvim
   -- "buoto/gotests-vim",          -- generate test suite
   -- {
@@ -180,8 +144,11 @@ return {
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     lazy = false,
+    dependencies = {
+      "williamboman/mason-lspconfig.nvim",
+    },
     config = function()
-      require("mason-tool-installer").setup {
+      require("mason-tool-installer").setup({
         auto_update = true,
         debounce_hours = 24,
         ensure_installed = {
@@ -194,7 +161,7 @@ return {
           "yamlls",
           "dockerls",
           "terraformls",
-          "gopls",
+          -- "gopls",
           "pylsp",
           "rust-analyzer",
           -- Formatters & linters
@@ -204,14 +171,14 @@ return {
           "shellcheck",
           "shfmt",
           "golangci-lint",
-          "gofumpt",
-          "goimports",
+          -- "gofumpt",
+          -- "goimports",
           "yamllint",
           "flake8",
           -- DAP debuggers
           "codelldb",
-        }
-      }
+        },
+      })
     end,
   },
   -- Linters: { "jose-elias-alvarez/null-ls.nvim" } or { "mfussenegger/nvim-lint" }
