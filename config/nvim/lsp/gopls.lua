@@ -1,4 +1,7 @@
 return {
+  cmd = { "gopls" },
+  filetypes = { "go", "gomod", "gowork", "gotmpl", "gosum" },
+  root_markers = { "go.mod", "go.work", ".git" },
   settings = {
     gopls = {
       gofumpt = true,
@@ -22,11 +25,81 @@ return {
         rangeVariableTypes = true,
       },
       analyses = {
+        -- NOTE: To temporarily enable disabled analyzers for specific debugging:
+        -- :lua vim.lsp.stop_client(vim.lsp.get_clients({name = "gopls"}))
+        -- Then edit this file and save, LSP will restart with new settings
+
+        -- Essential analyzers for catching common issues
+        nilness = true, -- Check for nil pointer dereferences
+        unusedparams = true, -- Find unused function parameters
+        unusedwrite = true, -- Find unused writes to variables
+        useany = true, -- Suggest using 'any' instead of 'interface{}'
+        unreachable = true, -- Find unreachable code
+        unusedresult = true, -- Check for unused results of calls to certain functions
+
+        -- Helpful but not critical (enable as needed)
+        simplifyslice = true, -- Simplify slice expressions
+        simplifyrange = true, -- Simplify range loops
+        simplifycompositelit = true, -- Simplify composite literals
+
+        -- Performance-intensive analyzers (disabled for better performance)
+        shadow = false, -- Check for shadowed variables (can be slow)
+        printf = false, -- Check printf-style functions (can be slow)
+        structtag = false, -- Check struct tags (can be slow)
+        -- fieldalignment = false,  -- Check struct field alignment (very slow)
+        -- unusedvariable = false,  -- Can be slow on large codebases
+
+        -- Less commonly needed analyzers (disabled)
+        modernize = false,
+        stylecheck = true,
+        appends = false,
+        asmdecl = false,
+        assign = false,
+        atomic = false,
+        atomicalign = false,
+        bools = false,
+        buildtag = false,
+        cgocall = false,
+        composite = false,
+        composites = false,
+        contextcheck = false,
+        copylocks = false,
+        deba = false,
+        deepequalerrors = false,
+        defers = false,
+        deprecated = true,
+        directive = false,
+        embed = false,
+        errorsas = false,
         fieldalignment = true,
-        nilness = true,
-        unusedparams = true,
-        unusedwrite = true,
-        useany = true,
+        fillreturns = false,
+        framepointer = false,
+        gofix = false,
+        hostport = false,
+        httpresponse = false,
+        ifaceassert = false,
+        infertypeargs = false,
+        loopclosure = false,
+        lostcancel = false,
+        nilfunc = true,
+        nonewvars = true,
+        noresultvalues = false,
+        shift = false,
+        sigchanyzer = false,
+        slog = true,
+        sortslice = false,
+        stdmethods = false,
+        stdversion = false,
+        stringintconv = false,
+        testinggoroutine = false,
+        tests = false,
+        timeformat = true,
+        unmarshal = false,
+        unsafeptr = false,
+        unusedfunc = false,
+        unusedvariable = false,
+        waitgroup = false,
+        yield = false,
       },
       usePlaceholders = true,
       completeUnimported = true,
@@ -38,6 +111,7 @@ return {
         "-.vscode-test",
         "-node_modules",
       },
+      semanticTokens = false,
     },
   },
 }

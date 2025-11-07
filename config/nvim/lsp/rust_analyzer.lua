@@ -1,4 +1,7 @@
 return {
+  cmd = { "rust-analyzer" },
+  root_markers = { "Cargo.lock" },
+  filetypes = { "rust" },
   -- Server-specific settings. See `:help lspconfig-setup`
   settings = {
     ["rust-analyzer"] = {
