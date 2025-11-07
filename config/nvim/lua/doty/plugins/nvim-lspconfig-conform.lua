@@ -12,7 +12,7 @@ require("conform").setup({
     go = { "gofumpt", "gofmt", "goimports", "golines" },
 
     -- HCL
-    -- hcl = { "hcl" },
+    hcl = { "hcl" },
     hcl = { "packer_fmt" },
 
     -- JSON

@@ -1,5 +1,15 @@
 return {
   {
+    "folke/neodev.nvim",
+    dependencies = {
+      "rcarriga/nvim-dap-ui",
+    },
+    opts = function()
+      return require("doty.plugins.neodev")
+    end,
+  },
+
+  {
     "nvim-telescope/telescope-dap.nvim",
     lazy = true,
     dependencies = {

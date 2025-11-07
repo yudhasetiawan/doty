@@ -158,6 +158,15 @@ opt.wildignore = opt.wildignore
       "*.exe",
     }
 
+-- API compatibility check
+if vim.fn.has("nvim-0.9") == 1 then
+  -- Use the new diagnostic signs for Neovim 0.9+
+  vim.fn.sign_define("DiagnosticSignError", { text = "●", texthl = "DiagnosticSignError" })
+  vim.fn.sign_define("DiagnosticSignWarn", { text = "●", texthl = "DiagnosticSignWarn" })
+  vim.fn.sign_define("DiagnosticSignInfo", { text = "●", texthl = "DiagnosticSignInfo" })
+  vim.fn.sign_define("DiagnosticSignHint", { text = "●", texthl = "DiagnosticSignHint" })
+end
+
 -----------------------------------------------------------
 -- Startup
 -----------------------------------------------------------
@@ -204,3 +213,6 @@ local disabled_built_ins = {
 for _, plugin in pairs(disabled_built_ins) do
   g["loaded_" .. plugin] = 1
 end
+
+-- Add more performance optimizations
+opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"

@@ -1,4 +1,6 @@
 require("mason-lspconfig").setup({
+  -- Automatically enable (vim.lsp.enable()) installed servers.
+  automatic_enable = true,
   -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
   -- This setting has no relation with the `automatic_installation` setting.
   ---@type string[]

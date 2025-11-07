@@ -20,7 +20,6 @@ return {
       "saadparwaiz1/cmp_luasnip",
       "saecki/crates.nvim",
       "tamago324/cmp-zsh",
-      "VonHeikemen/lsp-zero.nvim",
     },
     config = function()
       require("doty.plugins.nvim-cmp")
@@ -42,27 +41,46 @@ return {
   },
   {
     "petertriho/cmp-git",
+    ft = { "gitcommit", "octo" },
     config = function()
       require("doty.plugins.nvim-cmp-git")
     end,
   },
   { "ray-x/cmp-treesitter" },
-  { "saadparwaiz1/cmp_luasnip", dependencies = { "L3MON4D3/LuaSnip" } },
+  {
+    "saadparwaiz1/cmp_luasnip",
+    dependencies = { "L3MON4D3/LuaSnip" },
+    opts = {
+      completion = {
+        completeopt = "menu,menuone,noinsert,noselect",
+      },
+    },
+    config = function() end,
+  },
   {
     "saecki/crates.nvim",
-    event = {
-      "BufRead Cargo.toml",
-    },
+    ft = { "rust", "toml" },
     config = function()
       require("doty.plugins.nvim-cmp-crates")
     end,
   },
   {
     "tamago324/cmp-zsh",
+    ft = "zsh",
     config = function()
       require("doty.plugins.nvim-cmp-zsh")
     end,
   },
-  { "L3MON4D3/LuaSnip" }, -- auto generate code
+  {
+    "L3MON4D3/LuaSnip",
+    build = "make install_jsregexp",
+    opts = {
+      history = true,
+      delete_check_events = "TextChanged",
+    },
+    config = function(_, opts)
+      require("luasnip").config.set_config(opts)
+    end,
+  }, -- auto generate code
   -- {'rafamadriz/friendly-snippets'},
 }

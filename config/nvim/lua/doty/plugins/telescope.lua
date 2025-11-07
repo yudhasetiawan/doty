@@ -102,8 +102,8 @@ telescope.setup({
       local highlights = {
         {
           {
-            0,       -- highlight start position
-            #path,   -- highlight end position
+            0, -- highlight start position
+            #path, -- highlight end position
           },
           "Comment", -- highlight group name
         },
@@ -224,6 +224,13 @@ telescope.setup({
       treesitter = true,
     },
   },
+  extensions = {
+    -- Your extension configuration goes here:
+    -- extension_name = {
+    --   extension_config_key = value,
+    -- }
+    -- please take a look at the readme of the extension you want to configure
+  },
 })
 
 telescope.load_extension("dap")
@@ -233,6 +240,8 @@ telescope.load_extension("lazygit")
 telescope.load_extension("noice")
 telescope.load_extension("notify")
 telescope.load_extension("projects")
+telescope.load_extension("terraform")
+telescope.load_extension("terraform_doc")
 telescope.load_extension("ui-select")
 
 vim.api.nvim_create_autocmd("FileType", {

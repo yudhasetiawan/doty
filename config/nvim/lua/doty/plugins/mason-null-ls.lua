@@ -38,7 +38,7 @@ require("mason-null-ls").setup({
   -- Will automatically install masons tools based on selected sources in `null-ls`.
   -- Can also be an exclusion list.
   -- Example: `automatic_installation = { exclude = { "rust_analyzer", "solargraph" } }`
-  automatic_installation = false,
+  automatic_installation = true,
   -- See [#handlers-usage](#handlers-usage) section
   handlers = nil,
 })

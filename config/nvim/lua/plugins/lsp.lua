@@ -1,14 +1,5 @@
 return {
   {
-    "folke/neodev.nvim",
-    dependencies = {
-      "rcarriga/nvim-dap-ui",
-    },
-    opts = function()
-      return require("doty.plugins.neodev")
-    end,
-  },
-  {
     "kevinhwang91/nvim-ufo", -- Enable folds with nvim-ufo
     dependencies = {
       "kevinhwang91/promise-async",
@@ -19,6 +10,9 @@ return {
   },
   {
     "nvim-lua/lsp-status.nvim",
+    dependencies = {
+      "neovim/nvim-lspconfig",
+    },
     config = function()
       require("doty.plugins.lsp-status")
     end,
@@ -30,25 +24,6 @@ return {
     end,
   },
   {
-    "VonHeikemen/lsp-zero.nvim",
-    branch = "v3.x",
-    lazy = true,
-    dependencies = {
-      "kevinhwang91/nvim-ufo",
-      "nvim-lua/lsp-status.nvim",
-      "SmiteshP/nvim-navic",
-    },
-    init = function()
-      -- Disable automatic setup, we are doing it manually
-      vim.g.lsp_zero_extend_cmp = false
-      vim.g.lsp_zero_extend_capabilities = true
-      vim.g.lsp_zero_extend_lspconfig = false
-    end,
-    config = function()
-      require("doty.plugins.lsp-zero")
-    end,
-  },
-  {
     --
     "williamboman/mason.nvim",
     config = function()
@@ -56,10 +31,10 @@ return {
     end,
   },
   {
-    --
     "williamboman/mason-lspconfig.nvim",
     dependencies = {
       "williamboman/mason.nvim",
+      "neovim/nvim-lspconfig",
     },
     config = function()
       require("doty.plugins.mason-lspconfig")
@@ -67,22 +42,14 @@ return {
   },
   {
     "neovim/nvim-lspconfig",
-    dependencies = {
-      "williamboman/mason-lspconfig.nvim",
-      "VonHeikemen/lsp-zero.nvim",
-      "hrsh7th/nvim-cmp",
-    },
-    event = {
-      "BufReadPre",
-      "BufNewFile",
-      "BufEnter",
-    },
+    -- event = { "BufReadPre", "BufNewFile" },
     config = function()
       require("doty.plugins.nvim-lspconfig")
     end,
   },
   {
     "stevearc/conform.nvim",
+    event = { "BufReadPre", "BufNewFile" },
     config = function()
       require("doty.plugins.nvim-lspconfig-conform")
     end,
@@ -111,15 +78,26 @@ return {
   },
 
   -- JSON -------------------------------------------------------------
-  -- towolf/vim-helm provides basic syntax highlighting and filetype detection
-  -- ft = "helm" is important to not start yamlls
-  "b0o/SchemaStore.nvim",
+  {
+    "b0o/SchemaStore.nvim",
+    init = function()
+      -- This plugin provides JSON schemas for LSP
+      -- Useful for validating configuration files
+    end,
+  },
   -- END ---
 
   -- Helm -------------------------------------------------------------
   -- towolf/vim-helm provides basic syntax highlighting and filetype detection
   -- ft = "helm" is important to not start yamlls
-  { "towolf/vim-helm", ft = "helm" },
+  {
+    "towolf/vim-helm",
+    ft = "helm",
+    init = function()
+      -- Syntax highlighting for Helm templates
+      -- Only loads when Helm files are opened
+    end,
+  },
   -- END ---
 
   -- Markdown ---------------------------------------------------------
@@ -142,7 +120,7 @@ return {
   -- END ---
 
   -- Golang -----------------------------------------------------------
-  "fatih/vim-go",
+  -- "fatih/vim-go",
   -- "tjdevries/green_light.nvim", -- go test in nvim
   -- "buoto/gotests-vim",          -- generate test suite
   -- {
@@ -157,16 +135,46 @@ return {
   --     config = function() require("doty.plugins.go") end
   -- },
   -- END ---
-  -- {
-  --     "WhoIsSethDaniel/mason-tool-installer.nvim",
-  --     config = function()
-  --         require("mason-tool-installer").setup {
-  --             auto_update = true,
-  --             debounce_hours = 24,
-  --             ensure_installed = {}
-  --         }
-  --     end
-  -- },
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    lazy = false,
+    dependencies = {
+      "williamboman/mason-lspconfig.nvim",
+    },
+    config = function()
+      require("mason-tool-installer").setup({
+        auto_update = true,
+        debounce_hours = 24,
+        ensure_installed = {
+          -- LSP servers
+          "bash-language-server",
+          "lua-language-server",
+          "typescript-language-server",
+          "eslint-lsp",
+          "jsonls",
+          "yamlls",
+          "dockerls",
+          "terraformls",
+          "gopls",
+          "pylsp",
+          "rust-analyzer",
+          -- Formatters & linters
+          "stylua",
+          "prettier",
+          "eslint_d",
+          "shellcheck",
+          "shfmt",
+          "golangci-lint",
+          "gofumpt",
+          "goimports",
+          "yamllint",
+          "flake8",
+          -- DAP debuggers
+          "codelldb",
+        },
+      })
+    end,
+  },
   -- Linters: { "jose-elias-alvarez/null-ls.nvim" } or { "mfussenegger/nvim-lint" }
   {
     "nvimtools/none-ls.nvim",
