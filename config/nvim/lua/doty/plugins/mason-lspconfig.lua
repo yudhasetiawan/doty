@@ -14,7 +14,7 @@ require("mason-lspconfig").setup({
 
     -- Bash
     "bashls",
-    -- "awk_ls",
+    "awk_ls",
 
     -- Docker, Docker compose
     "dockerls",
@@ -25,11 +25,11 @@ require("mason-lspconfig").setup({
     "harper_ls",
 
     -- Git
-    -- "gitlab_ci_ls",
-    -- "golangci_lint_ls",
+    "gitlab_ci_ls",
+    "golangci_lint_ls",
 
     -- Go
-    -- "gopls",
+    "gopls",
     "templ",
     -- Helm Chart
     "helm_ls",
@@ -41,8 +41,8 @@ require("mason-lspconfig").setup({
 
     -- JSON, Jsonnet, jq
     "jsonls",
-    -- "jsonnet_ls",
-    -- "jqls",
+    "jsonnet_ls",
+    "jqls",
 
     -- Lua
     "lua_ls",
@@ -62,7 +62,7 @@ require("mason-lspconfig").setup({
     "rust_analyzer",
 
     -- SQL
-    -- "sqls",
+    "sqls",
 
     -- Terraform
     "terraformls",

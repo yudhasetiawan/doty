@@ -139,12 +139,12 @@ require("nvim-treesitter.configs").setup({
         ["ip"] = { query = "@parameter.inner", desc = "inside a parameter" },
       },
       selection_modes = {
-        ["@parameter.outer"] = "v",   -- charwise
-        ["@parameter.inner"] = "v",   -- charwise
-        ["@function.outer"] = "v",    -- charwise
+        ["@parameter.outer"] = "v", -- charwise
+        ["@parameter.inner"] = "v", -- charwise
+        ["@function.outer"] = "v", -- charwise
         ["@conditional.outer"] = "V", -- linewise
-        ["@loop.outer"] = "V",        -- linewise
-        ["@class.outer"] = "<c-v>",   -- blockwise
+        ["@loop.outer"] = "V", -- linewise
+        ["@class.outer"] = "<c-v>", -- blockwise
       },
       include_surrounding_whitespace = false,
     },
@@ -181,3 +181,17 @@ if vim.fn.has("nvim-0.10") == 1 then
   vim.opt.foldmethod = "expr"
   vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 end
+
+-- Only apply the highlighting on mise files instead of all toml files, the is-mise? predicate is used.
+-- If you don't care for this distinction, the lines containing (#is-mise?) can be removed.
+-- Otherwise, make sure to also create the predicate somewhere in your neovim config.
+-- See: https://mise.jdx.dev/mise-cookbook/neovim.html#code-highlight-for-run-commands
+require("vim.treesitter.query").add_predicate(
+  "is-mise?",
+  function(_, _, bufnr, _)
+    local filepath = vim.api.nvim_buf_get_name(tonumber(bufnr) or 0)
+    local filename = vim.fn.fnamemodify(filepath, ":t")
+    return string.match(filename, ".*mise.*%.toml$") ~= nil
+  end,
+  { force = true, all = false }
+)

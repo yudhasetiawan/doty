@@ -26,9 +26,6 @@ return {
   {
     --
     "williamboman/mason.nvim",
-    dependencies = {
-      -- "WhoIsSethDaniel/mason-tool-installer.nvim",
-    },
     config = function()
       require("doty.plugins.mason")
     end,
@@ -45,9 +42,6 @@ return {
   },
   {
     "neovim/nvim-lspconfig",
-    -- dependencies = {
-    --   "hrsh7th/nvim-cmp",
-    -- },
     -- event = { "BufReadPre", "BufNewFile" },
     config = function()
       require("doty.plugins.nvim-lspconfig")
@@ -161,7 +155,7 @@ return {
           "yamlls",
           "dockerls",
           "terraformls",
-          -- "gopls",
+          "gopls",
           "pylsp",
           "rust-analyzer",
           -- Formatters & linters
@@ -171,8 +165,8 @@ return {
           "shellcheck",
           "shfmt",
           "golangci-lint",
-          -- "gofumpt",
-          -- "goimports",
+          "gofumpt",
+          "goimports",
           "yamllint",
           "flake8",
           -- DAP debuggers

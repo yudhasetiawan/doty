@@ -1,23 +1,23 @@
 require("conform").setup({
   formatters_by_ft = {
     -- Shell/Bash
-    -- sh = { "shfmt", "shellcheck" },
-    -- bash = { "beautysh", "shfmt", "shellcheck", "shellharden" },
+    sh = { "shfmt", "shellcheck" },
+    bash = { "beautysh", "shfmt", "shellcheck", "shellharden" },
 
     -- Docker
     dockerfile = { "hadolint" },
 
     -- Go
     -- Conform will run multiple formatters sequentially
-    -- go = { "gofumpt", "gofmt", "goimports", "golines" },
+    go = { "gofumpt", "gofmt", "goimports", "golines" },
 
     -- HCL
-    -- hcl = { "hcl" },
+    hcl = { "hcl" },
     hcl = { "packer_fmt" },
 
     -- JSON
     json = { "prettier", "jq" },
-    -- jsonnet = { "jsonnetfmt" },
+    jsonnet = { "jsonnetfmt" },
 
     -- Lua
     lua = { "stylua" },
