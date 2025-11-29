@@ -1,0 +1,437 @@
+#!/usr/bin/env sh
+#
+# This script is based on https://github.com/ohmyzsh/ohmyzsh.
+#
+# This script should be run via curl:
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
+# or via wget:
+#   sh -c "$(wget -qO- https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
+# or via fetch:
+#   sh -c "$(fetch -o - https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
+#
+# As an alternative, you can first download the install script and run it afterwards:
+#   wget https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install
+#   sh install
+#
+# You can tweak the install behavior by setting variables when running the script. For
+# example, to change the path to the Doty repository:
+#   DOTY=~/.doty sh install
+#
+# Respects the following environment variables:
+#   ZDOTDIR - path to Zsh dotfiles directory (default: unset). See [1][2]
+#             [1] https://zsh.sourceforge.io/Doc/Release/Parameters.html#index-ZDOTDIR
+#             [2] https://zsh.sourceforge.io/Doc/Release/Files.html#index-ZDOTDIR_002c-use-of
+#   DOTY    - path to the Doty repository folder (default: $HOME/.doty)
+#   REMOTE  - full remote URL of the git repo to install (default: GitHub via HTTPS https://github.com/kw-yud/doty.git)
+#   BRANCH  - branch to check out immediately after install (default: main)
+#
+# Other options:
+#   CHANGE_SHELL              - 'no' means the installer will not change the default shell (default: yes)
+#   RUN_ZSH                   - 'no' means the installer will not run zsh after the install (default: yes)
+#   KEEP_ZSHRC                - 'yes' means the installer will not replace an existing .zshrc (default: no)
+#   KEEP_TMUXCONF             - 'yes' means the installer will not replace an existing .tmux.conf (default: no)
+#   KEEP_NVIMCONF             - 'yes' means the installer will not replace an existing nvim/init.lua (default: no)
+#   KEEP_SYMLINK              - 'yes' means the installer will not replace all symlinked files under `config/symlink` (default: no)
+#   SKIP_BREW_INSTALL         - 'yes' means the installer will not install Homebrew (default: no)
+#   SKIP_BREW_UPDATE          - 'yes' means the installer will not update brew (default: no)
+#   SKIP_BREW_UPGRADE         - 'yes' means the installer will not upgrade brew (default: no)
+#   SKIP_BREW_BUNDLE          - 'yes' means the installer will not install the brew bundle (default: no)
+#   SKIP_COLORSCHEME_INSTALL  - 'yes' means the installer will not install color schemes (default: no)
+#   SKIP_OSX_SETTINGS         - 'yes' means the installer will not re-configure default OS X system settings (default: yes)
+#
+# You can also pass some arguments to the install script to set some these options:
+#   --no-change-shell:        has the same behavior as setting CHANGE_SHELL to 'no'
+#   --unattended:             sets both CHANGE_SHELL and RUN_ZSH to 'no'
+#   --keep-zshrc:             sets KEEP_ZSHRC to 'yes'
+#   --keep-tmux:              sets KEEP_TMUXCONF to 'yes'
+#   --keep-nvim:              sets KEEP_NVIMCONF to 'yes'
+#   --keep-symlink:           sets KEEP_SYMLINK to 'yes'
+#   --allow-brew-install:     sets SKIP_BREW_INSTALL to 'no'
+#   --skip-brew-install:      sets SKIP_BREW_INSTALL to 'yes'
+#   --allow-brew-update:      sets SKIP_BREW_UPDATE to 'no'
+#   --skip-brew-update:       sets SKIP_BREW_UPDATE to 'yes'
+#   --allow-brew-upgrade:     sets SKIP_BREW_UPGRADE to 'no'
+#   --skip-brew-upgrade:      sets SKIP_BREW_UPGRADE to 'yes'
+#   --allow-brew-bundle:      sets SKIP_BREW_BUNDLE to 'no'
+#   --skip-brew-bundle:       sets SKIP_BREW_BUNDLE to 'yes'
+#   --allow-colorscheme-install: sets SKIP_COLORSCHEME_INSTALL to 'no'
+#   --skip-colorscheme-install:  sets SKIP_COLORSCHEME_INSTALL to 'yes'
+#   --allow-osx-settings:     sets SKIP_OSX_SETTINGS to 'no'
+#   --skip-osx-settings:      sets SKIP_OSX_SETTINGS to 'yes'
+# For example:
+#   sh install --unattended
+# or:
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)" "" --unattended
+
+set -e
+
+# Make sure important variables exist if not already defined.
+#
+# $USER is defined by login(1) which is not always executed (e.g. containers)
+# POSIX: https://pubs.opengroup.org/onlinepubs/009695299/utilities/id.html
+USER=${USER:-$(id -u -n)}
+
+# $HOME is defined at the time of login, but it could be unset. If it is unset,
+# a tilde by itself (~) will not be expanded to the current user's home directory.
+# POSIX: https://pubs.opengroup.org/onlinepubs/009696899/basedefs/xbd_chap08.html#tag_08_03
+HOME="${HOME:-$(getent passwd $USER 2>/dev/null | cut -d: -f6)}"
+# macOS does not have getent, but this works even if $HOME is unset.
+HOME="${HOME:-$(eval echo ~$USER)}"
+
+# Track if $DOTY was provided.
+custom_doty=${DOTY:+yes}
+
+# Use $zdot to keep track of where the directory is for zsh dotfiles.
+# To check if $ZDOTDIR was provided, explicitly check for $ZDOTDIR.
+zdot="${ZDOTDIR:-$HOME}"
+backup_dir="${DOTY_BACKUP_DIR:-"${zdot}/.config/doty-backups"}/$(date +%Y%m%d%H%M%S)"
+
+# Default value for $DOTY:
+# a) if $ZDOTDIR is supplied and not $HOME: $ZDOTDIR/.doty
+# b) otherwise, $HOME/.doty
+[ "$ZDOTDIR" = "$HOME" ] || DOTY="${DOTY:-${ZDOTDIR:+$ZDOTDIR/.doty}}"
+DOTY="${DOTY:-$HOME/.doty}"
+
+# Default settings.
+DOTY_REPOSITORY_REMOTE=${DOTY_REPOSITORY_REMOTE:-https://github.com/kw-yud/doty.git}
+DOTY_REPOSITORY_BRANCH=${DOTY_REPOSITORY_BRANCH:-main}
+
+# Other options.
+CHANGE_SHELL=${CHANGE_SHELL:-yes}
+RUN_ZSH=${RUN_ZSH:-yes}
+KEEP_ZSHRC=${KEEP_ZSHRC:-no}
+KEEP_TMUXCONF=${KEEP_TMUXCONF:-no}
+KEEP_NVIMCONF=${KEEP_NVIMCONF:-no}
+KEEP_SYMLINK=${KEEP_SYMLINK:-no}
+SKIP_DOTY_CLONE=${SKIP_DOTY_CLONE:-no}
+SKIP_BREW_INSTALL=${SKIP_BREW_INSTALL:-no}
+SKIP_BREW_UPDATE=${SKIP_BREW_UPDATE:-no}
+SKIP_BREW_UPGRADE=${SKIP_BREW_UPGRADE:-no}
+SKIP_BREW_BUNDLE=${SKIP_BREW_BUNDLE:-no}
+SKIP_COLORSCHEME_INSTALL=${SKIP_COLORSCHEME_INSTALL:-no}
+SKIP_OSX_SETTINGS=${SKIP_OSX_SETTINGS:-yes}
+
+# Installer options
+INSTALL_ZSHRC_FILE="${INSTALL_ZSHRC_FILE:-"${zdot}/.zshrc"}"
+INSTALL_TMUX_CONF="${INSTALL_TMUX_CONF:-"${zdot}/.tmux.conf"}"
+INSTALL_NVIM_FILE="${INSTALL_NVIM_FILE:-"${zdot}/.config/nvim/init.lua"}"
+
+_FMT_RED=$(printf '\033[31m')
+_FMT_GREEN=$(printf '\033[32m')
+_FMT_YELLOW=$(printf '\033[33m')
+_FMT_BLUE=$(printf '\033[34m')
+_FMT_BOLD=$(printf '\033[1m')
+_FMT_PURPLE=$(printf '\033[38;2;245;0;172m')
+_FMT_RESET=$(printf '\033[0m')
+
+__print_error() {
+    printf '%sError: %s%s%s\n' "${_FMT_BOLD}${_FMT_RED}" "${_FMT_RESET}${_FMT_RED}" "$*" "${_FMT_RESET}" >&2
+}
+
+__print_warning() {
+    printf '%s%s%s\n' "${_FMT_BOLD}${_FMT_YELLOW}" "$*" "${_FMT_RESET}" >&2
+}
+
+__print_ok() {
+    printf '%s%s%s\n' "${_FMT_BOLD}${_FMT_GREEN}" "$*" "${_FMT_RESET}" >&2
+}
+
+__print_underline() {
+    printf '\033[4m%s\033[24m' "$*"
+}
+
+# shellcheck disable=SC2016 # backtick in single-quote
+__print_code() {
+    printf '\033[2m%s\033[22m' "$*"
+}
+
+# Header logging
+__print_header() {
+    text="${@}"
+    total_chars=${#text}
+
+    if [ "$total_chars" -gt 80 ]; then
+        total_chars=80
+    fi
+
+    printf "\033[1m$(tput setaf 7)%s$(tput sgr0)\n" "$text" >&2
+    for ((i = 1; i <= $total_chars; i++)); do
+        printf "$(tput setaf 237)-$(tput sgr0)" >&2
+    done
+    printf '\n'  >&2
+}
+
+# shellcheck disable=SC2183  # printf string has more %s than arguments ($FMT_RAINBOW expands to multiple arguments)
+__print_welcome() {
+    printf '%s       __%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
+    printf '%s  ____/ /%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
+    printf '%s / __  /%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
+    printf '%s/ /_/ /%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
+    printf '%s\\____/%s    %s.... %s%s\n' "${_FMT_PURPLE}" "${_FMT_BOLD}" "${_FMT_YELLOW}" "$*" "${_FMT_RESET}" >&2
+    printf '\n' >&2
+    printf '\n' >&2
+    printf '%s\n%s %s\n' \
+        "Before you scream ${_FMT_BOLD}${_FMT_PURPLE}Doty!${_FMT_RESET}"\
+        "Look over the ${_FMT_BOLD}$(printf '\033[4m').zshrc${_FMT_RESET} file" \
+        "to select plugins, themes, and options." >&2
+    printf '\n%s--------------------------------------------------------------------------------%s\n\n' "${_FMT_BOLD}" "${_FMT_RESET}" >&2
+}
+
+__validate_requirements() {
+    if ! command -v "zsh" >/dev/null 2>&1; then
+        __print_error "Zsh is not installed. Please install zsh first."
+        exit 1
+    fi
+
+    if ! command -v "git" >/dev/null 2>&1; then
+        __print_error "git is not installed. Please install git first."
+        exit 1
+    fi
+
+    # Before relying on Homebrew, check that packages can be compiled
+    if ! command -v "gcc" >/dev/null 2>&1 && [[ "${OSTYPE}" == darwin* ]]; then
+        __print_error "The XCode Command Line Tools must be installed first."
+        printf '\n' >&2
+        printf 'Download them from: %s' "${_FMT_BOLD}$(printf '\033[4m')https://developer.apple.com/downloads${_FMT_RESET}" >&2
+        exit 2
+    fi
+
+    if [ -e "$backup_dir" ]; then
+        __print_error "Backup directory $(__print_code "$backup_dir") already exists."
+        __print_error "Can't back up files re-run the installer again in a couple of seconds."
+        exit 1
+    fi
+
+    if [ -d "$DOTY" ] && [ "$SKIP_DOTY_CLONE" = no ]; then
+        __print_warning "The $(__print_code "\$DOTY") folder already exists ($DOTY)."
+
+        if [ "$custom_doty" = yes ]; then
+            cat <<EOF
+
+You run the installer with the $(__print_code "\$DOTY") setting or the $(__print_code "\$DOTY")  variable
+is exported. You have 3 options:
+
+1. Unset the DOTY variable when calling the installer:
+   $(__print_code "DOTY= sh install")
+2. Install Doty to a directory that doesn't exist yet:
+   $(__print_code "DOTY=path/to/new/doty/folder sh install")
+3. (Caution) If the folder doesn't contain important information,
+   you can just remove it with $(__print_code "rm -r $DOTY")
+
+EOF
+        else
+            __print_error "You'll need to remove it if you want to reinstall."
+        fi
+
+        exit 1
+    fi
+}
+
+# If missing, download and extract the source of doty repository
+__install_doty() {
+    # Prevent the cloned repository from having insecure permissions. Failing to do
+    # so causes compinit() calls to fail with "command not found: compdef" errors
+    # for users with insecure umasks (e.g., "002", allowing group writability). Note
+    # that this will be ignored under Cygwin by default, as Windows ACLs take
+    # precedence over umasks except for filesystems mounted with option "noacl".
+    umask g-w,o-w
+
+    __print_header "Cloning Doty"
+
+    ostype=$(uname)
+    if [ -z "${ostype%CYGWIN*}" ] && git --version | grep -Eq 'msysgit|windows'; then
+        __print_error "Windows/MSYS Git is not supported on Cygwin"
+        __print_error "Make sure the Cygwin git package is installed and is first on the \$PATH"
+        exit 1
+    fi
+
+    if [[ ! -d ${DOTY} ]]; then
+        __print_ok "Initialize Doty on $DOTY"
+        git init --quiet "$DOTY"
+    else
+        __print_ok "Doty is already exists on $DOTY"
+    fi
+
+    cd "$DOTY"
+    # Manual clone with git config options to support git < v1.7.2
+    __print_ok "Update git configuration..."
+    git config core.eol lf &&
+        git config core.autocrlf false &&
+        git config fsck.zeroPaddedFilemode ignore &&
+        git config fetch.fsck.zeroPaddedFilemode ignore &&
+        git config receive.fsck.zeroPaddedFilemode ignore &&
+        git remote add origin "$DOTY_REPOSITORY_REMOTE" &&
+        git config doty.remote origin &&
+        git config doty.branch "$DOTY_REPOSITORY_BRANCH"
+    
+    git fetch --depth=1 origin &&
+        git checkout -b "$DOTY_REPOSITORY_BRANCH" "origin/$DOTY_REPOSITORY_BRANCH" || {
+        [ ! -d "$DOTY" ] || {
+            cd -
+            rm -rf "$DOTY" 2>/dev/null
+        }
+        __print_error "git clone \"$DOTY_REPOSITORY_REMOTE\" repository failed"
+        exit 1
+    }
+
+    git submodule update --init --recursive
+	git submodule foreach 'git fetch origin; \
+		git checkout $(git rev-parse --abbrev-ref HEAD); \
+		git reset --hard origin/$(git rev-parse --abbrev-ref HEAD); \
+		git submodule update --recursive --progress; \
+		git clean -dfx'
+
+    # Exit installation directory
+    cd -
+
+    __print_ok "Doty is cloned on $DOTY"
+    printf '\n' >&2
+}
+
+__install() {
+    # Create ZDOTDIR folder structure if it doesn't exist
+    if [ -n "$ZDOTDIR" ]; then
+        mkdir -p "$ZDOTDIR"
+    fi
+
+    __print_welcome "is now installing"
+
+    if [ -d "$DOTY" ] && [ "$SKIP_DOTY_CLONE" = yes ]; then
+        __print_warning "WARNING: re-use existing doty directory ($DOTY)"
+    else
+        __install_doty
+    fi
+
+    # Create backup_dir folder structure if it doesn't exist
+    if [ -n "$backup_dir" ]; then
+        mkdir -p "$backup_dir"
+    fi
+
+    source "${DOTY}/scripts/utils"
+
+    if ! command_exists "shellcheck"; then
+        warning "WARNING: shellcheck is not installed"
+        
+        if ! prompt "Are you want to continue without running shellcheck?"; then
+            error "Cancelled..."
+            exit 1
+        fi
+    else
+        info "Using shellcheck: $(shellcheck --version)"
+    fi
+
+    for __installer in $(find -H "${DOTY}/scripts/installer" -type f -name '*' -maxdepth 1 | sort -u); do
+        info "Prepare installer: ${__installer}"
+        # TODO: Ensure to run shellcheck properly
+        if command_exists "shellcheck"; then
+            shellcheck --shell=sh --color=always - <<< "$(cat "${__installer}")"
+        fi
+
+        source "${__installer}" || exit 1
+    done
+
+    printf '\n' >&2
+    printf "$(tput setaf 64)✓$(tput sgr0) %s%s%s\n" "${_FMT_BOLD}${_FMT_PURPLE}" "Doty is now installed!" "${_FMT_RESET}" >&2
+
+    if [ $RUN_ZSH = no ]; then
+        __print_header "                      "
+        __print_warning "Run zsh to try it out."
+        printf '\n' >&2
+        exit
+    fi
+
+    printf '\n' >&2
+    exec zsh -l
+}
+
+main() {
+    # Run as unattended if stdin is not a tty
+    if [ ! -t 0 ]; then
+        RUN_ZSH=no
+        CHANGE_SHELL=no
+    fi
+
+    # Parse arguments
+    while [ $# -gt 0 ]; do
+        case $1 in
+        --unattended)
+            RUN_ZSH=no
+            CHANGE_SHELL=no
+            shift
+            ;;
+        --no-change-shell)
+            CHANGE_SHELL=no
+            shift
+            ;;
+        --keep-zshrc)
+            KEEP_ZSHRC=yes
+            shift
+            ;;
+        --keep-tmux)
+            KEEP_TMUXCONF=yes
+            shift
+            ;;
+        --keep-nvim)
+            KEEP_NVIMCONF=yes
+            shift
+            ;;
+        --keep-symlink)
+            KEEP_SYMLINK=yes
+            shift
+            ;;
+        --allow-brew-update)
+            SKIP_BREW_UPDATE=no
+            shift
+            ;;
+        --skip-brew-update)
+            SKIP_BREW_UPDATE=yes
+            shift
+            ;;
+        --allow-brew-upgrade)
+            SKIP_BREW_UPGRADE=no
+            shift
+            ;;
+        --skip-brew-upgrade)
+            SKIP_BREW_UPGRADE=yes
+            shift
+            ;;
+        --allow-brew-bundle)
+            SKIP_BREW_BUNDLE=no
+            shift
+            ;;
+        --skip-brew-bundle)
+            SKIP_BREW_BUNDLE=yes
+            shift
+            ;;
+        --allow-brew-install)
+            SKIP_BREW_INSTALL=no
+            shift
+            ;;
+        --skip-brew-install)
+            SKIP_BREW_INSTALL=yes
+            shift
+            ;;
+        --allow-colorscheme-install)
+            SKIP_COLORSCHEME_INSTALL=no
+            shift
+            ;;
+        --skip-colorscheme-install)
+            SKIP_COLORSCHEME_INSTALL=yes
+            shift
+            ;;
+        --allow-osx-settings)
+            SKIP_OSX_SETTINGS=no
+            shift
+            ;;
+        --skip-osx-settings)
+            SKIP_OSX_SETTINGS=yes
+            shift
+            ;;
+        esac
+    done
+
+    __validate_requirements
+    __install
+}
+
+main "$@"

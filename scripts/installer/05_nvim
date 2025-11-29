@@ -1,0 +1,67 @@
+#!/usr/bin/env sh
+
+setup_nvim() {
+  # Keep most recent old nvim/init.lua at $backup_dir/.config/nvim/init.lua,
+  # so we never actually destroy a user's original nvim/init.lua.
+  header "Looking for an existing nvim config"
+
+  nvim_file="${INSTALL_NVIM_FILE}"
+  # Must use this exact name so uninstall.sh can find it
+  # shellcheck disable=SC2154
+  backup_nvim="$backup_dir/.config/nvim/init.lua"
+  if [ -f "${nvim_file}" ] || [ -h "${nvim_file}" ]; then
+    # Skip this if the user doesn't want to replace an existing .zshrc
+    if [ "$KEEP_NVIMCONF" = yes ]; then
+      warning "Found $(fmt_code "${nvim_file}"). Keep it..."
+
+      info "You need manually load doty nvim plugin to your existing nvim config file"
+      printf '\n' >&2
+      codeblock "    vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim/after\")"
+      codeblock "    vim.opt.rtp:prepend(os.getenv(\"DOTY_DIRECTORY\") .. \"/config/nvim\")"
+      codeblock "    require(\"doty\")"
+      printf '\n' >&2
+      return
+    fi
+
+    if [ -e "${backup_nvim}" ]; then
+      error "Backup nvim file ${backup_nvim} already exists."
+      error "Can't back up ${nvim_file} re-run the installer again in a couple of seconds."
+      printf '\n' >&2
+      exit 1
+    fi
+
+    warning "Found existing $(fmt_code "${nvim_file}")."
+    info "Backing up to $(fmt_code "${backup_nvim}")."
+    mkdir -p "$backup_dir/.config/nvim"
+    cp "${nvim_file}" "${backup_nvim}"
+  fi
+
+  # Create nvim file if it doesn't exist
+  if [ -n "${nvim_file}" ]; then
+    warning "No .config/nvim/init.lua founds on $(fmt_code "${nvim_file}"). Creating it..."
+    mkdir -p "$(dirname "${nvim_file}")"
+    touch "${nvim_file}"
+  fi
+
+  success "Load Doty nvim plugin file and adding it to $(fmt_code "${nvim_file}")."
+
+  if grep -q "^require.*\"doty\"" "${nvim_file}"; then
+    warning "Doty nvim plugin is already loaded on your .config/nvim/init.lua"
+  else
+    cat <<EOT >>"${nvim_file}"
+vim.opt.rtp:prepend(os.getenv("DOTY_DIRECTORY") .. "/config/nvim/after")
+vim.opt.rtp:prepend(os.getenv("DOTY_DIRECTORY") .. "/config/nvim")
+
+-- Remove mise shims path PATH
+-- See: https://github.com/mason-org/mason.nvim/issues/1657#issuecomment-2321352041
+vim.env.PATH = string.gsub(vim.env.PATH, vim.env.HOME .. "/.local/share/mise/shims:", "")
+
+require("doty")
+EOT
+  fi
+
+  success "Successfully add Doty to $(fmt_code "${nvim_file}")."
+  printf '\n' >&2
+}
+
+setup_nvim

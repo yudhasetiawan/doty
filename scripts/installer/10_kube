@@ -1,0 +1,58 @@
+#!/usr/bin/env sh
+
+export KREW_ROOT="${KREW_ROOT:-"$HOME/.kube/kube-krew"}"
+export PATH="${KREW_ROOT}/bin:$PATH"
+
+__09_k8s_install_kube_krew() {
+    if command_exists "kubectl-krew"; then
+        success "Kube Krew already installed"
+        return
+    fi
+
+    info "Installing Kube Krew..."
+
+    __doty_os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    __doty_arch="$(uname -m)"
+
+    krew_filename="krew-${__doty_os}_${__doty_arch}"
+    krew_dir="$(mktemp -d)"
+    krew_file="${krew_dir}/${krew_filename}.tar.gz"
+    curl -fsSL "https://github.com/kubernetes-sigs/krew/releases/latest/download/${krew_filename}.tar.gz" -o "${krew_file}"
+    tar zxvf "${krew_file}" -C "${krew_dir}"
+    chmod +x "${krew_dir}/${KREW}"
+    "${krew_dir}/${krew_filename}" install krew
+    rm -Rf "${krew_dir}"
+
+    success "Successfully installing Kube Krew!"
+    printf '\n' >&2
+}
+
+__09_k8s_install_krew_plugin() {
+    if kubectl krew list | grep -E "^${1}$"; then
+        info "kubectl $(fmt_code "${1}") krew plugin is already installed"
+    else
+        kubectl krew install "${1}"
+    fi
+}
+
+# Issue:
+# - https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+setup_k8s() {
+    header "Installing kubectl tools"
+
+    __09_k8s_install_kube_krew
+    __09_k8s_install_krew_plugin "ctx"
+    __09_k8s_install_krew_plugin "images"
+    __09_k8s_install_krew_plugin "neat"
+    __09_k8s_install_krew_plugin "ns"
+    __09_k8s_install_krew_plugin "tail"
+    __09_k8s_install_krew_plugin "tree"
+    __09_k8s_install_krew_plugin "view-secret"
+
+    # shellcheck disable=SC2154
+    mkdir -p "$zdot/.kube"
+    curl -L https://rawgit.com/kubermatic/fubectl/master/fubectl.source -o "$zdot/.kube/fubectl.source"
+    printf '\n' >&2
+}
+
+setup_k8s

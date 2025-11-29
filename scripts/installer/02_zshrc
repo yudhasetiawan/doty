@@ -1,0 +1,55 @@
+#!/usr/bin/env sh
+
+setup_zshrc() {
+    # Keep most recent old .zshrc at $backup_dir/.zshrc,
+    # so we never actually destroy a user's original zshrc.
+    header "Looking for an existing zsh config"
+
+    zshrc_file="${INSTALL_ZSHRC_FILE}"
+    # Must use this exact name so uninstall.sh can find it
+    # shellcheck disable=SC2154
+    backup_zshrc="$backup_dir/.zshrc"
+    if [ -f "${zshrc_file}" ] || [ -h "${zshrc_file}" ]; then
+        # Skip this if the user doesn't want to replace an existing .zshrc
+        if [ "$KEEP_ZSHRC" = yes ]; then
+            warning "Found $(fmt_code "${zshrc_file}"). Keep it..."
+
+            info "You need manually load doty to your existing .zshrc file"
+            printf '\n' >&2
+            codeblock "    source \"${DOTY}/doty\""
+            printf '\n' >&2
+            return
+        fi
+
+        if [ -e "$backup_zshrc" ]; then
+            error "Backup .zshrc file $(fmt_code "${backup_zshrc}") already exists."
+            error "Can't back up $(fmt_code "${zshrc_file}") re-run the installer again in a couple of seconds."
+            printf '\n' >&2
+            exit 1
+        fi
+
+        warning "Found existing $(fmt_code "${zshrc_file}")."
+        warning "Backing up to $(fmt_code "${backup_zshrc}")."
+        cp "${zshrc_file}" "$backup_zshrc"
+    fi
+
+    # Create zshrc file if it doesn't exist
+    if [ -n "${zshrc_file}" ]; then
+        warning "No .zshrc founds on $(fmt_code "${zshrc_file}"). Creating it..."
+        touch "${zshrc_file}"
+    fi
+
+    info "Using the Doty template file and adding it to $(fmt_code "${zshrc_file}")."
+
+    if grep -q "^source .*\/doty" "${zshrc_file}"; then
+        warning "$(fmt_code "${DOTY}/doty") is already sourced on your .zshrc"
+    else
+        # Source $DOTY/doty in .zshrc directory
+        echo "source \"${DOTY}/doty\"" >> "${zshrc_file}"
+    fi
+
+    success "Successfully add Doty to $(fmt_code "${zshrc_file}")."
+    printf '\n' >&2
+}
+
+setup_zshrc

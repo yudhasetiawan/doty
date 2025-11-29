@@ -1,0 +1,69 @@
+#!/usr/bin/env sh
+
+__01_homebrew_update() {
+    header "Updating Homebrew..."
+    if [ "$SKIP_BREW_UPDATE" = yes ]; then
+        warning "Skip brew update..."
+    else
+        # Use the latest version of Homebrew
+        (brew update && success "Done") || error "brew update not successfully"
+    fi
+}
+
+__01_homebrew_upgrade() {
+    header "Updating any existing Homebrew formulae..."
+    if [ "$SKIP_BREW_UPGRADE" = yes ]; then
+        warning "Skip brew upgrade..."
+    else
+        # Upgrade any already-installed formulae
+        (brew upgrade && success "Done") || error "brew upgrade not successfully"
+    fi
+}
+
+# Install Homebrew if not exists
+setup_homebrew_install() {
+    if [ "$SKIP_BREW_INSTALL" = yes ]; then
+        warning "Skip Homebrew installation..."
+        return
+    fi
+
+    if ! command -v "brew" >/dev/null 2>&1; then
+        header "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+}
+
+setup_homebrew_packages() {
+    # Check for Homebrew
+    if ! command -v "brew" >/dev/null 2>&1; then
+        if [ "$SKIP_BREW_INSTALL" = yes ]; then
+            warning "Homebrew not found, but SKIP_BREW_INSTALL is set. Skipping Homebrew packages installation."
+            return
+        else
+            error "Homebrew not found. Aborting..."
+            exit 1
+        fi
+    fi
+    
+    __01_homebrew_update
+    __01_homebrew_upgrade
+
+    if [ "$SKIP_BREW_BUNDLE" = yes ]; then
+        warning "Skip install brew packages..."
+
+        return
+    fi
+
+    header "Install brew bundle"
+    brew bundle install --file="${DOTY}/Brewfile"
+
+    # Install GNU core utilities (those that come with macOS are outdated).
+    # Don’t forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
+    ln -s "$(brew --prefix)/bin/gsha256sum" "$(brew --prefix)/bin/sha256sum"
+
+    # Remove outdated versions from the Cellar
+    brew cleanup
+}
+
+setup_homebrew_install
+setup_homebrew_packages

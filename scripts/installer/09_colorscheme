@@ -1,0 +1,148 @@
+#!/usr/bin/env sh
+
+__08_colorscheme_iterm2_colors() {
+    filename="${1}"
+
+    # shellcheck disable=SC3010
+    if [[ ! -f "$filename" ]]; then
+        error "File not found: \"$filename\"."
+        return 1
+    elif ! (echo "$filename" | grep -qF '.itermcolors'); then
+        error "Invalid iTerm color scheme file: \"$filename\"."
+        return 1
+    fi
+
+    # Format the scheme name (capitalized)
+    name="$(echo "$filename" |
+        sed -E 's|.*/([^/]*)\.itermcolors|\1|g' |
+        sed -E 's/([0-9a-zA-Z])_([0-9a-zA-Z])/\1 \2/g; s/([0-9a-zA-Z])-([0-9a-zA-Z])/\1 \2/g;'
+    )"
+    # shellcheck disable=SC3030,SC2206
+    name=($name)
+    # shellcheck disable=SC2178,SC3059
+    name="${name[*]^}"
+    # shellcheck disable=SC2178,SC2128
+    name="$(echo "$name" | sed -E 's| In | in |g; s| Of | of |g; s| And | and |g; s| V([0-9]+)$| v\1|g')"
+
+    preset_name="Doty Color Presets"
+    # Create '$preset_name' entry if not exists
+    # shellcheck disable=SC3020
+    if ! /usr/libexec/PlistBuddy -c "Print \"${preset_name}\"" \
+        "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
+        info "Creating $(fmt_code "${preset_name}") entry ..."
+        /usr/libexec/PlistBuddy -c "Add \"${preset_name}\" dict" \
+                    "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+    fi
+
+    # Import the color scheme
+    # shellcheck disable=SC2128
+    info "Importing color scheme $name ($(fmt_code "$filename"))..."
+    # shellcheck disable=SC2128,SC3020
+    if /usr/libexec/PlistBuddy -c "Print \"${preset_name}:$name\"" \
+        "$HOME/Library/Preferences/com.googlecode.iterm2.plist" &>/dev/null; then
+        # If already installed, delete first 
+        /usr/libexec/PlistBuddy -c "Delete \"${preset_name}:$name\"" \
+                    "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+    fi
+
+    # Install directly
+    # shellcheck disable=SC2128
+    /usr/libexec/PlistBuddy \
+            -c "Add \"${preset_name}:$name\" dict" \
+            -c "Merge \"$filename\" \"${preset_name}:$name\"" \
+            "$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+}
+
+setup_colorscheme_fonts() {
+    if [ "$SKIP_COLORSCHEME_INSTALL" = yes ]; then
+        warning "Skip color scheme fonts installation..."
+        return
+    fi
+
+    # Detect OS
+    detect_os
+    header "Installing fonts on $OS_TYPE"
+
+    # Create temporary file for download
+    outfile="$(mktemp -d)/meslo.zip"
+
+    # Download the latest Meslo Nerd Font
+    info "Downloading latest Meslo Nerd Font..."
+    curl -s "https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest" \
+        | jq -r '.assets[] | .browser_download_url | select(contains("Meslo.zip"))' \
+        | wget -O "${outfile}" -i - 
+
+    # Install fonts based on OS type
+    case "$OS_TYPE" in
+        macos)
+            # macOS - install to ~/Library/Fonts
+            info "Installing fonts to ~/Library/Fonts..."
+            unzip -o "${outfile}" -d "${HOME}/Library/Fonts"
+            ;;
+        termux)
+            # Termux (Android) - install to ~/.termux/fonts
+            info "Installing fonts to ~/.termux/fonts..."
+            mkdir -p "${HOME}/.termux/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.termux/fonts"
+            # Restart termux to apply fonts
+            info "Please restart Termux to apply the new fonts"
+            ;;
+        ubuntu|debian|fedora|arch|linux)
+            # Generic Linux - install to ~/.local/share/fonts
+            info "Installing fonts to ~/.local/share/fonts..."
+            mkdir -p "${HOME}/.local/share/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
+            # Update font cache if available
+            if command -v fc-cache >/dev/null 2>&1; then
+                fc-cache -fv "${HOME}/.local/share/fonts"
+            fi
+            ;;
+        *)
+            # Unknown OS - try generic approach
+            warning "Unknown OS type. Installing fonts to ~/.local/share/fonts..."
+            mkdir -p "${HOME}/.local/share/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
+            # Update font cache if available
+            if command -v fc-cache >/dev/null 2>&1; then
+                fc-cache -fv "${HOME}/.local/share/fonts"
+            fi
+            ;;
+    esac
+
+    # Clean up temporary file
+    rm -Rf "${outfile}"
+    printf '\n' >&2
+}
+
+setup_colorscheme_iterm() {
+    if [ "$SKIP_COLORSCHEME_INSTALL" = yes ]; then
+        warning "Skip iTerm color scheme installation..."
+        return
+    fi
+
+    # Detect OS
+    detect_os
+
+    # iTerm is only available on macOS
+    if [ "$OS_TYPE" != "macos" ]; then
+        info "Skipping iTerm color scheme installation on non-macOS system..."
+        return
+    fi
+
+    header "Installing iterm2 color scheme"
+
+    __08_colorscheme_iterm2_colors "${DOTY}/config/solarized/iterm2-colors-solarized/Solarized Dark.itermcolors"
+    __08_colorscheme_iterm2_colors "${DOTY}/config/solarized/iterm2-colors-solarized/Solarized Light.itermcolors"
+    
+    eval "${DOTY}/config/color-schemes/tools/import-scheme.sh ${DOTY}/config/color-schemes/schemes/*"
+
+    cp -f "${DOTY}/config/solarized/apple-colorpalette-solarized/solarized.clr" "${HOME}/Library/Colors/"
+
+    cat "${DOTY}/config/iTerm/itermprofiles.json" \
+        | sed "s;__DOTY_PROFILE_NAME__;$(whoami);g" \
+        | sed "s;__DOTY_DIRECTORY__;$(echo "$DOTY" | sed "s;\\/;\\\\\\\/;g");" \
+        > "${HOME}/Library/Application Support/iTerm2/DynamicProfiles/itermprofiles.json"
+}
+
+setup_colorscheme_fonts
+setup_colorscheme_iterm
