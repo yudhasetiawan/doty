@@ -3,6 +3,11 @@
 # Install development tools needed for Neovim LSP and other features using mise as the tool version manager
 
 setup_devtools() {
+    if [ "$SKIP_DEVTOOLS_SETUP" = yes ]; then
+        warning "Skipping development tools installation..."
+        return
+    fi
+
     header "Installing development tools for Neovim using mise"
 
     # Check for mise
