@@ -54,7 +54,7 @@ __08_colorscheme_iterm2_colors() {
 }
 
 setup_colorscheme_fonts() {
-    if [ "$SKIP_COLORSCHEME_INSTALL" = yes ]; then
+    if [ "$SKIP_COLORSCHEME_INSTALL" = yes ] || [ "$SKIP_FONTS_SETUP" = yes ]; then
         warning "Skip color scheme fonts installation..."
         return
     fi
@@ -70,7 +70,7 @@ setup_colorscheme_fonts() {
     info "Downloading latest Meslo Nerd Font..."
     curl -s "https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest" \
         | jq -r '.assets[] | .browser_download_url | select(contains("Meslo.zip"))' \
-        | wget -O "${outfile}" -i - 
+        | wget -O "${outfile}" -i -
 
     # Install fonts based on OS type
     case "$OS_TYPE" in
@@ -87,19 +87,87 @@ setup_colorscheme_fonts() {
             # Restart termux to apply fonts
             info "Please restart Termux to apply the new fonts"
             ;;
-        ubuntu|debian|fedora|arch|linux)
-            # Generic Linux - install to ~/.local/share/fonts
+        debian)
+            # Debian-based systems
             info "Installing fonts to ~/.local/share/fonts..."
             mkdir -p "${HOME}/.local/share/fonts"
             unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
-            # Update font cache if available
+            # Update font cache
             if command -v fc-cache >/dev/null 2>&1; then
                 fc-cache -fv "${HOME}/.local/share/fonts"
             fi
+            # Also install common fonts via package manager if available
+            if command -v apt >/dev/null 2>&1; then
+                info "Installing additional fonts via apt..."
+                sudo apt install -y fonts-font-awesome fonts-noto-color-emoji fonts-dejavu-core fonts-liberation
+            fi
+            ;;
+        redhat)
+            # Red Hat-based systems (Fedora, CentOS, RHEL)
+            info "Installing fonts to ~/.local/share/fonts..."
+            mkdir -p "${HOME}/.local/share/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
+            # Update font cache
+            if command -v fc-cache >/dev/null 2>&1; then
+                fc-cache -fv "${HOME}/.local/share/fonts"
+            fi
+            # Also install common fonts via package manager if available
+            if command -v dnf >/dev/null 2>&1; then
+                info "Installing additional fonts via dnf..."
+                sudo dnf install -y fontawesome-fonts google-noto-emoji-fonts liberation-fonts
+            elif command -v yum >/dev/null 2>&1; then
+                info "Installing additional fonts via yum..."
+                sudo yum install -y fontawesome-fonts google-noto-emoji-fonts liberation-fonts
+            fi
+            ;;
+        arch)
+            # Arch-based systems
+            info "Installing fonts to ~/.local/share/fonts..."
+            mkdir -p "${HOME}/.local/share/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
+            # Update font cache
+            if command -v fc-cache >/dev/null 2>&1; then
+                fc-cache -fv "${HOME}/.local/share/fonts"
+            fi
+            # Also install common fonts via package manager if available
+            if command -v pacman >/dev/null 2>&1; then
+                info "Installing additional fonts via pacman..."
+                sudo pacman -S --noconfirm noto-fonts noto-fonts-emoji ttf-dejavu ttf-liberation ttf-font-awesome
+            fi
+            ;;
+        suse)
+            # openSUSE-based systems
+            info "Installing fonts to ~/.local/share/fonts..."
+            mkdir -p "${HOME}/.local/share/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
+            # Update font cache
+            if command -v fc-cache >/dev/null 2>&1; then
+                fc-cache -fv "${HOME}/.local/share/fonts"
+            fi
+            # Also install common fonts via package manager if available
+            if command -v zypper >/dev/null 2>&1; then
+                info "Installing additional fonts via zypper..."
+                sudo zypper install -y google-noto-emoji-fonts liberation-fonts noto-sans-cjk-fonts
+            fi
+            ;;
+        alpine)
+            # Alpine-based systems
+            info "Installing fonts to ~/.local/share/fonts..."
+            mkdir -p "${HOME}/.local/share/fonts"
+            unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
+            # Update font cache
+            if command -v fc-cache >/dev/null 2>&1; then
+                fc-cache -fv "${HOME}/.local/share/fonts"
+            fi
+            # Also install common fonts via package manager if available
+            if command -v apk >/dev/null 2>&1; then
+                info "Installing additional fonts via apk..."
+                sudo apk add font-noto font-noto-cjk font-noto-emoji ttf-dejavu ttf-liberation
+            fi
             ;;
         *)
-            # Unknown OS - try generic approach
-            warning "Unknown OS type. Installing fonts to ~/.local/share/fonts..."
+            # Generic Linux - install to ~/.local/share/fonts
+            info "Installing fonts to ~/.local/share/fonts..."
             mkdir -p "${HOME}/.local/share/fonts"
             unzip -o "${outfile}" -d "${HOME}/.local/share/fonts"
             # Update font cache if available
