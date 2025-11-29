@@ -1,0 +1,418 @@
+#!/usr/bin/env sh
+
+# Enhanced package manager support for multiple Linux distributions and platforms
+
+# Setup package manager detection and configuration
+setup_package_manager() {
+    # Detect OS type using the function from utils
+    detect_os
+    
+    # Set package manager based on OS type
+    case "$OS_TYPE" in
+        macos)
+            PKG_MANAGER="brew"
+            PKG_INSTALL="brew install"
+            PKG_UPDATE="brew update"
+            PKG_UPGRADE="brew upgrade"
+            PKG_CLEAN="brew cleanup"
+            ;;
+        debian)
+            PKG_MANAGER="apt"
+            PKG_INSTALL="sudo apt install -y"
+            PKG_UPDATE="sudo apt update"
+            PKG_UPGRADE="sudo apt upgrade -y"
+            PKG_CLEAN="sudo apt autoremove -y && sudo apt autoclean"
+            ;;
+        redhat)
+            if command -v dnf >/dev/null 2>&1; then
+                PKG_MANAGER="dnf"
+                PKG_INSTALL="sudo dnf install -y"
+                PKG_UPDATE="sudo dnf check-update"
+                PKG_UPGRADE="sudo dnf upgrade -y"
+                PKG_CLEAN="sudo dnf autoremove -y && sudo dnf clean all"
+            elif command -v yum >/dev/null 2>&1; then
+                PKG_MANAGER="yum"
+                PKG_INSTALL="sudo yum install -y"
+                PKG_UPDATE="sudo yum check-update"
+                PKG_UPGRADE="sudo yum update -y"
+                PKG_CLEAN="sudo yum autoremove -y && sudo yum clean all"
+            fi
+            ;;
+        arch)
+            PKG_MANAGER="pacman"
+            PKG_INSTALL="sudo pacman -S --noconfirm"
+            PKG_UPDATE="sudo pacman -Sy"
+            PKG_UPGRADE="sudo pacman -Syu --noconfirm"
+            PKG_CLEAN="sudo pacman -Sc --noconfirm && sudo pacman -Rns \$(pacman -Qtdq)"
+            ;;
+        suse)
+            PKG_MANAGER="zypper"
+            PKG_INSTALL="sudo zypper install -y"
+            PKG_UPDATE="sudo zypper refresh"
+            PKG_UPGRADE="sudo zypper update -y"
+            PKG_CLEAN="sudo zypper clean -a"
+            ;;
+        alpine)
+            PKG_MANAGER="apk"
+            PKG_INSTALL="sudo apk add"
+            PKG_UPDATE="sudo apk update"
+            PKG_UPGRADE="sudo apk upgrade"
+            PKG_CLEAN="sudo apk cache clean"
+            ;;
+        *)
+            # Default to Homebrew for other systems or if forced
+            if [ "$DOTY_PKG_MANAGER" = "brew" ] || ! command -v apt >/dev/null 2>&1 && ! command -v dnf >/dev/null 2>&1 && ! command -v pacman >/dev/null 2>&1; then
+                PKG_MANAGER="brew"
+                PKG_INSTALL="brew install"
+                PKG_UPDATE="brew update"
+                PKG_UPGRADE="brew upgrade"
+                PKG_CLEAN="brew cleanup"
+            else
+                # Try to detect based on available commands
+                if command -v apt >/dev/null 2>&1; then
+                    PKG_MANAGER="apt"
+                    PKG_INSTALL="sudo apt install -y"
+                    PKG_UPDATE="sudo apt update"
+                    PKG_UPGRADE="sudo apt upgrade -y"
+                    PKG_CLEAN="sudo apt autoremove -y && sudo apt autoclean"
+                elif command -v dnf >/dev/null 2>&1; then
+                    PKG_MANAGER="dnf"
+                    PKG_INSTALL="sudo dnf install -y"
+                    PKG_UPDATE="sudo dnf check-update"
+                    PKG_UPGRADE="sudo dnf upgrade -y"
+                    PKG_CLEAN="sudo dnf autoremove -y && sudo dnf clean all"
+                elif command -v pacman >/dev/null 2>&1; then
+                    PKG_MANAGER="pacman"
+                    PKG_INSTALL="sudo pacman -S --noconfirm"
+                    PKG_UPDATE="sudo pacman -Sy"
+                    PKG_UPGRADE="sudo pacman -Syu --noconfirm"
+                    PKG_CLEAN="sudo pacman -Sc --noconfirm && sudo pacman -Rns \$(pacman -Qtdq)"
+                else
+                    # Fallback to Homebrew if nothing else available
+                    PKG_MANAGER="brew"
+                    PKG_INSTALL="brew install"
+                    PKG_UPDATE="brew update"
+                    PKG_UPGRADE="brew upgrade"
+                    PKG_CLEAN="brew cleanup"
+                fi
+            fi
+            ;;
+    esac
+    
+    # Allow override via environment variable
+    if [ -n "$DOTY_PKG_MANAGER" ] && [ "$DOTY_PKG_MANAGER" != "auto" ]; then
+        case "$DOTY_PKG_MANAGER" in
+            apt)
+                PKG_MANAGER="apt"
+                PKG_INSTALL="sudo apt install -y"
+                PKG_UPDATE="sudo apt update"
+                PKG_UPGRADE="sudo apt upgrade -y"
+                PKG_CLEAN="sudo apt autoremove -y && sudo apt autoclean"
+                ;;
+            dnf|yum)
+                local pm="${DOTY_PKG_MANAGER}"
+                PKG_MANAGER="$pm"
+                PKG_INSTALL="sudo $pm install -y"
+                PKG_UPDATE="sudo $pm check-update"
+                PKG_UPGRADE="sudo $pm upgrade -y"
+                PKG_CLEAN="sudo $pm autoremove -y && sudo $pm clean all"
+                ;;
+            pacman)
+                PKG_MANAGER="pacman"
+                PKG_INSTALL="sudo pacman -S --noconfirm"
+                PKG_UPDATE="sudo pacman -Sy"
+                PKG_UPGRADE="sudo pacman -Syu --noconfirm"
+                PKG_CLEAN="sudo pacman -Sc --noconfirm && sudo pacman -Rns \$(pacman -Qtdq)"
+                ;;
+            zypper)
+                PKG_MANAGER="zypper"
+                PKG_INSTALL="sudo zypper install -y"
+                PKG_UPDATE="sudo zypper refresh"
+                PKG_UPGRADE="sudo zypper update -y"
+                PKG_CLEAN="sudo zypper clean -a"
+                ;;
+            apk)
+                PKG_MANAGER="apk"
+                PKG_INSTALL="sudo apk add"
+                PKG_UPDATE="sudo apk update"
+                PKG_UPGRADE="sudo apk upgrade"
+                PKG_CLEAN="sudo apk cache clean"
+                ;;
+            brew)
+                PKG_MANAGER="brew"
+                PKG_INSTALL="brew install"
+                PKG_UPDATE="brew update"
+                PKG_UPGRADE="brew upgrade"
+                PKG_CLEAN="brew cleanup"
+                ;;
+        esac
+    fi
+    
+    info "Package manager set to: $PKG_MANAGER"
+}
+
+__01_package_manager_update() {
+    header "Updating package manager..."
+    if [ "$SKIP_PKG_UPDATE" = yes ]; then
+        warning "Skip package manager update..."
+        return
+    fi
+    
+    case "$PKG_MANAGER" in
+        brew)
+            if [ "$SKIP_BREW_UPDATE" = yes ]; then
+                warning "Skip brew update..."
+            else
+                (brew update && success "Done") || error "brew update not successful"
+            fi
+            ;;
+        apt)
+            (sudo apt update && success "Done") || error "apt update not successful"
+            ;;
+        dnf|yum)
+            (eval "$PKG_UPDATE" && success "Done") || error "package manager update not successful"
+            ;;
+        pacman)
+            (eval "$PKG_UPDATE" && success "Done") || error "pacman update not successful"
+            ;;
+        zypper)
+            (eval "$PKG_UPDATE" && success "Done") || error "zypper update not successful"
+            ;;
+        apk)
+            (eval "$PKG_UPDATE" && success "Done") || error "apk update not successful"
+            ;;
+        *)
+            warning "Unknown package manager: $PKG_MANAGER, skipping update"
+            ;;
+    esac
+}
+
+__01_package_manager_upgrade() {
+    header "Upgrading existing packages..."
+    if [ "$SKIP_PKG_UPGRADE" = yes ]; then
+        warning "Skip package manager upgrade..."
+        return
+    fi
+    
+    case "$PKG_MANAGER" in
+        brew)
+            if [ "$SKIP_BREW_UPGRADE" = yes ]; then
+                warning "Skip brew upgrade..."
+            else
+                (brew upgrade && success "Done") || error "brew upgrade not successful"
+            fi
+            ;;
+        apt)
+            (sudo apt upgrade -y && success "Done") || error "apt upgrade not successful"
+            ;;
+        dnf|yum)
+            (eval "$PKG_UPGRADE" && success "Done") || error "package manager upgrade not successful"
+            ;;
+        pacman)
+            (eval "$PKG_UPGRADE" && success "Done") || error "pacman upgrade not successful"
+            ;;
+        zypper)
+            (eval "$PKG_UPGRADE" && success "Done") || error "zypper upgrade not successful"
+            ;;
+        apk)
+            (eval "$PKG_UPGRADE" && success "Done") || error "apk upgrade not successful"
+            ;;
+        *)
+            warning "Unknown package manager: $PKG_MANAGER, skipping upgrade"
+            ;;
+    esac
+}
+
+# Install package manager if not exists (for Homebrew only, other systems have native package managers)
+setup_pkg_manager_install() {
+    # Check if we need to install Homebrew
+    if [ "$PKG_MANAGER" = "brew" ]; then
+        if [ "$SKIP_BREW_INSTALL" = yes ]; then
+            warning "Skip Homebrew installation..."
+            return
+        fi
+
+        if ! command -v "brew" >/dev/null 2>&1; then
+            header "Installing Homebrew..."
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        fi
+    fi
+}
+
+setup_package_manager_install() {
+    setup_package_manager
+    setup_pkg_manager_install
+}
+
+setup_package_manager_packages() {
+    # Setup package manager first
+    setup_package_manager
+    
+    # Install package manager if needed
+    setup_pkg_manager_install
+
+    # Check if package manager is available
+    if ! command -v "$PKG_MANAGER" >/dev/null 2>&1 && [ "$PKG_MANAGER" != "brew" ]; then
+        if [ "$SKIP_PKG_INSTALL" = yes ]; then
+            warning "Package manager $PKG_MANAGER not found, but SKIP_PKG_INSTALL is set. Skipping packages installation."
+            return
+        else
+            error "Package manager $PKG_MANAGER not found. Aborting..."
+            exit 1
+        fi
+    fi
+
+    __01_package_manager_update
+    __01_package_manager_upgrade
+
+    # Install packages based on package manager
+    if [ "$SKIP_PKG_BUNDLE" = yes ]; then
+        warning "Skip install packages..."
+
+        return
+    fi
+
+    header "Install packages using $PKG_MANAGER"
+    
+    case "$PKG_MANAGER" in
+        brew)
+            if [ -f "${DOTY}/Brewfile" ]; then
+                brew bundle install --file="${DOTY}/Brewfile"
+                
+                # Install GNU core utilities (those that come with macOS are outdated).
+                # Don't forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
+                ln -s "$(brew --prefix)/bin/gsha256sum" "$(brew --prefix)/bin/sha256sum" 2>/dev/null || true
+
+                # Remove outdated versions from the Cellar
+                brew cleanup
+            else
+                info "Brewfile not found, skipping brew bundle install"
+            fi
+            ;;
+        apt)
+            if [ -f "${DOTY}/Brewfile" ]; then
+                info "Reading packages from Brewfile for apt installation..."
+                # Convert Brewfile to apt packages if a specific file exists or use a generic packages file
+                if [ -f "${DOTY}/Aptfile" ]; then
+                    while IFS= read -r package; do
+                        if [ -n "$package" ] && [[ ! "$package" =~ ^# ]] && [[ ! "$package" =~ ^tap ]]; then
+                            # Extract package name, removing 'brew' prefix if present
+                            clean_package=$(echo "$package" | sed 's/^brew "//' | sed 's/"$//' | sed 's/brew "//')
+                            if [ -n "$clean_package" ]; then
+                                info "Installing $clean_package using apt..."
+                                eval "$PKG_INSTALL $clean_package" 2>/dev/null || true
+                            fi
+                        fi
+                    done < "${DOTY}/Aptfile"
+                else
+                    # Try to install common packages if no Aptfile exists
+                    info "Installing common packages for Ubuntu/Debian..."
+                    eval "$PKG_INSTALL curl wget git zsh vim neovim tmux htop tree"
+                fi
+            else
+                info "Brewfile not found, installing common packages..."
+                eval "$PKG_INSTALL curl wget git zsh vim neovim tmux htop tree"
+            fi
+            ;;
+        dnf|yum)
+            if [ -f "${DOTY}/Brewfile" ]; then
+                info "Reading packages from Brewfile for dnf/yum installation..."
+                if [ -f "${DOTY}/DNFfile" ] || [ -f "${DOTY}/Yumfile" ]; then
+                    local pkgfile="${DOTY}/$(echo $PKG_MANAGER | tr 'a-z' 'A-Z')file"
+                    if [ -f "$pkgfile" ]; then
+                        while IFS= read -r package; do
+                            if [ -n "$package" ] && [[ ! "$package" =~ ^# ]] && [[ ! "$package" =~ ^tap ]]; then
+                                clean_package=$(echo "$package" | sed 's/^brew "//' | sed 's/"$//' | sed 's/brew "//')
+                                if [ -n "$clean_package" ]; then
+                                    info "Installing $clean_package using $PKG_MANAGER..."
+                                    eval "$PKG_INSTALL $clean_package" 2>/dev/null || true
+                                fi
+                            fi
+                        done < "$pkgfile"
+                    fi
+                else
+                    info "Installing common packages for $PKG_MANAGER..."
+                    eval "$PKG_INSTALL curl wget git zsh vim-enhanced neovim tmux htop tree"
+                fi
+            else
+                info "Installing common packages for $PKG_MANAGER..."
+                eval "$PKG_INSTALL curl wget git zsh vim-enhanced neovim tmux htop tree"
+            fi
+            ;;
+        pacman)
+            if [ -f "${DOTY}/Brewfile" ]; then
+                info "Reading packages from Brewfile for pacman installation..."
+                if [ -f "${DOTY}/Pacmanfile" ]; then
+                    while IFS= read -r package; do
+                        if [ -n "$package" ] && [[ ! "$package" =~ ^# ]] && [[ ! "$package" =~ ^tap ]]; then
+                            clean_package=$(echo "$package" | sed 's/^brew "//' | sed 's/"$//' | sed 's/brew "//')
+                            if [ -n "$clean_package" ]; then
+                                info "Installing $clean_package using pacman..."
+                                eval "$PKG_INSTALL $clean_package" 2>/dev/null || true
+                            fi
+                        fi
+                    done < "${DOTY}/Pacmanfile"
+                else
+                    info "Installing common packages for Arch Linux..."
+                    eval "$PKG_INSTALL curl wget git zsh vim neovim tmux htop tree base-devel"
+                fi
+            else
+                info "Installing common packages for Arch Linux..."
+                eval "$PKG_INSTALL curl wget git zsh vim neovim tmux htop tree base-devel"
+            fi
+            ;;
+        zypper)
+            if [ -f "${DOTY}/Brewfile" ]; then
+                info "Reading packages from Brewfile for zypper installation..."
+                if [ -f "${DOTY}/Zypperfile" ]; then
+                    while IFS= read -r package; do
+                        if [ -n "$package" ] && [[ ! "$package" =~ ^# ]] && [[ ! "$package" =~ ^tap ]]; then
+                            clean_package=$(echo "$package" | sed 's/^brew "//' | sed 's/"$//' | sed 's/brew "//')
+                            if [ -n "$clean_package" ]; then
+                                info "Installing $clean_package using zypper..."
+                                eval "$PKG_INSTALL $clean_package" 2>/dev/null || true
+                            fi
+                        fi
+                    done < "${DOTY}/Zypperfile"
+                else
+                    info "Installing common packages for openSUSE..."
+                    eval "$PKG_INSTALL curl wget git zsh vim neovim tmux htop tree"
+                fi
+            else
+                info "Installing common packages for openSUSE..."
+                eval "$PKG_INSTALL curl wget git zsh vim neovim tmux htop tree"
+            fi
+            ;;
+        apk)
+            if [ -f "${DOTY}/Brewfile" ]; then
+                info "Reading packages from Brewfile for apk installation..."
+                if [ -f "${DOTY}/Apkfile" ]; then
+                    while IFS= read -r package; do
+                        if [ -n "$package" ] && [[ ! "$package" =~ ^# ]] && [[ ! "$package" =~ ^tap ]]; then
+                            clean_package=$(echo "$package" | sed 's/^brew "//' | sed 's/"$//' | sed 's/brew "//')
+                            if [ -n "$clean_package" ]; then
+                                info "Installing $clean_package using apk..."
+                                eval "$PKG_INSTALL $clean_package" 2>/dev/null || true
+                            fi
+                        fi
+                    done < "${DOTY}/Apkfile"
+                else
+                    info "Installing common packages for Alpine..."
+                    eval "$PKG_INSTALL curl wget git zsh vim neovim tmux htop tree"
+                fi
+            else
+                info "Installing common packages for Alpine..."
+                eval "$PKG_INSTALL curl wget git zsh vim neovim tmux htop tree"
+            fi
+            ;;
+    esac
+
+    # Clean up package manager cache
+    if [ "$SKIP_PKG_CLEAN" != yes ]; then
+        info "Cleaning package manager cache..."
+        eval "$PKG_CLEAN" 2>/dev/null || true
+    fi
+}
+
+setup_package_manager_install
+setup_package_manager_packages

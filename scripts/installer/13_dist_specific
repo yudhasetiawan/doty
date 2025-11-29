@@ -1,0 +1,257 @@
+#!/usr/bin/env sh
+
+# Distribution-specific setup tools and configurations
+
+setup_distribution_specific() {
+    if [ "$SKIP_DESKTOP_SETUP" = yes ]; then
+        info "Skipping distribution-specific setup due to SKIP_DESKTOP_SETUP..."
+        return
+    fi
+
+    # Detect OS type using the function from utils
+    detect_os
+    
+    case "$OS_TYPE" in
+        arch)
+            setup_arch_linux
+            ;;
+        debian)
+            setup_debian_family
+            ;;
+        redhat)
+            setup_redhat_family
+            ;;
+        suse)
+            setup_suse_family
+            ;;
+        alpine)
+            setup_alpine_linux
+            ;;
+        macos)
+            setup_macos_specific
+            ;;
+        *)
+            info "No distribution-specific setup for $OS_TYPE"
+            ;;
+    esac
+}
+
+setup_arch_linux() {
+    if [ "$OS_TYPE" != "arch" ]; then
+        return
+    fi
+
+    header "Configuring Arch Linux specific settings..."
+
+    # Install AUR helper if configured
+    if [ "$INSTALL_AUR_HELPER" = "yes" ]; then
+        info "Installing AUR helper (yay)..."
+        
+        # Make sure git is installed
+        if command -v git >/dev/null 2>&1; then
+            # Create temporary directory for AUR helper build
+            temp_dir=$(mktemp -d)
+            cd "$temp_dir"
+            
+            # Install yay AUR helper
+            git clone https://aur.archlinux.org/yay.git
+            cd yay
+            makepkg -si --noconfirm
+            
+            # Clean up
+            cd - 
+            rm -rf "$temp_dir"
+            
+            success "AUR helper (yay) installed successfully!"
+        else
+            warning "git not found. Skipping AUR helper installation."
+        fi
+    fi
+
+    # Configure reflector for faster package downloads
+    if command -v reflector >/dev/null 2>&1; then
+        info "Configuring reflector for faster downloads..."
+        sudo reflector --country 'United States' --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+    fi
+
+    # Enable color output and parallel downloads in pacman
+    if [ -f /etc/pacman.conf ]; then
+        info "Enabling color output and parallel downloads in pacman..."
+        sudo sed -i 's/#Color/Color/' /etc/pacman.conf
+        sudo sed -i '/#ParallelDownloads/s/^#//' /etc/pacman.conf
+    fi
+}
+
+setup_debian_family() {
+    if [ "$OS_TYPE" != "debian" ]; then
+        return
+    fi
+
+    header "Configuring Debian/Ubuntu specific settings..."
+
+    # Add common repositories or PPAs for Ubuntu
+    if [ -f /etc/os-release ] && grep -q "UBUNTU_CODENAME" /etc/os-release; then
+        # Enable universe repository and update package lists
+        info "Enabling universe repository for Ubuntu..."
+        sudo add-apt-repository universe -y
+        sudo apt update
+    fi
+    
+    # Install additional useful packages for Debian/Ubuntu systems
+    if [ "$INSTALL_DESKTOP_PACKAGES" != "no" ]; then
+        info "Installing desktop-specific packages for Debian/Ubuntu..."
+        sudo apt install -y ubuntu-restricted-extras ubuntu-restricted-addons gimp vlc build-essential
+    fi
+    
+    # Configure apt for better performance
+    info "Configuring apt settings..."
+    sudo mkdir -p /etc/apt/apt.conf.d/
+    echo 'APT::Acquire::Retries "3";' | sudo tee /etc/apt/apt.conf.d/80-retries
+    echo 'APT::Acquire::http::Timeout "10";' | sudo tee /etc/apt/apt.conf.d/80-timeout
+}
+
+setup_redhat_family() {
+    if [ "$OS_TYPE" != "redhat" ]; then
+        return
+    fi
+
+    header "Configuring Red Hat family (Fedora/CentOS/RHEL) specific settings..."
+
+    # For Fedora, enable RPM Fusion repositories
+    if command -v dnf >/dev/null 2>&1; then
+        if grep -q "fedora" /etc/os-release 2>/dev/null; then
+            info "Enabling RPM Fusion repositories for Fedora..."
+            sudo dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+            sudo dnf install -y https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+        fi
+    elif command -v yum >/dev/null 2>&1; then
+        if grep -q "centos\|redhat\|rhel" /etc/os-release 2>/dev/null; then
+            info "Enabling EPEL repository for CentOS/RHEL..."
+            sudo yum install -y epel-release
+        fi
+    fi
+    
+    # Update system
+    info "Updating system packages..."
+    if command -v dnf >/dev/null 2>&1; then
+        sudo dnf upgrade -y
+    elif command -v yum >/dev/null 2>&1; then
+        sudo yum update -y
+    fi
+}
+
+setup_suse_family() {
+    if [ "$OS_TYPE" != "suse" ]; then
+        return
+    fi
+
+    header "Configuring openSUSE specific settings..."
+
+    # Enable Packman repository for multimedia codecs
+    info "Enabling Packman repository for openSUSE..."
+    if [ -f /etc/os-release ] && grep -q "openSUSE" /etc/os-release; then
+        sudo zypper addrepo -f https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_$(. /etc/os-release; echo $VERSION_ID)/packman.repos.d/packman-codecs.repo
+        sudo zypper --gpg-auto-import-keys refresh
+    fi
+
+    # Install codecs and additional software from Packman
+    info "Installing multimedia codecs from Packman..."
+    sudo zypper install -y ffmpeg gstreamer-plugins-{good,ugly,bad} libavcodec-full
+}
+
+setup_alpine_linux() {
+    if [ "$OS_TYPE" != "alpine" ]; then
+        return
+    fi
+
+    header "Configuring Alpine Linux specific settings..."
+
+    # Update repositories
+    info "Updating Alpine repositories..."
+    sudo apk update
+
+    # Install common useful packages
+    info "Installing common packages for Alpine..."
+    sudo apk add --no-cache bash-completion sudo openssh vim nano curl wget git openssh-client
+}
+
+setup_macos_specific() {
+    if [ "$OS_TYPE" != "macos" ]; then
+        return
+    fi
+
+    header "Configuring macOS specific settings..."
+
+    # Check if Xcode command line tools are installed
+    if ! xcode-select -p >/dev/null 2>&1; then
+        info "Installing Xcode command line tools..."
+        xcode-select --install
+    else
+        info "Xcode command line tools already installed."
+    fi
+
+    # Configure some useful macOS defaults through defaults command
+    info "Configuring useful macOS defaults..."
+    # Show all files in Finder
+    defaults write com.apple.Finder AppleShowAllFiles -bool true
+    
+    # Show filename extensions
+    defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+    
+    # Disable press-and-hold for keys
+    defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+    
+    # Set fast key repeat rate
+    defaults write NSGlobalDomain KeyRepeat -int 1
+    defaults write NSGlobalDomain InitialKeyRepeat -int 10
+}
+
+# Also handle environment managers if specified
+setup_environment_managers() {
+    # Install NVM (Node Version Manager) if requested
+    if [ "$INSTALL_NVM" = "yes" ]; then
+        header "Installing NVM (Node Version Manager)..."
+        if command -v curl >/dev/null 2>&1; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+            info "NVM installed. Run 'source ~/.bashrc' or restart your terminal to use it."
+        else
+            warning "curl not found. Cannot install NVM."
+        fi
+    fi
+
+    # Install Pyenv (Python Version Manager) if requested
+    if [ "$INSTALL_PYENV" = "yes" ]; then
+        header "Installing Pyenv (Python Version Manager)..."
+        if command -v git >/dev/null 2>&1; then
+            git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+            info "Pyenv installed. Add 'export PYENV_ROOT=\"\$HOME/.pyenv\"' and 'command -v pyenv >/dev/null || export PATH=\"\$PYENV_ROOT/bin:\$PATH\"' to your shell configuration."
+        else
+            warning "git not found. Cannot install Pyenv."
+        fi
+    fi
+
+    # Install Rbenv (Ruby Version Manager) if requested
+    if [ "$INSTALL_RBENV" = "yes" ]; then
+        header "Installing Rbenv (Ruby Version Manager)..."
+        if command -v git >/dev/null 2>&1; then
+            git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+            info "Rbenv installed. Add 'export PATH=\"\$HOME/.rbenv/bin:\$PATH\"' to your shell configuration."
+        else
+            warning "git not found. Cannot install Rbenv."
+        fi
+    fi
+
+    # Install ASDF (Universal Version Manager) if requested
+    if [ "$INSTALL_ASDF" = "yes" ]; then
+        header "Installing ASDF (Universal Version Manager)..."
+        if command -v git >/dev/null 2>&1; then
+            git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+            info "ASDF installed. Add 'source \"\$HOME/.asdf/asdf.sh\"' to your shell configuration."
+        else
+            warning "git not found. Cannot install ASDF."
+        fi
+    fi
+}
+
+setup_distribution_specific
+setup_environment_managers
