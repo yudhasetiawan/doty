@@ -127,6 +127,45 @@ SKIP_TMUX_CONFIG=${SKIP_TMUX_CONFIG:-no}
 SKIP_TMUX_INSTALL=${SKIP_TMUX_INSTALL:-no}
 SKIP_LAZYGIT_CONFIG=${SKIP_LAZZYGIT_CONFIG:-no}
 
+# Enhanced package manager options
+SKIP_PKG_INSTALL=${SKIP_PKG_INSTALL:-no}
+SKIP_PKG_UPDATE=${SKIP_PKG_UPDATE:-no}
+SKIP_PKG_UPGRADE=${SKIP_PKG_UPGRADE:-no}
+SKIP_PKG_BUNDLE=${SKIP_PKG_BUNDLE:-no}
+SKIP_PKG_CLEAN=${SKIP_PKG_CLEAN:-no}
+DOTY_PKG_MANAGER=${DOTY_PKG_MANAGER:-auto}
+
+# Granular installation controls
+SKIP_ZSHRC_SETUP=${SKIP_ZSHRC_SETUP:-no}
+SKIP_TMUX_SETUP=${SKIP_TMUX_SETUP:-no}
+SKIP_NVIM_SETUP=${SKIP_NVIM_SETUP:-no}
+SKIP_GIT_SETUP=${SKIP_GIT_SETUP:-no}
+SKIP_SYMLINK_SETUP=${SKIP_SYMLINK_SETUP:-no}
+SKIP_FONTS_SETUP=${SKIP_FONTS_SETUP:-no}
+SKIP_KUBE_SETUP=${SKIP_KUBE_SETUP:-no}
+SKIP_DEVTOOLS_SETUP=${SKIP_DEVTOOLS_SETUP:-no}
+SKIP_SERVICES_SETUP=${SKIP_SERVICES_SETUP:-no}
+SKIP_TERMINAL_CONFIG=${SKIP_TERMINAL_CONFIG:-no}
+
+# Environment managers
+INSTALL_NVM=${INSTALL_NVM:-no}
+INSTALL_PYENV=${INSTALL_PYENV:-no}
+INSTALL_RBENV=${INSTALL_RBENV:-no}
+INSTALL_ASDF=${INSTALL_ASDF:-no}
+
+# Linux-specific options
+SKIP_DESKTOP_SETUP=${SKIP_DESKTOP_SETUP:-no}
+SKIP_SOUND_SETUP=${SKIP_SOUND_SETUP:-no}
+SKIP_GRAPHICS_SETUP=${SKIP_GRAPHICS_SETUP:-no}
+SKIP_GUI_TOOLS=${SKIP_GUI_TOOLS:-no}
+SKIP_DESKTOP_PACKAGES=${SKIP_DESKTOP_PACKAGES:-no}
+
+# Configuration profile
+DOTY_PROFILE=${DOTY_PROFILE:-default}
+
+# Component installation list
+INSTALL_COMPONENTS=${INSTALL_COMPONENTS:-"git,zsh,tmux,nvim,packages,fonts,devtools,kube,colorscheme"}
+
 # Installer options
 INSTALL_ZSHRC_FILE="${INSTALL_ZSHRC_FILE:-"${zdot}/.zshrc"}"
 INSTALL_TMUX_CONF="${INSTALL_TMUX_CONF:-"${zdot}/.tmux.conf"}"
@@ -336,15 +375,224 @@ __install() {
         info "Using shellcheck: $(shellcheck --version)"
     fi
 
-    for __installer in $(find -H "${DOTY}/scripts/installer" -type f -name '*' -maxdepth 1 | sort -u); do
-        info "Prepare installer: ${__installer}"
-        # TODO: Ensure to run shellcheck properly
-        if command_exists "shellcheck"; then
-            shellcheck --shell=sh --color=always - <<< "$(cat "${__installer}")"
+    # Load configuration profile if specified
+    if [ -n "$DOTY_PROFILE" ] && [ "$DOTY_PROFILE" != "default" ]; then
+        profile_file="${DOTY}/config/profiles/${DOTY_PROFILE}.conf"
+        if [ -f "$profile_file" ]; then
+            source "$profile_file"
+            info "Loaded profile: $DOTY_PROFILE"
+        else
+            warning "Profile $DOTY_PROFILE not found, using defaults"
         fi
+    fi
 
-        source "${__installer}" || exit 1
-    done
+    # Process comma-separated list of components to install
+    install_components() {
+        local components=$(echo "$INSTALL_COMPONENTS" | tr ',' '\n')
+
+        for component in $components; do
+            case "$component" in
+                "packages")
+                    if [ "$SKIP_PKG_INSTALL" != yes ]; then
+                        info "Installing packages component..."
+                        if [ -f "${DOTY}/scripts/installer/01_package_manager" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/01_package_manager"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/01_package_manager")"
+                            fi
+                            source "${DOTY}/scripts/installer/01_package_manager" || exit 1
+                        fi
+                    else
+                        warning "Skipping packages component installation"
+                    fi
+                    ;;
+                "zsh")
+                    if [ "$SKIP_ZSHRC_SETUP" != yes ]; then
+                        info "Installing zsh component..."
+                        if [ -f "${DOTY}/scripts/installer/02_zshrc" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/02_zshrc"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/02_zshrc")"
+                            fi
+                            source "${DOTY}/scripts/installer/02_zshrc" || exit 1
+                        fi
+                    else
+                        warning "Skipping zsh component installation"
+                    fi
+                    ;;
+                "shell")
+                    if [ "$CHANGE_SHELL" != no ]; then
+                        info "Installing shell component..."
+                        if [ -f "${DOTY}/scripts/installer/03_shell" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/03_shell"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/03_shell")"
+                            fi
+                            source "${DOTY}/scripts/installer/03_shell" || exit 1
+                        fi
+                    else
+                        warning "Skipping shell component installation"
+                    fi
+                    ;;
+                "tmux")
+                    if [ "$SKIP_TMUX_SETUP" != yes ]; then
+                        info "Installing tmux component..."
+                        if [ -f "${DOTY}/scripts/installer/04_tmux" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/04_tmux"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/04_tmux")"
+                            fi
+                            source "${DOTY}/scripts/installer/04_tmux" || exit 1
+                        fi
+                    else
+                        warning "Skipping tmux component installation"
+                    fi
+                    ;;
+                "nvim")
+                    if [ "$SKIP_NVIM_SETUP" != yes ]; then
+                        info "Installing nvim component..."
+                        if [ -f "${DOTY}/scripts/installer/05_nvim" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/05_nvim"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/05_nvim")"
+                            fi
+                            source "${DOTY}/scripts/installer/05_nvim" || exit 1
+                        fi
+                    else
+                        warning "Skipping nvim component installation"
+                    fi
+                    ;;
+                "devtools")
+                    if [ "$SKIP_DEVTOOLS_SETUP" != yes ]; then
+                        info "Installing devtools component..."
+                        if [ -f "${DOTY}/scripts/installer/06_devtools" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/06_devtools"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/06_devtools")"
+                            fi
+                            source "${DOTY}/scripts/installer/06_devtools" || exit 1
+                        fi
+                    else
+                        warning "Skipping devtools component installation"
+                    fi
+                    ;;
+                "services")
+                    if [ "$SKIP_SERVICES_SETUP" != yes ]; then
+                        info "Installing services component..."
+                        if [ -f "${DOTY}/scripts/installer/11_services_terminals" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/11_services_terminals"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/11_services_terminals")"
+                            fi
+                            source "${DOTY}/scripts/installer/11_services_terminals" || exit 1
+                        fi
+                    else
+                        warning "Skipping services component installation"
+                    fi
+                    ;;
+                "git")
+                    if [ "$SKIP_GIT_SETUP" != yes ]; then
+                        info "Installing git component..."
+                        if [ -f "${DOTY}/scripts/installer/07_git" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/07_git"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/07_git")"
+                            fi
+                            source "${DOTY}/scripts/installer/07_git" || exit 1
+                        fi
+                    else
+                        warning "Skipping git component installation"
+                    fi
+                    ;;
+                "symlink")
+                    if [ "$SKIP_SYMLINK_SETUP" != yes ]; then
+                        info "Installing symlink component..."
+                        if [ -f "${DOTY}/scripts/installer/08_symlink" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/08_symlink"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/08_symlink")"
+                            fi
+                            source "${DOTY}/scripts/installer/08_symlink" || exit 1
+                        fi
+                    else
+                        warning "Skipping symlink component installation"
+                    fi
+                    ;;
+                "fonts")
+                    if [ "$SKIP_FONTS_SETUP" != yes ]; then
+                        info "Installing fonts component..."
+                        if [ -f "${DOTY}/scripts/installer/09_colorscheme" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/09_colorscheme"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/09_colorscheme")"
+                            fi
+                            source "${DOTY}/scripts/installer/09_colorscheme" || exit 1
+                        fi
+                    else
+                        warning "Skipping fonts component installation"
+                    fi
+                    ;;
+                "kube")
+                    if [ "$SKIP_KUBE_SETUP" != yes ]; then
+                        info "Installing kube component..."
+                        if [ -f "${DOTY}/scripts/installer/12_kube" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/12_kube"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/12_kube")"
+                            fi
+                            source "${DOTY}/scripts/installer/12_kube" || exit 1
+                        fi
+                    else
+                        warning "Skipping kube component installation"
+                    fi
+                    ;;
+                "colorscheme")
+                    # Only run colorscheme installer if not skipping and it's not macOS-specific settings
+                    if [ "$SKIP_COLORSCHEME_INSTALL" != yes ]; then
+                        info "Installing colorscheme component..."
+                        if [ -f "${DOTY}/scripts/installer/09_colorscheme" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/09_colorscheme"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/09_colorscheme")"
+                            fi
+                            source "${DOTY}/scripts/installer/09_colorscheme" || exit 1
+                        fi
+                    else
+                        warning "Skipping colorscheme component installation"
+                    fi
+                    ;;
+                "dist")
+                    info "Installing distribution-specific component..."
+                    if [ -f "${DOTY}/scripts/installer/13_dist_specific" ]; then
+                        info "Prepare installer: ${DOTY}/scripts/installer/13_dist_specific"
+                        if command_exists "shellcheck"; then
+                            shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/13_dist_specific")"
+                        fi
+                        source "${DOTY}/scripts/installer/13_dist_specific" || exit 1
+                    fi
+                    ;;
+                "osx")
+                    if [ "$SKIP_OSX_SETTINGS" != yes ]; then
+                        info "Installing osx component..."
+                        if [ -f "${DOTY}/scripts/installer/100_osx_settings" ]; then
+                            info "Prepare installer: ${DOTY}/scripts/installer/100_osx_settings"
+                            if command_exists "shellcheck"; then
+                                shellcheck --shell=sh --color=always - <<< "$(cat "${DOTY}/scripts/installer/100_osx_settings")"
+                            fi
+                            source "${DOTY}/scripts/installer/100_osx_settings" || exit 1
+                        fi
+                    else
+                        warning "Skipping osx component installation"
+                    fi
+                    ;;
+                *)
+                    warning "Unknown component: $component, skipping..."
+                    ;;
+            esac
+        done
+    }
+
+    install_components
 
     printf '\n' >&2
     printf "$(tput setaf 64)✓$(tput sgr0) %s%s%s\n" "${_FMT_BOLD}${_FMT_PURPLE}" "Doty is now installed!" "${_FMT_RESET}" >&2
