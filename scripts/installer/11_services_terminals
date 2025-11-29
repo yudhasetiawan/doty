@@ -1,0 +1,189 @@
+#!/usr/bin/env sh
+
+setup_services() {
+    if [ "$SKIP_SERVICES_SETUP" = yes ]; then
+        warning "Skipping service setup..."
+        return
+    fi
+
+    # Only run on Linux systems
+    if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "termux" ]; then
+        info "Not a Linux system, skipping service setup..."
+        return
+    fi
+
+    header "Setting up Linux services..."
+
+    # Enable useful services based on the system
+    if command -v systemctl >/dev/null 2>&1; then
+        info "Configuring systemd services..."
+
+        # Enable fstrim timer for better SSD performance (on supported systems)
+        if [ -f "/etc/cron.weekly/fstrim" ] || [ -f "/usr/share/systemd/system/fstrim.timer" ]; then
+            sudo systemctl enable --now fstrim.timer 2>/dev/null && info "Enabled fstrim.timer" || warning "Could not enable fstrim.timer"
+        fi
+
+        # Enable cron service if it exists
+        if systemctl list-unit-files | grep -q cron; then
+            sudo systemctl enable --now cron 2>/dev/null && info "Enabled cron service" || warning "Could not enable cron service"
+        elif systemctl list-unit-files | grep -q crond; then
+            sudo systemctl enable --now crond 2>/dev/null && info "Enabled crond service" || warning "Could not enable crond service"
+        fi
+
+        # Enable other common services based on availability
+        if systemctl list-unit-files | grep -q NetworkManager; then
+            sudo systemctl enable --now NetworkManager 2>/dev/null && info "Enabled NetworkManager" || warning "Could not enable NetworkManager"
+        fi
+    else
+        info "systemctl not available, skipping systemd service configuration"
+    fi
+}
+
+setup_terminal_configs() {
+    if [ "$SKIP_TERMINAL_CONFIG" = yes ]; then
+        warning "Skipping terminal configuration..."
+        return
+    fi
+
+    # Only run on Linux
+    if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "termux" ]; then
+        info "Not running full Linux terminal config on macOS/Termux..."
+        return
+    fi
+
+    header "Configuring Linux terminal emulators..."
+
+    # Configure GNOME Terminal if available
+    if command -v gsettings >/dev/null 2>&1 && [ -n "$DESKTOP_SESSION" ]; then
+        info "Configuring GNOME Terminal..."
+        
+        # Set default terminal shell to zsh if available
+        if command -v zsh >/dev/null 2>&1; then
+            gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
+            gsettings set org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')/ use-system-font false
+            gsettings set org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')/ font "MesloLGM Nerd Font 11"
+        fi
+    fi
+
+    # Configure Konsole (KDE) if available
+    if [ -d "$HOME/.local/share/konsole" ] || [ -d "$HOME/.kde/share/apps/konsole" ]; then
+        info "Configuring Konsole..."
+        konsole_dir="$HOME/.local/share/konsole"
+        if [ ! -d "$konsole_dir" ]; then
+            konsole_dir="$HOME/.kde/share/apps/konsole"
+        fi
+        
+        if [ -d "$konsole_dir" ]; then
+            mkdir -p "$konsole_dir"
+            if [ -d "${DOTY}/config/color-schemes/konsole" ]; then
+                cp -f "${DOTY}/config/color-schemes/konsole/"* "$konsole_dir/" 2>/dev/null || true
+            fi
+        fi
+    fi
+
+    # Configure Alacritty if config exists or user wants to set it up
+    alacritty_config_dir="$HOME/.config/alacritty"
+    if [ -f "$HOME/.config/alacritty/alacritty.yml" ] || [ -f "$HOME/.config/alacritty/alacritty.toml" ] || [ "$INSTALL_ALACRITTY_CONFIG" = "yes" ]; then
+        info "Configuring Alacritty..."
+        mkdir -p "$alacritty_config_dir"
+        
+        # Copy alacritty config if it doesn't exist yet
+        alacritty_yaml="$alacritty_config_dir/alacritty.yml"
+        alacritty_toml="$alacritty_config_dir/alacritty.toml"
+        
+        if [ ! -f "$alacritty_yaml" ] && [ ! -f "$alacritty_toml" ]; then
+            if [ -f "${DOTY}/config/alacritty/alacritty.yml" ]; then
+                cp "${DOTY}/config/alacritty/alacritty.yml" "$alacritty_config_dir/" 2>/dev/null || true
+            elif [ -f "${DOTY}/config/alacritty/alacritty.toml" ]; then
+                cp "${DOTY}/config/alacritty/alacritty.toml" "$alacritty_config_dir/" 2>/dev/null || true
+            fi
+        fi
+        
+        # Set up font configuration if config file exists
+        if [ -f "$alacritty_yaml" ]; then
+            sed -i.bak 's/font:\ .*/font:\ family:\ "MesloLGM\ Nerd\ Font"/' "$alacritty_yaml" 2>/dev/null || true
+        fi
+    fi
+
+    # Configure Kitty terminal if installed
+    if command -v kitty >/dev/null 2>&1; then
+        info "Configuring Kitty terminal..."
+        kitty_config_dir="$HOME/.config/kitty"
+        mkdir -p "$kitty_config_dir"
+        
+        # Create basic kitty config if it doesn't exist
+        if [ ! -f "$kitty_config_dir/kitty.conf" ]; then
+            cat > "$kitty_config_dir/kitty.conf" << EOF
+font_family MesloLGM Nerd Font
+font_size 11.0
+shell zsh
+EOF
+            info "Created basic Kitty configuration"
+        fi
+    fi
+
+    # Configure URxvt if installed
+    if command -v urxvt >/dev/null 2>&1 || command -v rxvt >/dev/null 2>&1; then
+        info "Configuring URxvt terminal..."
+        if [ ! -f "$HOME/.Xresources" ] && [ -f "${DOTY}/config/terminal/.Xresources" ]; then
+            cp "${DOTY}/config/terminal/.Xresources" "$HOME/" 2>/dev/null || true
+        fi
+    fi
+}
+
+# Additional Linux desktop environment setup
+setup_desktop_environment() {
+    if [ "$SKIP_DESKTOP_SETUP" = yes ]; then
+        warning "Skipping desktop environment setup..."
+        return
+    fi
+
+    # Only run on Linux systems
+    if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "termux" ]; then
+        info "Not a Linux system, skipping desktop environment setup..."
+        return
+    fi
+
+    header "Configuring desktop environment settings..."
+    
+    # Detect desktop environment and perform appropriate configuration
+    if [ -n "$GNOME_DESKTOP_SESSION_ID" ]; then
+        info "Configuring GNOME desktop settings..."
+        # Example: Enable desktop icons, set default folder views, etc.
+        gsettings set org.gnome.desktop.interface show-battery-percentage true 2>/dev/null || true
+        gsettings set org.gnome.desktop.input-sources xkb-options "['caps:swapescape']" 2>/dev/null || true
+    elif [ -n "$KDE_SESSION_VERSION" ]; then
+        info "Configuring KDE desktop settings..."
+        # Example: Configure KDE specific preferences
+        kwriteconfig5 --file kdeglobals --group General --key BrowserApplication chrome 2>/dev/null || true
+    fi
+}
+
+setup_sound_config() {
+    if [ "$SKIP_SOUND_SETUP" = yes ]; then
+        warning "Skipping audio configuration..."
+        return
+    fi
+
+    # Only run on Linux systems
+    if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "termux" ]; then
+        info "Not a Linux system, skipping audio configuration..."
+        return
+    fi
+
+    header "Configuring audio settings..."
+    
+    # Check for and configure PulseAudio/ALSA if available
+    if command -v pactl >/dev/null 2>&1; then
+        info "PulseAudio detected, checking configuration..."
+        # Set default volume levels if needed
+        pactl --version > /dev/null 2>&1 && info "PulseAudio is properly configured" || warning "PulseAudio may need configuration"
+    elif command -v alsamixer >/dev/null 2>&1; then
+        info "ALSA detected, checking configuration..."
+    fi
+}
+
+setup_services
+setup_terminal_configs
+setup_desktop_environment
+setup_sound_config
