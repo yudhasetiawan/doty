@@ -332,17 +332,26 @@ detect_os() {
     if command -v lsb_release >/dev/null 2>&1; then
         local distribution=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
         case "$distribution" in
-            ubuntu)
-                OS_TYPE="ubuntu"
+            ubuntu|linuxmint|pop|elementary|zorin)
+                OS_TYPE="debian"
                 ;;
             debian)
                 OS_TYPE="debian"
                 ;;
-            fedora)
-                OS_TYPE="fedora"
+            fedora|centos|rhel|almalinux|rocky|ol|scientific)
+                OS_TYPE="redhat"
                 ;;
-            archlinux|arch)
+            amazon)
+                OS_TYPE="redhat"
+                ;;
+            arch|manjaro|endeavouros|garuda|arcolinux|reborn)
                 OS_TYPE="arch"
+                ;;
+            opensuse-*|sles|caasp)
+                OS_TYPE="suse"
+                ;;
+            alpine)
+                OS_TYPE="alpine"
                 ;;
             *)
                 OS_TYPE="linux"
@@ -355,24 +364,68 @@ detect_os() {
     if [[ -f /etc/os-release ]]; then
         # shellcheck disable=SC1091
         . /etc/os-release
-        local id=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
-        case "$id" in
-            ubuntu)
-                OS_TYPE="ubuntu"
-                ;;
-            debian)
+        local id_like_lower=$(echo "${ID_LIKE:-$ID}" | tr '[:upper:]' '[:lower:]')
+        local id_lower=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
+
+        # Check ID_LIKE first as it's more reliable for derivatives
+        case "$id_like_lower" in
+            *debian*|*ubuntu*|*mint*)
                 OS_TYPE="debian"
                 ;;
-            fedora)
-                OS_TYPE="fedora"
+            *redhat*|*fedora*|*centos*|*rhel*|*ol*|*almalinux*|*rocky*|*scientific*)
+                OS_TYPE="redhat"
                 ;;
-            arch)
+            *arch*|*manjaro*|*endeavouros*|*garuda*|*arcolinux*|*reborn*)
                 OS_TYPE="arch"
                 ;;
+            *suse*|*opensuse*|*sles*|*caasp*)
+                OS_TYPE="suse"
+                ;;
+            *alpine*)
+                OS_TYPE="alpine"
+                ;;
             *)
-                OS_TYPE="linux"
+                # Check ID if ID_LIKE didn't match
+                case "$id_lower" in
+                    ubuntu|linuxmint|pop|elementary|zorin|kubuntu|lubuntu|xubuntu|debian)
+                        OS_TYPE="debian"
+                        ;;
+                    fedora|centos|rhel|almalinux|rocky|ol|scientific|amazon|amzn)
+                        OS_TYPE="redhat"
+                        ;;
+                    arch|manjaro|endeavouros|garuda|arcolinux|reborn)
+                        OS_TYPE="arch"
+                        ;;
+                    opensuse-*|sles|caasp)
+                        OS_TYPE="suse"
+                        ;;
+                    alpine)
+                        OS_TYPE="alpine"
+                        ;;
+                    *)
+                        OS_TYPE="linux"
+                        ;;
+                esac
                 ;;
         esac
+        return
+    fi
+
+    # Check specific files that identify distributions
+    if [[ -f /etc/redhat-release ]]; then
+        OS_TYPE="redhat"
+        return
+    elif [[ -f /etc/debian_version ]]; then
+        OS_TYPE="debian"
+        return
+    elif [[ -f /etc/arch-release ]]; then
+        OS_TYPE="arch"
+        return
+    elif [[ -f /etc/alpine-release ]]; then
+        OS_TYPE="alpine"
+        return
+    elif [[ -f /etc/SuSE-release ]]; then
+        OS_TYPE="suse"
         return
     fi
 
