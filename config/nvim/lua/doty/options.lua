@@ -5,7 +5,7 @@
 -- See: https://neovim.io/doc/user/vim_diff.html
 -- See: https://github.com/brainfucksec/neovim-lua/blob/main/nvim/lua/core/options.lua
 -- [2] Defaults - *nvim-defaults*
-local g = vim.g     -- Global variables
+local g = vim.g -- Global variables
 local opt = vim.opt -- Set options (global/buffer/windows-scoped)
 
 -----------------------------------------------------------
@@ -54,32 +54,32 @@ g.maplocalleader = ","
 -----------------------------------------------------------
 -- General
 -----------------------------------------------------------
-opt.mouse = "a"               -- Enable mouse support
+opt.mouse = "a" -- Enable mouse support
 opt.clipboard = "unnamedplus" -- allows neovim to Copy/paste to system clipboard
 opt.syntax = "enable"
 -- opt.swapfile = false                  -- Don't use swapfile
 opt.completeopt = "menu,menuone,noinsert,noselect" -- Autocomplete options
 vim.scriptencoding = "utf-8"
-opt.encoding = "utf-8"                             -- String-encoding used internally and for RPC communication.
-opt.fileencoding = "utf-8"                         -- File-content encoding for the current buffer
+opt.encoding = "utf-8" -- String-encoding used internally and for RPC communication.
+opt.fileencoding = "utf-8" -- File-content encoding for the current buffer
 
 -----------------------------------------------------------
 -- Neovim UI
 -----------------------------------------------------------
-opt.number = true          -- Show line number
+opt.number = true -- Show line number
 opt.relativenumber = false -- Show relative number
-opt.showmatch = true       -- Highlight matching parenthesis
+opt.showmatch = true -- Highlight matching parenthesis
 -- opt.foldmethod = 'marker'   -- Enable folding (default 'foldmarker')
-opt.colorcolumn = "120"    -- Line length marker at 120 columns
+opt.colorcolumn = "120" -- Line length marker at 120 columns
 -- opt.splitright = true       -- Vertical split to the right
 -- opt.splitbelow = true       -- Horizontal split to the bottom
 -- opt.ignorecase = true       -- Ignore case letters when search
 -- opt.smartcase = true        -- Ignore lowercase for the whole pattern
 -- opt.linebreak = true        -- Wrap on word boundary
 opt.termguicolors = true -- Enable 24-bit RGB colors
-opt.laststatus = 3       -- Set global statusline
-opt.scrolloff = 5        -- Minimal number of screen lines to keep above and below the cursor
-opt.sidescrolloff = 5    -- The minimal number of screen columns to keep to the left and to the right of the cursor if 'nowrap' is set.
+opt.laststatus = 3 -- Set global statusline
+opt.scrolloff = 5 -- Minimal number of screen lines to keep above and below the cursor
+opt.sidescrolloff = 5 -- The minimal number of screen columns to keep to the left and to the right of the cursor if 'nowrap' is set.
 opt.wrap = false
 opt.whichwrap = "b,s,<,>,[,]"
 -- opt.guicursor="n-v-c:ver25,i-ci-ve:ver25,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175"
@@ -91,11 +91,11 @@ opt.whichwrap = "b,s,<,>,[,]"
 -- -----------------------------------------------------------
 -- -- Syntax, Highlight
 -- -----------------------------------------------------------
-opt.hlsearch = true   -- When there is a previous search pattern, highlight all its matches.
-opt.incsearch = true  -- While typing a search command, show where the pattern, as it was typed so far, matches.
+opt.hlsearch = true -- When there is a previous search pattern, highlight all its matches.
+opt.incsearch = true -- While typing a search command, show where the pattern, as it was typed so far, matches.
 opt.ignorecase = true -- Ignore case in search patterns.
-opt.smartcase = true  -- Override the 'ignorecase' option if the search pattern contains upper-case characters.
-opt.list = true       -- List mode: By default, show tabs as ">", trailing spaces as "-", and non-breakable space characters as "+".
+opt.smartcase = true -- Override the 'ignorecase' option if the search pattern contains upper-case characters.
+opt.list = true -- List mode: By default, show tabs as ">", trailing spaces as "-", and non-breakable space characters as "+".
 opt.cursorline = true -- Highlight the text line of the cursor with CursorLine hl-CursorLine.
 opt.signcolumn = "yes"
 opt.listchars = {
@@ -111,12 +111,12 @@ opt.listchars = {
 -- -- Tabs, indent
 -- -----------------------------------------------------------
 opt.autoindent = true
-opt.expandtab = true   -- Use spaces instead of tabs
-opt.shiftwidth = 4     -- Shift 4 spaces when tab
+opt.expandtab = true -- Use spaces instead of tabs
+opt.shiftwidth = 4 -- Shift 4 spaces when tab
 -- Number of spaces that a <Tab> in the file counts for.
-opt.tabstop = 4        -- 1 tab == 4 spaces
+opt.tabstop = 4 -- 1 tab == 4 spaces
 -- Number of spaces that a <Tab> counts for while performing editing operations, like inserting a <Tab> or using <BS>.
-opt.softtabstop = 2    -- 1 tab == 2 spaces
+opt.softtabstop = 2 -- 1 tab == 2 spaces
 opt.smartindent = true -- Autoindent new lines
 
 -- -----------------------------------------------------------
@@ -126,10 +126,11 @@ opt.smartindent = true -- Autoindent new lines
 opt.history = 100 -- Remember N lines in history
 -- opt.lazyredraw = true       -- Faster scrolling
 -- opt.synmaxcol = 240         -- Max column for syntax highlight
-opt.updatetime = 250    -- ms to wait for trigger an event
-opt.timeoutlen = 500    -- Time in milliseconds to wait for a mapped sequence to complete.
-opt.swapfile = false    -- Use a swapfile for the buffer.
-opt.backup = false      -- Make a backup before overwriting a file
+opt.updatetime = 200 -- ms to wait for trigger an CursorHold event
+opt.timeout = true
+opt.timeoutlen = 300 -- Time in milliseconds to wait for a mapped sequence to complete.
+opt.swapfile = false -- Use a swapfile for the buffer.
+opt.backup = false -- Make a backup before overwriting a file
 opt.writebackup = false -- No backup before overwriting a file
 -- When a file has been detected to have been changed outside of Vim and
 -- it has not been changed inside of Vim, automatically read it again.
@@ -140,31 +141,43 @@ vim.bo.autoread = true
 -- Command completion
 -----------------------------------------------------------
 opt.wildignore = opt.wildignore
-    + {
-      "*/node_modules/*",
-      "*/.git/*",
-      "*/vendor/*",
-      "*.jpg",
-      "*.png",
-      "*.gif",
-      "*.img",
-      "*.flv",
-      "*.docx",
-      "*.pdf",
-      "*.xlsx",
-      "*DS_STORE",
-      "*.db",
-      "*.pyc",
-      "*.exe",
-    }
+  + {
+    "*/node_modules/*",
+    "*/.git/*",
+    "*/vendor/*",
+    "*.jpg",
+    "*.png",
+    "*.gif",
+    "*.img",
+    "*.flv",
+    "*.docx",
+    "*.pdf",
+    "*.xlsx",
+    "*DS_STORE",
+    "*.db",
+    "*.pyc",
+    "*.exe",
+  }
 
 -- API compatibility check
 if vim.fn.has("nvim-0.9") == 1 then
   -- Use the new diagnostic signs for Neovim 0.9+
-  vim.fn.sign_define("DiagnosticSignError", { text = "●", texthl = "DiagnosticSignError" })
-  vim.fn.sign_define("DiagnosticSignWarn", { text = "●", texthl = "DiagnosticSignWarn" })
-  vim.fn.sign_define("DiagnosticSignInfo", { text = "●", texthl = "DiagnosticSignInfo" })
-  vim.fn.sign_define("DiagnosticSignHint", { text = "●", texthl = "DiagnosticSignHint" })
+  vim.fn.sign_define(
+    "DiagnosticSignError",
+    { text = "●", texthl = "DiagnosticSignError" }
+  )
+  vim.fn.sign_define(
+    "DiagnosticSignWarn",
+    { text = "●", texthl = "DiagnosticSignWarn" }
+  )
+  vim.fn.sign_define(
+    "DiagnosticSignInfo",
+    { text = "●", texthl = "DiagnosticSignInfo" }
+  )
+  vim.fn.sign_define(
+    "DiagnosticSignHint",
+    { text = "●", texthl = "DiagnosticSignHint" }
+  )
 end
 
 -----------------------------------------------------------
@@ -215,4 +228,5 @@ for _, plugin in pairs(disabled_built_ins) do
 end
 
 -- Add more performance optimizations
-opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+opt.sessionoptions =
+  "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"

@@ -1,81 +1,4 @@
 return {
-  {
-    "kevinhwang91/nvim-ufo", -- Enable folds with nvim-ufo
-    dependencies = {
-      "kevinhwang91/promise-async",
-    },
-    config = function()
-      require("doty.plugins.nvim-ufo")
-    end,
-  },
-  {
-    "nvim-lua/lsp-status.nvim",
-    dependencies = {
-      "neovim/nvim-lspconfig",
-    },
-    config = function()
-      require("doty.plugins.lsp-status")
-    end,
-  },
-  {
-    "SmiteshP/nvim-navic",
-    config = function()
-      return require("doty.plugins.nvim-navic")
-    end,
-  },
-  {
-    --
-    "williamboman/mason.nvim",
-    config = function()
-      require("doty.plugins.mason")
-    end,
-  },
-  {
-    "williamboman/mason-lspconfig.nvim",
-    dependencies = {
-      "williamboman/mason.nvim",
-      "neovim/nvim-lspconfig",
-    },
-    config = function()
-      require("doty.plugins.mason-lspconfig")
-    end,
-  },
-  {
-    "neovim/nvim-lspconfig",
-    -- event = { "BufReadPre", "BufNewFile" },
-    config = function()
-      require("doty.plugins.nvim-lspconfig")
-    end,
-  },
-  {
-    "stevearc/conform.nvim",
-    event = { "BufReadPre", "BufNewFile" },
-    config = function()
-      require("doty.plugins.nvim-lspconfig-conform")
-    end,
-  },
-  {
-    "zapling/mason-conform.nvim",
-    dependencies = {
-      "williamboman/mason.nvim",
-      "stevearc/conform.nvim",
-    },
-    -- init = function()
-    --   -- Conform also provides a formatexpr, same as the LSP client.
-    --   -- If you want the formatexpr, here is the place to set it.
-    --   vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
-    -- end,
-    config = function()
-      require("mason-conform").setup({
-        -- List of formatters to ignore during install
-        ignore_install = {
-          -- "prettier",
-          -- "helm_ls",
-          -- "yq",
-        },
-      })
-    end,
-  },
 
   -- JSON -------------------------------------------------------------
   {
@@ -132,69 +55,62 @@ return {
   --         "ray-x/guihua.lua", "neovim/nvim-lspconfig",
   --         "nvim-treesitter/nvim-treesitter"
   --     },
-  --     config = function() require("doty.plugins.go") end
+  --     config = function()
+  --       vim.g.go_addtags_transform = "camelcase"
+  --     end
   -- },
   -- END ---
-  {
-    "WhoIsSethDaniel/mason-tool-installer.nvim",
-    lazy = false,
-    dependencies = {
-      "williamboman/mason-lspconfig.nvim",
-    },
-    config = function()
-      require("mason-tool-installer").setup({
-        auto_update = true,
-        debounce_hours = 24,
-        ensure_installed = {
-          -- LSP servers
-          "bash-language-server",
-          "lua-language-server",
-          "typescript-language-server",
-          "eslint-lsp",
-          "jsonls",
-          "yamlls",
-          "dockerls",
-          "terraformls",
-          "gopls",
-          "pylsp",
-          "rust-analyzer",
-          -- Formatters & linters
-          "stylua",
-          "prettier",
-          "eslint_d",
-          "shellcheck",
-          "shfmt",
-          "golangci-lint",
-          "gofumpt",
-          "goimports",
-          "yamllint",
-          "flake8",
-          -- DAP debuggers
-          "codelldb",
-        },
-      })
-    end,
-  },
   -- Linters: { "jose-elias-alvarez/null-ls.nvim" } or { "mfussenegger/nvim-lint" }
   {
     "nvimtools/none-ls.nvim",
-  },
-  {
-    "jay-babu/mason-null-ls.nvim",
-    event = { "BufReadPre", "BufNewFile" },
-    dependencies = {
-      "williamboman/mason.nvim",
-      "nvimtools/none-ls.nvim",
-    },
-    config = function()
-      require("doty.plugins.mason-null-ls")
-    end,
   },
   -- {
   --   "mfussenegger/nvim-lint",
   --   main = "lint",
   --   config = function()
-  --     require("doty.plugins.nvim-lint")
+  --     require("lint").linters_by_ft = {
+  --       ["*"] = { "codespell", "gitlint", "staticcheck", "typos" },
+  --       ansible = { "ansible_lint" },
+  --       bash = { "bash", "shellcheck" },
+  --       clojure = { "clj-kondo" },
+  --       dockerfile = { "hadolint" },
+  --       dotenv = { "dotenv_linter" },
+  --       editorconfig = { "editorconfig-checker" },
+  --       gitcommit = { "commitlint" },
+  --       go = { "golangcilint" },
+  --       inko = { "inko" },
+  --       janet = { "janet" },
+  --       jq = { "jq" },
+  --       json = { "jsonlint" },
+  --       lua = { "luacheck" },
+  --       make = { "checkmake" },
+  --       markdown = { "vale" },
+  --       python = { "ruff", "mypy" },
+  --       rst = { "vale" },
+  --       ruby = { "ruby" },
+  --       rust = { "clippy" },
+  --       sh = { "shellcheck" },
+  --       terraform = { "tflint", "terraform_validate" },
+  --       text = { "vale" },
+  --       tf = { "terraform_validate", "tflint", "tfsec" },
+  --       yaml = { "yamllint" },
+  --       yq = { "yq" },
+  --       zsh = { "zsh" },
+  --     }
+  --
+  --     vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+  --       callback = function()
+  --         local lint = require("lint")
+  --         local names = lint._resolve_linter_by_ft(vim.bo.filetype)
+  --         for _, linter in pairs(lint.linters_by_ft["*"]) do
+  --           table.insert(names, linter)
+  --         end
+
+  --         -- try_lint without arguments runs the linters defined in `linters_by_ft`
+  --         -- for the current filetype
+  --         require("lint").try_lint(names)
+  --       end,
+  --     })
   --   end,
   -- },
   -- Formatters: { "jose-elias-alvarez/null-ls.nvim" } or { "mhartington/formatter.nvim" }
