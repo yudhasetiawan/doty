@@ -137,7 +137,7 @@
     lgsf = log --stat --format=oneline --abbrev-commit
 
     # View the current working tree status using the short format.
-    s = status -s
+    s = status
     st = status -sb
 
     # Diff what is staged for the next commit
