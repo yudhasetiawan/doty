@@ -1,0 +1,69 @@
+#!/usr/bin/env sh
+
+setup_lazygit() {
+  # Setup lazygit configuration directory
+  header "Setting up lazygit configuration"
+
+  # Check if lazygit configuration should be skipped
+  if [ "$SKIP_LAZYGIT_CONFIG" = yes ]; then
+    warning "SKIP_LAZYGIT_CONFIG is set to 'yes'. Skipping lazygit configuration setup."
+    printf '\n' >&2
+    return
+  fi
+
+  # Check if lazygit is installed
+  if ! command_exists "lazygit"; then
+    warning "lazygit is not installed. Skipping lazygit configuration setup."
+    printf '\n' >&2
+    return
+  fi
+
+  # Define source and target directories
+  source_dir="${DOTY}/config/lazygit"
+  target_dir="${HOME}/.config/lazygit"
+
+  # Check if source directory exists
+  if [ ! -d "${source_dir}" ]; then
+    warning "lazygit config directory not found at $(fmt_code "${source_dir}"). Skipping setup."
+    printf '\n' >&2
+    return
+  fi
+
+  # Check if target directory already exists
+  if [ -d "${target_dir}" ] || [ -L "${target_dir}" ]; then
+    # Skip this if the user doesn't want to replace existing config
+    if [ "$KEEP_SYMLINK" = yes ]; then
+      warning "Found existing lazygit config at $(fmt_code "${target_dir}"). Keeping it..."
+      printf '\n' >&2
+      return
+    fi
+
+    # Backup existing configuration
+    # shellcheck disable=SC2154
+    backup_lazygit_dir="${backup_dir}/.local/config/lazygit"
+    mkdir -p "$(dirname "${backup_lazygit_dir}")"
+
+    if [ -d "${backup_lazygit_dir}" ]; then
+      error "Backup lazygit directory ${backup_lazygit_dir} already exists."
+      error "Can't back up ${target_dir}. Please re-run the installer again in a couple of seconds."
+      printf '\n' >&2
+      exit 1
+    fi
+
+    warning "Found existing lazygit config at $(fmt_code "${target_dir}")."
+    info "Backing up to $(fmt_code "${backup_lazygit_dir}")."
+    mv "${target_dir}" "${backup_lazygit_dir}"
+  fi
+
+  # Create symlink for lazygit configuration
+  info "Creating symlink for lazygit configuration"
+  info "From: $(fmt_code "${source_dir}")"
+  info "To:   $(fmt_code "${target_dir}")"
+
+  ln -sf "${source_dir}" "${target_dir}"
+
+  success "lazygit configuration successfully set up!"
+  printf '\n' >&2
+}
+
+setup_lazygit

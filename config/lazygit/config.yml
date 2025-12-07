@@ -1,0 +1,93 @@
+gui:
+  # Use the ayu dark mirage preset
+  theme:
+    activeBorderColor:
+      - '#ffcc66' # Ayu Mirage yellow
+      - bold
+    inactiveBorderColor:
+      - '#5c6773' # Ayu Mirage grey
+    searchingActiveBorderColor:
+      - '#ffcc66' # Same as active border when searching
+    selectedLineBgColor:
+      - '#353b47' # Ayu Mirage selection bg
+    optionsTextColor:
+      - '#f29e74' # Ayu Mirage orange
+    inactiveViewSelectedLineBgColor:
+      - '#5c6773' # Ayu Mirage grey for inactive view selected line
+    cherryPickedCommitBgColor:
+      - '#4a525f' # Darker grey for cherry-picked commits
+    cherryPickedCommitFgColor:
+      - '#ffcc66' # Ayu Mirage yellow for cherry-picked commits
+    markedBaseCommitBgColor:
+      - '#ffd580' # Ayu Mirage yellow-alt for marked base commits
+    markedBaseCommitFgColor:
+      - '#bae67e' # Ayu Mirage green for marked base commits
+    unstagedChangesColor:
+      - '#f28779' # Ayu Mirage red for unstaged changes
+    defaultFgColor:
+      - '#cbccc6' # Ayu Mirage foreground
+  branchColorPatterns:
+    ^(main|master)$: '#ffcc66' # Ayu yellow for main branches
+    ^feat/.*: '#bae67e' # Ayu green for feature branches
+    ^fix/.*: '#f28779' # Ayu red for fix/hotfix branches
+    ^chore/.*: '#5ccfe6' # Ayu blue for chore branches
+    ^release(/.*)?$: '#d1b3ff' # Ayu purple for release branches
+    ^rel/.*: '#d1b3ff' # Ayu purple for rel branches
+    ^hotfix/.*: '#f28779' # Ayu red for hotfix branches
+    ^bugfix/.*: '#f28779' # Ayu red for bugfix branches
+    ^dev(elop)?(/.*)?$: '#ffd580' # Ayu yellow-alt for development branches
+    ^test(/.*)?$: '#7fd962' # Ayu green-alt for test branches
+    ^wip(/.*)?$: '#f29e74' # Ayu orange for work in progress branches
+    ^support/.*: '#ffa94f' # Ayu orange-alt for support branches
+  nerdFontsVersion: '3'
+  showFileIcons: true
+  customIcons:
+    filenames:
+      Dockerfile: {icon: , color: '#5ccfe6'} # Docker icon, Ayu blue
+      docker-compose.yml: {icon: , color: '#5ccfe6'} # Docker icon, Ayu blue
+      Makefile: {icon: , color: '#ffd580'} # Gear icon, Ayu yellow-alt
+      go.mod: {icon: , color: '#5ccfe6'} # Go icon, Ayu blue
+      go.sum: {icon: , color: '#5ccfe6'} # Go icon, Ayu blue
+      package.json: {icon: , color: '#f28779'} # NPM icon, Ayu red
+      package-lock.json: {icon: , color: '#f29e74'} # NPM icon, Ayu orange
+      yarn.lock: {icon: , color: '#f28779'} # Yarn icon, Ayu red
+      README.md: {icon: , color: '#bae67e'} # Book icon, Ayu green
+      LICENSE: {icon: , color: '#d1b3ff'} # File icon, Ayu purple
+      TODO: {icon: , color: '#f29e74'} # File icon, Ayu orange
+      .gitignore: {icon: , color: '#ffcc66'} # Git icon, Ayu yellow
+      .gitconfig: {icon: , color: '#ffcc66'} # Git icon, Ayu yellow
+      .gitattributes: {icon: , color: '#ffcc66'} # Git icon, Ayu yellow
+    extensions:
+      .go: {icon: , color: '#5ccfe6'} # Go icon, Ayu blue
+      .js: {icon: , color: '#ffd580'} # JS icon, Ayu yellow-alt
+      .ts: {icon: , color: '#5ccfe6'} # TS icon, Ayu blue
+      .tsx: {icon: , color: '#5ccfe6'} # TSX icon, Ayu blue
+      .jsx: {icon: , color: '#f29e74'} # JSX icon, Ayu orange
+      .py: {icon: , color: '#ffd580'} # Python icon, Ayu yellow-alt
+      .rb: {icon: , color: '#f28779'} # Ruby icon, Ayu red
+      .rs: {icon: , color: '#ffcc66'} # Rust icon, Ayu yellow
+      .md: {icon: , color: '#bae67e'} # Markdown icon, Ayu green
+      .json: {icon: ﬥ, color: '#f29e74'} # JSON icon, Ayu orange
+      .yml: {icon: ﬥ, color: '#5ccfe6'} # YAML icon, Ayu blue
+      .yaml: {icon: ﬥ, color: '#5ccfe6'} # YAML icon, Ayu blue
+      .dockerfile: {icon: , color: '#5ccfe6'} # Docker icon, Ayu blue
+      .env: {icon: , color: '#7fd962'} # Environment file icon, Ayu green-alt
+      .html: {icon: , color: '#f28779'} # HTML icon, Ayu red
+      .css: {icon: , color: '#5ccfe6'} # CSS icon, Ayu blue
+      .java: {icon: , color: '#f28779'} # Java icon, Ayu red
+      .jar: {icon: , color: '#f28779'} # Java icon, Ayu red
+      .sh: {icon: , color: '#7fd962'} # Shell script icon, Ayu green-alt
+      .zsh: {icon: , color: '#7fd962'} # Shell script icon, Ayu green-alt
+      .bash: {icon: , color: '#7fd962'} # Shell script icon, Ayu green-alt
+      .php: {icon: , color: '#ffd580'} # PHP icon, Ayu yellow-alt
+      .sql: {icon: , color: '#d1b3ff'} # SQL icon, Ayu purple
+      .vue: {icon: , color: '#5ccfe6'} # Vue icon, Ayu blue
+      .txt: {icon: , color: '#cbccc6'} # Text file icon, Ayu foreground
+      .config: {icon: , color: '#5c6773'} # Config icon, Ayu grey
+      .conf: {icon: , color: '#5c6773'} # Config icon, Ayu grey
+  authorColors:
+    '*': '#ffcc66' # Default color for all authors (using Ayu yellow)
+    '*@ulyssestwo*': '#bae67e' # Ayu green for authors starting with john
+    yudha*: '#5ccfe6' # Ayu blue for authors starting with jane
+    '*local*': '#f28779' # Ayu red for authors starting with bob
+    '*work*': '#d1b3ff' # Ayu purple for authors starting with alice

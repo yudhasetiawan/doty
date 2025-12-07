@@ -41,6 +41,7 @@
 #   SKIP_ZELLIJ_CONFIG        - 'yes' means the installer will not install zellij configuration (default: no)
 #   SKIP_TMUX_CONFIG          - 'yes' means the installer will not install tmux configuration (default: no)
 #   SKIP_TMUX_INSTALL         - 'yes' means the installer will not install tmux package (default: no)
+#   SKIP_LAZYGIT_CONFIG       - 'yes' means the installer will not install lazygit configuration (default: no)
 #
 # You can also pass some arguments to the install script to set some these options:
 #   --no-change-shell:        has the same behavior as setting CHANGE_SHELL to 'no'
@@ -67,6 +68,8 @@
 #   --skip-tmux-config:       sets SKIP_TMUX_CONFIG to 'yes'
 #   --allow-tmux-install:     sets SKIP_TMUX_INSTALL to 'no'
 #   --skip-tmux-install:      sets SKIP_TMUX_INSTALL to 'yes'
+#   --allow-lazygit-config:   sets SKIP_LAZYGIT_CONFIG to 'no'
+#   --skip-lazygit-config:    sets SKIP_LAZYGIT_CONFIG to 'yes'
 # For example:
 #   sh install --unattended
 # or:
@@ -122,6 +125,7 @@ SKIP_OSX_SETTINGS=${SKIP_OSX_SETTINGS:-yes}
 SKIP_ZELLIJ_CONFIG=${SKIP_ZELLIJ_CONFIG:-no}
 SKIP_TMUX_CONFIG=${SKIP_TMUX_CONFIG:-no}
 SKIP_TMUX_INSTALL=${SKIP_TMUX_INSTALL:-no}
+SKIP_LAZYGIT_CONFIG=${SKIP_LAZZYGIT_CONFIG:-no}
 
 # Installer options
 INSTALL_ZSHRC_FILE="${INSTALL_ZSHRC_FILE:-"${zdot}/.zshrc"}"
@@ -275,7 +279,7 @@ __install_doty() {
         git remote add origin "$DOTY_REPOSITORY_REMOTE" &&
         git config doty.remote origin &&
         git config doty.branch "$DOTY_REPOSITORY_BRANCH"
-    
+
     git fetch --depth=1 origin &&
         git checkout -b "$DOTY_REPOSITORY_BRANCH" "origin/$DOTY_REPOSITORY_BRANCH" || {
         [ ! -d "$DOTY" ] || {
@@ -309,7 +313,7 @@ __install() {
     __print_welcome "is now installing"
 
     if [ -d "$DOTY" ] && [ "$SKIP_DOTY_CLONE" = yes ]; then
-        __print_warning "WARNING: re-use existing doty directory ($DOTY)"
+        __print_warning "WARNING: reuse existing doty directory ($DOTY)"
     else
         __install_doty
     fi
@@ -323,7 +327,7 @@ __install() {
 
     if ! command_exists "shellcheck"; then
         warning "WARNING: shellcheck is not installed"
-        
+
         if ! prompt "Are you want to continue without running shellcheck?"; then
             error "Cancelled..."
             exit 1
@@ -461,6 +465,14 @@ main() {
             ;;
         --skip-tmux-install)
             SKIP_TMUX_INSTALL=yes
+            shift
+            ;;
+        --allow-lazygit-config)
+            SKIP_LAZYGIT_CONFIG=no
+            shift
+            ;;
+        --skip-lazygit-config)
+            SKIP_LAZYGIT_CONFIG=yes
             shift
             ;;
         esac
