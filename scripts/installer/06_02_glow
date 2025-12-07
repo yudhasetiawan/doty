@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+
+setup_glow() {
+  # Setup glow configuration directory
+  header "Setting up glow configuration"
+
+  # Define source and target directories
+  source_dir="${DOTY}/config/glow"
+  target_dir="${HOME}/.config/glow"
+
+  # Check if source directory exists
+  if [ ! -d "${source_dir}" ]; then
+    warning "glow config directory not found at $(fmt_code "${source_dir}"). Skipping setup."
+    printf '\n' >&2
+    return
+  fi
+
+  # Create symlink for glow configuration
+  info "Creating glow configuration directory"
+  mkdir -p "${target_dir}"
+
+  cat "$source_dir/glow.yml" | sed -e "s;\${DOTY_DIRECTORY};$DOTY_DIRECTORY;g" >"${target_dir}/glow.yml"
+
+  success "glow configuration successfully set up!"
+  printf '\n' >&2
+}
+
+setup_glow

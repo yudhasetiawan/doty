@@ -1,0 +1,4 @@
+# style name or JSON path (default "auto")
+style: ${DOTY_DIRECTORY}/config/glow/ayu-dark-mirage.json
+# mouse support (TUI-mode only)
+mouse: true
