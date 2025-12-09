@@ -199,8 +199,9 @@ function o() {
 # the `.git` directory, listing directories first. The output gets piped into
 # `less` with options to preserve color and line numbers, unless the output is
 # small enough for one screen.
+__orig_tree=$(which tree) # Handle maximum nested function level reached
 function tree() {
-	tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX
+	$__orig_tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX
 }
 
 function bcrypt() {
