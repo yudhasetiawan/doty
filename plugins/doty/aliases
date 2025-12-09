@@ -68,6 +68,8 @@ alias li="ls -1FSsh ${colorflag}"
 # alias lr="ls -tRFh ${colorflag}"   # sorted by date,recursive,show type,human readable
 # alias lt="ls -ltFh ${colorflag}"   # long list,sorted by date,show type,human readable
 
+alias tl="tree -L 2 -a -s -p"
+
 unset colorflag;
 
 alias e='echo'
