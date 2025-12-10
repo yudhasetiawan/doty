@@ -13,7 +13,6 @@ return {
       "nvim-telescope/telescope-symbols.nvim",
       "nvim-telescope/telescope-ui-select.nvim",
       "ptethng/telescope-makefile",
-      "rcarriga/nvim-notify",
     },
     config = function()
       local actions = require("telescope.actions")

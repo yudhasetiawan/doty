@@ -470,12 +470,12 @@ wk.add({
   },
 })
 
--- rcarriga/nvim-notify ---------------------------------------------
+-- noice.nvim notifications ----------------------------------------
 wk.add({
   {
     "<leader>nn",
     function()
-      require("notify").dismiss({ silent = true, pending = true })
+      require("noice").cmd("dismiss")
     end,
     desc = "Notification: Dismiss all",
   },
