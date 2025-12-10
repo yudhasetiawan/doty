@@ -5,12 +5,15 @@ return {
       "williamboman/mason-lspconfig.nvim",
     },
     config = function()
-      -- Setup format on save using native vim.lsp formatting
+      -- Setup format on save using native vim.lsp formatting with enhanced async capabilities
       vim.api.nvim_create_autocmd("BufWritePre", {
         pattern = { "*.lua", "*.go", "*.rust" },
         callback = function()
-          -- Use native vim.lsp.buf.format
-          vim.lsp.buf.format({ async = true })
+          -- Use native vim.lsp.buf.format with async capabilities from v0.12+
+          vim.lsp.buf.format({
+            async = true,
+            timeout_ms = 10000, -- Allow more time for formatting in v0.12+
+          })
         end,
       })
 
@@ -22,13 +25,17 @@ return {
           if client and client.supports_method("textDocument/formatting") then
             -- Set up formatexpr to use LSP formatting for gq operator
             vim.bo[buffer].formatexpr = "v:lua.vim.lsp.formatexpr(#{timeout_ms:250})"
-            
+
             -- Also set up format-on-save for all filetypes with LSP formatting support
             if not vim.b[buffer].native_format_on_save then
               vim.api.nvim_create_autocmd("BufWritePre", {
                 buffer = buffer,
                 callback = function()
-                  vim.lsp.buf.format({ bufnr = buffer, timeout_ms = 5000 })
+                  vim.lsp.buf.format({
+                    bufnr = buffer,
+                    timeout_ms = 10000, -- Increased timeout with v0.12 async improvements
+                    async = true, -- Explicitly enable async formatting
+                  })
                 end,
                 desc = "Format file on save",
                 group = vim.api.nvim_create_augroup("LspFormatOnSave", { clear = false }),
