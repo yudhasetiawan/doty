@@ -14,6 +14,32 @@ return {
         end,
       })
 
+      -- Set up formatexpr for gq operator using native LSP formatting
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local buffer = args.buf
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and client.supports_method("textDocument/formatting") then
+            -- Set up formatexpr to use LSP formatting for gq operator
+            vim.bo[buffer].formatexpr = "v:lua.vim.lsp.formatexpr(#{timeout_ms:250})"
+            
+            -- Also set up format-on-save for all filetypes with LSP formatting support
+            if not vim.b[buffer].native_format_on_save then
+              vim.api.nvim_create_autocmd("BufWritePre", {
+                buffer = buffer,
+                callback = function()
+                  vim.lsp.buf.format({ bufnr = buffer, timeout_ms = 5000 })
+                end,
+                desc = "Format file on save",
+                group = vim.api.nvim_create_augroup("LspFormatOnSave", { clear = false }),
+              })
+              vim.b[buffer].native_format_on_save = true
+            end
+          end
+        end,
+        desc = "LSP formatting setup",
+      })
+
       -- Add custom file type detection
       vim.filetype.add({
         extension = {

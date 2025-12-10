@@ -76,14 +76,21 @@ return {
     opts = {
       auto_update = true,
       ensure_installed = {
-        -- Essential formatters
+        -- Formatters needed for LSP servers that use external tools
         "stylua",
+        "prettierd",
         "prettier",
         "shellcheck",
         "shfmt",
         "gofumpt",
         "goimports",
         "taplo",
+        "black",
+        "ruff",
+        "eslint_d",
+        "yamlfmt",
+        "yamllint",
+        "jq",
       },
     },
   },

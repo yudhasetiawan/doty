@@ -1,6 +1,7 @@
 return {
   {
     "stevearc/conform.nvim",
+    enabled = false, -- Disable conform.nvim in favor of native vim.lsp formatting
     event = { "BufReadPre", "BufNewFile" },
     config = function()
       require("conform").setup({
