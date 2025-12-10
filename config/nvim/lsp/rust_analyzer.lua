@@ -1,8 +1,7 @@
 return {
   cmd = { "rust-analyzer" },
-  root_markers = { "Cargo.lock" },
   filetypes = { "rust" },
-  -- Server-specific settings. See `:help lspconfig-setup`
+  root_dir = require("lspconfig.util").root_pattern("Cargo.toml", "Cargo.lock"),
   settings = {
     ["rust-analyzer"] = {
       cargo = {
@@ -16,7 +15,6 @@ return {
       lens = {
         enable = true,
       },
-      -- Add clippy lints for Rust.
       check = {
         enable = true,
         allFeatures = true,
