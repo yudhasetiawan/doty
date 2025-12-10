@@ -56,20 +56,34 @@ return {
         },
       })
 
-      -- Configure diagnostics with native vim.diagnostic
+      -- Configure diagnostics with enhanced native vim.diagnostic features in v0.12+
       vim.diagnostic.config({
-        virtual_text = false,
+        virtual_text = {
+          prefix = "●", -- Use a more subtle indicator
+          spacing = 4,
+          source = "if_many", -- Show source only if more than one
+          format = function(diagnostic)
+            -- Enhance diagnostic display with more context
+            if diagnostic.source then
+              return string.format("%s (%s)", diagnostic.message, diagnostic.source)
+            end
+            return diagnostic.message
+          end,
+        },
         severity_sort = true,
         signs = true,
         underline = true,
-        update_in_insert = true,
+        update_in_insert = false, -- Changed to false for better performance
         float = {
-          focusable = false,
+          focusable = true, -- Allow focusing the diagnostic float
           style = "minimal",
           border = "rounded",
           source = "always",
-          header = "",
+          header = { "Diagnostic", "DiagnosticHeader" },
           prefix = "",
+          max_width = 80,
+          max_height = 20,
+          close_events = { "BufLeave", "CursorMoved", "InsertEnter" },
         },
       })
 
