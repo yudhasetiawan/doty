@@ -31,8 +31,8 @@ return {
               vim.api.nvim_create_autocmd("BufWritePre", {
                 buffer = buffer,
                 callback = function()
-                  vim.lsp.buf.format({
-                    bufnr = buffer,
+                  vim.lsp.buf.format({ 
+                    bufnr = buffer, 
                     timeout_ms = 10000, -- Increased timeout with v0.12 async improvements
                     async = true, -- Explicitly enable async formatting
                   })
@@ -102,6 +102,66 @@ return {
           vim.fn.sign_define(name, { text = icon, texthl = name, numhl = "" })
         end
       end
+
+      -- Set up mason-lspconfig to use the server configurations from individual files
+      -- This improves integration with native vim.lsp by using centralized server management
+      require("mason-lspconfig").setup_handlers({
+        -- Default handler for all servers without custom config
+        function(server_name)
+          require("lspconfig")[server_name].setup({})
+        end,
+        
+        -- Load custom server configurations from individual files
+        ["lua_ls"] = function()
+          local opts = require("lsp.lua_ls")
+          require("lspconfig").lua_ls.setup(opts)
+        end,
+        
+        ["gopls"] = function()
+          local opts = require("lsp.gopls")
+          require("lspconfig").gopls.setup(opts)
+        end,
+        
+        ["rust_analyzer"] = function()
+          local opts = require("lsp.rust_analyzer")
+          require("lspconfig").rust_analyzer.setup(opts)
+        end,
+        
+        ["pylsp"] = function()
+          local opts = require("lsp.pylsp")
+          require("lspconfig").pylsp.setup(opts)
+        end,
+        
+        ["bashls"] = function()
+          local opts = require("lsp.bashls")
+          require("lspconfig").bashls.setup(opts)
+        end,
+        
+        ["yamlls"] = function()
+          local opts = require("lsp.yamlls")
+          require("lspconfig").yamlls.setup(opts)
+        end,
+        
+        ["jsonls"] = function()
+          local opts = require("lsp.jsonls")
+          require("lspconfig").jsonls.setup(opts)
+        end,
+        
+        ["terraformls"] = function()
+          local opts = require("lsp.terraformls")
+          require("lspconfig").terraformls.setup(opts)
+        end,
+        
+        ["helm_ls"] = function()
+          local opts = require("lsp.helm_ls")
+          require("lspconfig").helm_ls.setup(opts)
+        end,
+        
+        ["ansiblels"] = function()
+          local opts = require("lsp.ansiblels")
+          require("lspconfig").ansiblels.setup(opts)
+        end,
+      })
     end,
   },
 }
