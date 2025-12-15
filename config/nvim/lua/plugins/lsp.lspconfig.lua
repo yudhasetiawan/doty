@@ -96,12 +96,16 @@ return {
 
       -- Set up diagnostic signs using native vim.fn.sign_define
       local icons = require("doty.config").icons
-      for type, icon in pairs(icons) do
-        local name = "DiagnosticSign" .. type:sub(1, 1):upper() .. type:sub(2)
-        if icon then
-          vim.fn.sign_define(name, { text = icon, texthl = name, numhl = "" })
-        end
-      end
+     vim.diagnostic.config({
+      signs = {
+        text = {
+          [vim.diagnostic.severity.ERROR] = icons.error,
+          [vim.diagnostic.severity.WARN]  = icons.warning,
+          [vim.diagnostic.severity.HINT]  = icons.hint,
+          [vim.diagnostic.severity.INFO]  = icons.info,
+        },
+      },
+    })
 
       -- Set up mason-lspconfig to use the server configurations from individual files
       -- This improves integration with native vim.lsp by using centralized server management
