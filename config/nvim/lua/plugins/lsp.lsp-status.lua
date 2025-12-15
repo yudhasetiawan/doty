@@ -1,7 +1,6 @@
 return {
   {
     "nvim-lua/lsp-status.nvim",
-    enabled = false,
     dependencies = {
       "neovim/nvim-lspconfig",
     },
