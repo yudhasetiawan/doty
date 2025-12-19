@@ -66,6 +66,9 @@ opt.fileencoding = "utf-8"                         -- File-content encoding for 
 -----------------------------------------------------------
 -- Neovim UI
 -----------------------------------------------------------
+if vim.env.TERM ~= "xterm" then
+  opt.background = "dark"
+end
 opt.number = true          -- Show line number
 opt.relativenumber = false -- Show relative number
 opt.showmatch = true       -- Highlight matching parenthesis

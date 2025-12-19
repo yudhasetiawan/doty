@@ -105,7 +105,7 @@ return {
         ---Theme to be used for generating highlight groups dynamically.
         ---
         ---@type barbecue.Config.theme
-        theme = "tokyonight",
+        theme = "ayu",
 
         ---Whether context text should follow its icon's color.
         ---

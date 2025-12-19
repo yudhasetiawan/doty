@@ -41,7 +41,7 @@ lazy.setup("plugins", {
   install = {
     -- install missing plugins on startup. This doesn't increase startup time.
     missing = true,
-    colorscheme = { "tokyonight-moon" },
+    colorscheme = { "ayu" },
   },
   dev = {
     -- directory where you store your local plugin projects
