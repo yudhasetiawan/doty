@@ -194,6 +194,14 @@ return {
         },
       })
 
+      -- Check for deprecated APIs
+      local api_level = vim.api.nvim_buf_line_count(0) -- Just to check if we're using current API
+      if vim.fn.has("nvim-0.10") == 1 then
+        -- Enable newer features available in Neovim 0.10+
+        vim.opt.foldmethod = "expr"
+        vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+      end
+
       -- Only apply the highlighting on mise files instead of all toml files, the is-mise? predicate is used.
       -- If you don't care for this distinction, the lines containing (#is-mise?) can be removed.
       -- Otherwise, make sure to also create the predicate somewhere in your neovim config.

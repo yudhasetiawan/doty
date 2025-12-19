@@ -10,11 +10,11 @@ api.nvim_create_autocmd("TextYankPost", {
 -- don't auto comment new line
 api.nvim_create_autocmd("BufEnter", { command = [[set formatoptions-=cro]] })
 
---- Remove all trailing whitespace on save
--- api.nvim_create_autocmd("BufWritePre", {
---   command = [[:%s/\s\+$//e]],
---   group = api.nvim_create_augroup("TrimWhiteSpaceGrp", { clear = true }),
--- })
+-- Remove all trailing whitespace on save
+api.nvim_create_autocmd("BufWritePre", {
+  command = [[:%s/\s\+$//e]],
+  group = api.nvim_create_augroup("TrimWhiteSpaceGrp", { clear = true }),
+})
 
 -- Enable spell checking for certain file types
 api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {

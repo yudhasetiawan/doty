@@ -1,7 +1,7 @@
 return {
   cmd = { "rust-analyzer" },
   filetypes = { "rust" },
-  root_dir = require("lspconfig.util").root_pattern("Cargo.toml", "Cargo.lock"),
+  root_dir = require("lspconfig.util").root_pattern("Cargo.toml", "Cargo.lock", ".git"),
   settings = {
     ["rust-analyzer"] = {
       cargo = {

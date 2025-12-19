@@ -4,6 +4,7 @@ return {
     event = "VeryLazy",
     dependencies = {
       "MunifTanjim/nui.nvim",
+      "rcarriga/nvim-notify",
       "nvim-treesitter/nvim-treesitter",
     },
     opts = function()
@@ -11,31 +12,6 @@ return {
       local icons = cfg.icons
 
       return {
-        cmdline = {
-          format = {
-            search_down = { icon = " " },
-            search_up = { icon = " " },
-          },
-        },
-        -- Use Neovim's built-in notifications instead of nvim-notify
-        notify = {
-          enabled = true,
-          view = "notify",
-        },
-        -- Configure the looks of the notification view
-        views = {
-          notify = {
-            timeout = 5000,
-            align = "right",
-            icons = {
-              ERROR = icons.error,
-              WARN = icons.warning,
-              INFO = icons.info,
-              DEBUG = icons.debug,
-              TRACE = icons.trace,
-            },
-          },
-        },
         lsp = {
           override = {
             ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
@@ -43,7 +19,6 @@ return {
             ["cmp.entry.get_documentation"] = true,
           },
         },
-        messages = { view_search = false },
         routes = {
           {
             filter = { event = "msg_show", find = "%d+L, %d+B" },
@@ -87,11 +62,34 @@ return {
             filter = {},
           },
         },
+        -- Configure the looks of the notification view
         views = {
           mini = {
             zindex = 100,
             win_options = { winblend = 0 },
           },
+          notify = {
+            timeout = 5000,
+            align = "right",
+            icons = {
+              ERROR = icons.error,
+              WARN = icons.warning,
+              INFO = icons.info,
+              DEBUG = icons.debug,
+              TRACE = icons.trace,
+            },
+          },
+        },
+        cmdline = {
+          format = {
+            search_down = { icon = " " },
+            search_up = { icon = " " },
+          },
+        },
+        -- Use Neovim's built-in notifications instead of nvim-notify
+        notify = {
+          enabled = true,
+          view = "notify",
         },
       }
     end

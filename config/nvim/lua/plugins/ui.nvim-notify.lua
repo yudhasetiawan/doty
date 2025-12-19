@@ -1,7 +1,6 @@
 return {
   {
     "rcarriga/nvim-notify",
-    enabled = false,
     main = "notify",
     dependencies = {
       "yamatsum/nvim-nonicons",

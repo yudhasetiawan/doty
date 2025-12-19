@@ -154,31 +154,31 @@ wk.add({
 
 -- Lazy plugin management -------------------------------------------
 wk.add({
-  { "<leader>p", group = "Plugin Management" },
-  { "<leader>pc", "<Cmd>Lazy check<CR>", desc = "Check plugins" },
-  { "<leader>pu", "<Cmd>Lazy update<CR>", desc = "Update plugins" },
-  { "<leader>ps", "<Cmd>Lazy show<CR>", desc = "Show plugins" },
-  { "<leader>pp", "<Cmd>Lazy profile<CR>", desc = "Profile" },
-  { "<leader>pl", "<Cmd>Lazy log<CR>", desc = "Logs" },
+  { "<leader>p",  group = "Plugin Management" },
+  { "<leader>pc", "<Cmd>Lazy check<CR>",      desc = "Check plugins" },
+  { "<leader>pu", "<Cmd>Lazy update<CR>",     desc = "Update plugins" },
+  { "<leader>ps", "<Cmd>Lazy show<CR>",       desc = "Show plugins" },
+  { "<leader>pp", "<Cmd>Lazy profile<CR>",    desc = "Profile" },
+  { "<leader>pl", "<Cmd>Lazy log<CR>",        desc = "Logs" },
   {
     "<leader>pr",
     "<Cmd>Lazy restore<CR>",
     desc = "Restore plugins from lockfile",
   },
   { "<leader>px", "<Cmd>Lazy clear<CR>", desc = "Clear uninstalled plugins" },
-  { "<leader>ph", "<Cmd>Lazy help<CR>", desc = "Show Help" },
+  { "<leader>ph", "<Cmd>Lazy help<CR>",  desc = "Show Help" },
 })
 
 -- Telescope --------------------------------------------------------
 wk.add({
   -- Files
-  { "<leader>f", group = "File" },
+  { "<leader>f",  group = "File" },
   {
     "<leader>fB",
     "<cmd>Telescope file_browser grouped=true<cr>",
     desc = "File browser",
   },
-  { "<leader>fn", "<Cmd>new<CR>", desc = "New file" },
+  { "<leader>fn", "<Cmd>new<CR>",                  desc = "New file" },
   { "<leader>ff", "<Cmd>Telescope find_files<CR>", desc = "Find files" },
   {
     "<leader>fr",
@@ -186,10 +186,10 @@ wk.add({
     desc = "Open recent file ('.' for repeat)",
     noremap = false,
   },
-  { "<leader>fj", "<Cmd>Telescope jumplist<CR>", desc = "Jump list" },
+  { "<leader>fj", "<Cmd>Telescope jumplist<CR>",  desc = "Jump list" },
   { "<leader>fg", "<Cmd>Telescope live_grep<CR>", desc = "Search in files" },
-  { "<leader>fb", "<Cmd>Telescope buffers<CR>", desc = "Lists open buffers" },
-  { "<leader>fm", "<Cmd>Telescope marks<CR>", desc = "Marks" },
+  { "<leader>fb", "<Cmd>Telescope buffers<CR>",   desc = "Lists open buffers" },
+  { "<leader>fm", "<Cmd>Telescope marks<CR>",     desc = "Marks" },
   {
     "<leader>fs",
     "<Cmd>Telescope grep_string<CR>",
@@ -197,7 +197,7 @@ wk.add({
   },
 
   -- Search
-  { "<leader>s", group = "Search" },
+  { "<leader>s",  group = "Search" },
   {
     "<leader>sb",
     "<Cmd>Telescope builtin<CR>",
@@ -226,13 +226,13 @@ wk.add({
     "<Cmd>Telescope command_history<CR>",
     desc = "Command history",
   },
-  { "<leader>sh", "<Cmd>Telescope heading<CR>", desc = "Headings" },
+  { "<leader>sh", "<Cmd>Telescope heading<CR>",     desc = "Headings" },
   { "<leader>sd", "<Cmd>Telescope diagnostics<CR>", desc = "Diagnostics" },
-  { "<leader>sk", "<Cmd>Telescope keymaps<CR>", desc = "Keymaps" },
+  { "<leader>sk", "<Cmd>Telescope keymaps<CR>",     desc = "Keymaps" },
   { "<leader>sO", "<Cmd>Telescope vim_options<CR>", desc = "Vim Options" },
-  { "<leader>sp", "<Cmd>Telescope projects<CR>", desc = "Projects" },
-  { "<leader>sr", "<Cmd>Telescope resume<CR>", desc = "Search Resume" },
-  { "<leader>sS", "<Cmd>Telescope symbols<CR>", desc = "Emoji" },
+  { "<leader>sp", "<Cmd>Telescope projects<CR>",    desc = "Projects" },
+  { "<leader>sr", "<Cmd>Telescope resume<CR>",      desc = "Search Resume" },
+  { "<leader>sS", "<Cmd>Telescope symbols<CR>",     desc = "Emoji" },
   {
     "<leader>s:",
     "<Cmd>Telescope search_history<CR>",
@@ -276,7 +276,7 @@ wk.add({
   },
 
   -- DAP
-  { "<leader>d", group = "DAP" },
+  { "<leader>d",  group = "DAP" },
   {
     "<leader>db",
     "<cmd>Telescope dap list_breakpoints<cr>",
@@ -289,14 +289,14 @@ wk.add({
     desc = "Configurations",
   },
   { "<leader>dv", "<cmd>Telescope dap variables<cr>", desc = "Variables" },
-  { "<leader>df", "<cmd>Telescope dap frames<cr>", desc = "Frames" },
+  { "<leader>df", "<cmd>Telescope dap frames<cr>",    desc = "Frames" },
 
   -- Make
-  { "<leader>m", group = "Make" },
-  { "<leader>mm", "<cmd>Telescope make<cr>", desc = "Run make" },
+  { "<leader>m",  group = "Make" },
+  { "<leader>mm", "<cmd>Telescope make<cr>",          desc = "Run make" },
 
   -- Other
-  { "<leader>qq", "<Cmd>Telescope Quickfix<CR>", desc = "Quickfix" },
+  { "<leader>qq", "<Cmd>Telescope Quickfix<CR>",      desc = "Quickfix" },
   {
     "<leader>?",
     "<Cmd>Telescope help_tags<CR>",
@@ -319,10 +319,10 @@ wk.add({
 
 -- Git --------------------------------------------------------------
 wk.add({
-  { "<leader>g", group = "Git" },
-  { "<leader>gg", "<cmd>LazyGit<cr>", desc = "LazyGit Toggle" },
+  { "<leader>g",  group = "Git" },
+  { "<leader>gg", "<cmd>LazyGit<cr>",                desc = "LazyGit Toggle" },
   { "<leader>gB", "<cmd>Telescope git_branches<cr>", desc = "Branches" },
-  { "<leader>gC", "<cmd>Telescope git_commits<cr>", desc = "Commits" },
+  { "<leader>gC", "<cmd>Telescope git_commits<cr>",  desc = "Commits" },
   {
     "<leader>gj",
     "<cmd>lua require 'gitsigns'.next_hunk({navigation_message = false})<cr>",
@@ -333,7 +333,7 @@ wk.add({
     "<cmd>lua require 'gitsigns'.prev_hunk({navigation_message = false})<cr>",
     desc = "Prev Hunk",
   },
-  { "<Leader>gm", "<Plug>(git-messenger)", desc = "Show git message" },
+  { "<Leader>gm", "<Plug>(git-messenger)",         desc = "Show git message" },
   {
     "<leader>gp",
     "<cmd>lua require 'gitsigns'.preview_hunk()<cr>",
@@ -475,7 +475,11 @@ wk.add({
   {
     "<leader>nn",
     function()
-      require("noice").cmd("dismiss")
+      if package.loaded["notify"] ~= nil then
+        require("notify").dismiss({ silent = true, pending = true })
+      else
+        require("noice").cmd("dismiss")
+      end
     end,
     desc = "Notification: Dismiss all",
   },
@@ -483,7 +487,8 @@ wk.add({
 
 -- LSP --------------------------------------------------------------
 wk.add({
-  { "cc", group = "Comment" },
+  { "cc",          group = "Comment" },
+  { "<C>F", "<Cmd>FormatDocument<CR>", group = "Format" },
   {
     "<leader>ln",
     "<Cmd>NavBuddy<CR>",

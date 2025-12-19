@@ -13,6 +13,7 @@ return {
       "nvim-telescope/telescope-symbols.nvim",
       "nvim-telescope/telescope-ui-select.nvim",
       "ptethng/telescope-makefile",
+      "rcarriga/nvim-notify",
     },
     config = function()
       local actions = require("telescope.actions")
@@ -268,7 +269,7 @@ return {
       telescope.load_extension("heading")
       telescope.load_extension("lazygit")
       telescope.load_extension("noice")
-      -- telescope.load_extension("notify")
+      telescope.load_extension("notify")
       telescope.load_extension("projects")
       telescope.load_extension("terraform")
       telescope.load_extension("terraform_doc")
