@@ -10,13 +10,13 @@ set -e
 # function at the top level to always return false when stdout is not
 # a tty.
 if [ -t 1 ]; then
-  is_tty() {
-    true
-  }
+    is_tty() {
+        true
+    }
 else
-  is_tty() {
-    false
-  }
+    is_tty() {
+        false
+    }
 fi
 
 # Adapted from code and information by Anton Kochkov (@XVilka)
@@ -315,133 +315,98 @@ is_git_repo() {
 detect_os() {
     # Default to unknown
     OS_TYPE="unknown"
+    OS_KERNEL="$(uname -r)"
+    OS_VERSION="$(uname -r)"
+    CPU_ARCH="$(uname -m)"
 
     # Check for macOS first
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        OS_TYPE="macos"
-        return
+        OS_TYPE="darwin"
+        OS_DISTRO="${OS_TYPE}"
+        OS_DISTRO_ORIGINAL="${OS_DISTRO}"
+        OS_DISTRO_LIKE="${OS_DISTRO}"
     fi
 
     # Check for Termux (Android)
     if [[ -n "$PREFIX" ]] && [[ "$PREFIX" == *com.termux* ]]; then
         OS_TYPE="termux"
-        return
+    elif [[ "$OSTYPE" == "linux"* ]]; then
+        OS_TYPE="linux"
+    fi
+
+    if [[ "$OS_TYPE" == "unknown" ]]; then
+        # Determine OS type
+        if command -v uname >/dev/null 2>&1; then
+            local uname_output=$(uname -s | tr '[:upper:]' '[:lower:]')
+            case "$uname_output" in
+                linux)
+                    OS_TYPE="linux"
+                    ;;
+                *)
+                    OS_TYPE="unix"
+                    ;;
+            esac
+        fi
     fi
 
     # Check for various Linux distributions
     if command -v lsb_release >/dev/null 2>&1; then
-        local distribution=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
-        case "$distribution" in
-            ubuntu|linuxmint|pop|elementary|zorin)
-                OS_TYPE="debian"
-                ;;
-            debian)
-                OS_TYPE="debian"
-                ;;
-            fedora|centos|rhel|almalinux|rocky|ol|scientific)
-                OS_TYPE="redhat"
-                ;;
-            amazon)
-                OS_TYPE="redhat"
-                ;;
-            arch|manjaro|endeavouros|garuda|arcolinux|reborn)
-                OS_TYPE="arch"
-                ;;
-            opensuse-*|sles|caasp)
-                OS_TYPE="suse"
-                ;;
-            alpine)
-                OS_TYPE="alpine"
-                ;;
-            *)
-                OS_TYPE="linux"
-                ;;
-        esac
-        return
+        OS_DISTRO=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
     fi
 
     # Alternative detection methods for distributions without lsb_release
     if [[ -f /etc/os-release ]]; then
-        # shellcheck disable=SC1091
-        . /etc/os-release
-        local id_like_lower=$(echo "${ID_LIKE:-$ID}" | tr '[:upper:]' '[:lower:]')
-        local id_lower=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
+        read -r OS_DISTRO OS_DISTRO_LIKE OS_VERSION <<<"$(. /etc/os-release && echo "${ID}" "${ID_LIKE:-"${ID}"}" "${BUILD_ID:-"${VERSION_ID:-"${VERSION_CODENAME:-}"}"}")"
+        OS_DISTRO="$(echo "$OS_DISTRO" | tr '[:upper:]' '[:lower:]')"
 
-        # Check ID_LIKE first as it's more reliable for derivatives
-        case "$id_like_lower" in
-            *debian*|*ubuntu*|*mint*)
-                OS_TYPE="debian"
+        # Technically ID_LIKE can have a space separated list of distros as
+        # it's more reliable for derivatives, but currently we really only
+        # care that we have a Arch based system.
+        case "$OS_DISTRO" in
+            *debian*|*ubuntu*|*mint*|pop|elementary|zorin)
+                OS_DISTRO_LIKE="debian"
                 ;;
             *redhat*|*fedora*|*centos*|*rhel*|*ol*|*almalinux*|*rocky*|*scientific*)
-                OS_TYPE="redhat"
+                OS_DISTRO_LIKE="redhat"
                 ;;
-            *arch*|*manjaro*|*endeavouros*|*garuda*|*arcolinux*|*reborn*)
-                OS_TYPE="arch"
+            *arch*|*manjaro*|*endeavouros*|*garuda*|*arcolinux*|*reborn*|cachyos)
+                OS_DISTRO_LIKE="arch"
                 ;;
-            *suse*|*opensuse*|*sles*|*caasp*)
-                OS_TYPE="suse"
+            *suse*|*sles*|*caasp*)
+                OS_DISTRO_LIKE="suse"
                 ;;
             *alpine*)
-                OS_TYPE="alpine"
+                OS_DISTRO_LIKE="alpine"
                 ;;
             *)
                 # Check ID if ID_LIKE didn't match
-                case "$id_lower" in
-                    ubuntu|linuxmint|pop|elementary|zorin|kubuntu|lubuntu|xubuntu|debian)
-                        OS_TYPE="debian"
-                        ;;
-                    fedora|centos|rhel|almalinux|rocky|ol|scientific|amazon|amzn)
-                        OS_TYPE="redhat"
-                        ;;
-                    arch|manjaro|endeavouros|garuda|arcolinux|reborn)
-                        OS_TYPE="arch"
-                        ;;
-                    opensuse-*|sles|caasp)
-                        OS_TYPE="suse"
-                        ;;
-                    alpine)
-                        OS_TYPE="alpine"
-                        ;;
-                    *)
-                        OS_TYPE="linux"
-                        ;;
-                esac
+                warning "Got un-catched OS_DISTRO \"$OS_DISTRO\" ($OS_DISTRO_LIKE)"
                 ;;
         esac
-        return
     fi
 
     # Check specific files that identify distributions
-    if [[ -f /etc/redhat-release ]]; then
-        OS_TYPE="redhat"
-        return
-    elif [[ -f /etc/debian_version ]]; then
-        OS_TYPE="debian"
-        return
+    if [[ -f /etc/debian_version ]]; then
+        OS_DISTRO_LIKE="debian"
+    elif [[ -f /etc/redhat-release ]]; then
+        OS_DISTRO_LIKE="redhat"
     elif [[ -f /etc/arch-release ]]; then
-        OS_TYPE="arch"
-        return
-    elif [[ -f /etc/alpine-release ]]; then
-        OS_TYPE="alpine"
-        return
+        OS_DISTRO_LIKE="arch"
     elif [[ -f /etc/SuSE-release ]]; then
-        OS_TYPE="suse"
-        return
+        OS_DISTRO_LIKE="suse"
+    elif [[ -f /etc/alpine-release ]]; then
+        OS_DISTRO_LIKE="alpine"
     fi
 
-    # Fallback for other Unix-like systems
-    if command -v uname >/dev/null 2>&1; then
-        local uname_output=$(uname -s | tr '[:upper:]' '[:lower:]')
-        case "$uname_output" in
-            linux)
-                OS_TYPE="linux"
-                ;;
-            *)
-                OS_TYPE="unix"
-                ;;
-        esac
-        return
+    # Are we in WSL?
+    if grep --quiet --ignore-case "microsoft" /proc/version; then
+        OS_IN_WSL="yes"
     fi
+
+    # We can't fully depend on these which is why this env var exists, but it
+    # at least protects someone running this script who didn't pass in the
+    # environment variable in the common case (Docker or Podman).
+    [[ -f "/.dockerenv" || -f "/run/.containerenv" ]] && OS_IN_CONTAINER="yes"
 }
 
 setup_color

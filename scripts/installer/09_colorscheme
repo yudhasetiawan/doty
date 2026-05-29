@@ -192,7 +192,7 @@ setup_colorscheme_iterm() {
     detect_os
 
     # iTerm is only available on macOS
-    if [ "$OS_TYPE" != "macos" ]; then
+    if [ "$OS_TYPE" != "darwin" ]; then
         info "Skipping iTerm color scheme installation on non-macOS system..."
         return
     fi

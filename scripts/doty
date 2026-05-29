@@ -173,6 +173,16 @@ INSTALL_ZSHRC_FILE="${INSTALL_ZSHRC_FILE:-"${zdot}/.zshrc"}"
 INSTALL_TMUX_CONF="${INSTALL_TMUX_CONF:-"${zdot}/.tmux.conf"}"
 INSTALL_NVIM_FILE="${INSTALL_NVIM_FILE:-"${zdot}/.config/nvim/init.lua"}"
 
+CPU_ARCH=
+OS_TYPE=
+OS_KERNEL=
+OS_DISTRO=
+OS_DISTRO_ORIGINAL=
+OS_DISTRO_LIKE=
+OS_VERSION=
+OS_IN_WSL="no"
+OS_IN_CONTAINER="no"
+
 _FMT_RED=$(printf '\033[31m')
 _FMT_GREEN=$(printf '\033[32m')
 _FMT_YELLOW=$(printf '\033[33m')
@@ -234,7 +244,54 @@ __print_welcome() {
     printf '\n%s--------------------------------------------------------------------------------%s\n\n' "${_FMT_BOLD}" "${_FMT_RESET}" >&2
 }
 
+__warn_root() {
+    # This could be empty in a containerized environment.
+    local user="${USER:-$(whoami)}"
+    local sudo_user="${SUDO_USER:-}"
+
+    # Indicates whether the script is running on container
+    if [[ -f "/.dockerenv" || -f "/run/.containerenv" ]]; then
+        __print_ok "Script is being run in a container"
+        return
+    fi
+
+    # Root will have an effective uid of 0.
+    if [ "${EUID}" != "0" ]; then
+        __print_ok "Script is being run as '${user}'"
+        return
+    fi
+
+    cat <<EOF
+Root user detected!
+
+$(id)
+
+USER=${user}
+SUDO_USER=${sudo_user}
+EOF
+
+    local msg="as root"
+    [ -n "${sudo_user}" ] && msg="with sudo as '${sudo_user}'"
+
+    while true; do
+        printf "\nThis script is meant to run as a non-root user,\nare you sure you want to run this %s? (y/n) " "${msg}"
+        read -r yn
+
+        case "${yn}" in
+            [Yy]*)
+                break
+                ;;
+            [Nn]*)
+                exit
+                ;;
+            *) __print_error "'${yn}' is not a valid answer, please input 'y' or 'n'" "" ;;
+        esac
+    done
+}
+
 __validate_requirements() {
+    __warn_root
+
     if ! command -v "zsh" >/dev/null 2>&1; then
         __print_error "Zsh is not installed. Please install zsh first."
         exit 1
