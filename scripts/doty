@@ -1,28 +1,30 @@
 #!/usr/bin/env sh
 #
-# This script is based on https://github.com/ohmyzsh/ohmyzsh.
+# This script is based on https://github.com/ohmyzsh/ohmyzsh to install Doty.
 #
 # This script should be run via curl:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"
 # or via wget:
-#   sh -c "$(wget -qO- https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
+#   sh -c "$(wget -qO- https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"
 # or via fetch:
-#   sh -c "$(fetch -o - https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
+#   sh -c "$(fetch -o - https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"
 #
 # As an alternative, you can first download the install script and run it afterwards:
-#   wget https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install
-#   sh install
+#   wget https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty
+#   sh doty
 #
-# You can tweak the install behavior by setting variables when running the script. For
-# example, to change the path to the Doty repository:
-#   DOTY=~/.doty sh install
+# Run: doty --help for help and examples.
+#
+# You can tweak the install behavior by setting variables when running the script.
+# For example, to change the path to the Doty repository:
+#   DOTY=~/.local/share/doty sh doty
 #
 # Respects the following environment variables:
 #   ZDOTDIR - path to Zsh dotfiles directory (default: unset). See [1][2]
 #             [1] https://zsh.sourceforge.io/Doc/Release/Parameters.html#index-ZDOTDIR
 #             [2] https://zsh.sourceforge.io/Doc/Release/Files.html#index-ZDOTDIR_002c-use-of
 #   DOTY    - path to the Doty repository folder (default: $HOME/.doty)
-#   REMOTE  - full remote URL of the git repo to install (default: GitHub via HTTPS https://github.com/kw-yud/doty.git)
+#   REMOTE  - full remote URL of the git repo to install (default: GitHub via HTTPS https://github.com/yudhasetiawan/doty.git)
 #   BRANCH  - branch to check out immediately after install (default: main)
 #
 # Other options:
@@ -73,7 +75,7 @@
 # For example:
 #   sh install --unattended
 # or:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)" "" --unattended
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)" "" --unattended
 
 set -e
 
@@ -100,12 +102,12 @@ backup_dir="${DOTY_BACKUP_DIR:-"${zdot}/.config/doty-backups"}/$(date +%Y%m%d%H%
 
 # Default value for $DOTY:
 # a) if $ZDOTDIR is supplied and not $HOME: $ZDOTDIR/.doty
-# b) otherwise, $HOME/.doty
+# b) otherwise, $HOME/.local/share/doty
 [ "$ZDOTDIR" = "$HOME" ] || DOTY="${DOTY:-${ZDOTDIR:+$ZDOTDIR/.doty}}"
-DOTY="${DOTY:-$HOME/.doty}"
+DOTY="${DOTY:-$HOME/.local/share/doty}"
 
 # Default settings.
-DOTY_REPOSITORY_REMOTE=${DOTY_REPOSITORY_REMOTE:-https://github.com/kw-yud/doty.git}
+DOTY_REPOSITORY_REMOTE=${DOTY_REPOSITORY_REMOTE:-https://github.com/yudhasetiawan/doty.git}
 DOTY_REPOSITORY_BRANCH=${DOTY_REPOSITORY_BRANCH:-main}
 
 # Other options.
@@ -730,4 +732,7 @@ main() {
     __install
 }
 
+# Only run these when calling the script, not sourcing it.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 main "$@"
+fi
