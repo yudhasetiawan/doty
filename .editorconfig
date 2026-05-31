@@ -16,12 +16,17 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
-[*.sh]
+[*.{sh,bash,zsh,fish}]
 indent_style = space
 indent_size = 4
 
 [*.{md}]
 trim_trailing_whitespace = true
+
+[*.{json,yaml}]
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
 
 [Makefile]
 indent_style = tab

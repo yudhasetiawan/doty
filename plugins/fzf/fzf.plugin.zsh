@@ -8,7 +8,7 @@ if [[ -z "$FZF_DEFAULT_COMMAND" ]]; then
   if (( $+commands[fd] )); then
     export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
   elif (( $+commands[rg] )); then
-    export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git/*"'
+    export FZF_DEFAULT_COMMAND='rg --files --follow --hidden --glob "!.git/*"'
   elif (( $+commands[ag] )); then
     export FZF_DEFAULT_COMMAND='ag -l --hidden -g "" --ignore .git'
   fi
@@ -17,7 +17,7 @@ fi
 # CTRL-T − Paste the selected files onto the command-line.
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 # Preview file content using bat (https://github.com/sharkdp/bat)
-export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always {}'"
+export FZF_CTRL_T_OPTS="--height=100% --preview 'bat -n --color=always {}'"
 
 # ALT-C − cd into the selected directory.
 # Print tree structure in the preview window
@@ -52,6 +52,7 @@ spinner:#6b503c"
 
 # https://vitormv.github.io/fzf-themes/
 export FZF_DEFAULT_OPTS="--height 60% \
+--ansi \
 --border sharp \
 --layout reverse \
 --color '$FZF_COLORS' \
@@ -60,6 +61,8 @@ export FZF_DEFAULT_OPTS="--height 60% \
 --marker '✔ ' \
 --bind='ctrl-o:execute(code {})+abort' \
 --bind 'ctrl-/:change-preview-window(hidden|)' \
+--bind 'shift-up:preview-page-up' \
+--bind 'shift-down:preview-page-down' \
 --preview-window='border-sharp' \
 --info right"
 

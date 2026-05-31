@@ -94,6 +94,7 @@ export PACKAGES_PACMAN=(
     "grep"
     "git"
     "git-delta"
+    "glow"
     "gnupg"
     "go-yq"
     "imagemagick"
@@ -292,6 +293,7 @@ export PACKAGES_BREW=(
     ### UTILITIES
     "btop"
     "font-hack-nerd-font"
+    "glow"
     "jq"
     "jsonnet-bundler"
     "jsonnet"
@@ -368,6 +370,10 @@ export PACKAGES_MISE=(
 # -----------------------------------------------------------------------------
 
 export SYMLINK_CONFIG=(
+    "bat"
+    "btop"
+    "glow"
+    "gnupg"
     "lazygit"
 )
 

@@ -60,7 +60,7 @@ setup_directories() {
 persist_xdg_directories() {
     header "Configure XDG directories"
 
-    local xdg_local_dir="${DOTFILES_LOCAL_DIRECTORY}/zsh"
+    local xdg_local_dir="${DOTFILES_LOCAL_DIRECTORY}/.config/zsh"
     local xdg_local_path="${xdg_local_dir}/xdg"
 
     mkdir -vp "${xdg_local_dir}"
