@@ -36,52 +36,6 @@ setup_distribution_specific() {
     esac
 }
 
-setup_arch_linux() {
-    if [ "$OS_TYPE" != "arch" ]; then
-        return
-    fi
-
-    header "Configuring Arch Linux specific settings..."
-
-    # Install AUR helper if configured
-    if [ "$INSTALL_AUR_HELPER" = "yes" ]; then
-        info "Installing AUR helper (yay)..."
-        
-        # Make sure git is installed
-        if command -v git >/dev/null 2>&1; then
-            # Create temporary directory for AUR helper build
-            temp_dir=$(mktemp -d)
-            cd "$temp_dir"
-            
-            # Install yay AUR helper
-            git clone https://aur.archlinux.org/yay.git
-            cd yay
-            makepkg -si --noconfirm
-            
-            # Clean up
-            cd - 
-            rm -rf "$temp_dir"
-            
-            success "AUR helper (yay) installed successfully!"
-        else
-            warning "git not found. Skipping AUR helper installation."
-        fi
-    fi
-
-    # Configure reflector for faster package downloads
-    if command -v reflector >/dev/null 2>&1; then
-        info "Configuring reflector for faster downloads..."
-        sudo reflector --country 'United States' --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-    fi
-
-    # Enable color output and parallel downloads in pacman
-    if [ -f /etc/pacman.conf ]; then
-        info "Enabling color output and parallel downloads in pacman..."
-        sudo sed -i 's/#Color/Color/' /etc/pacman.conf
-        sudo sed -i '/#ParallelDownloads/s/^#//' /etc/pacman.conf
-    fi
-}
-
 setup_debian_family() {
     if [ "$OS_TYPE" != "debian" ]; then
         return

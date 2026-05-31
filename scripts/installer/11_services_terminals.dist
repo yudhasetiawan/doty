@@ -7,7 +7,7 @@ setup_services() {
     fi
 
     # Only run on Linux systems
-    if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "termux" ]; then
+    if [ "$OS_TYPE" = "darwin" ] || [ "$OS_TYPE" = "termux" ]; then
         info "Not a Linux system, skipping service setup..."
         return
     fi
@@ -46,7 +46,7 @@ setup_terminal_configs() {
     fi
 
     # Only run on Linux
-    if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "termux" ]; then
+    if [ "$OS_TYPE" = "darwin" ] || [ "$OS_TYPE" = "termux" ]; then
         info "Not running full Linux terminal config on macOS/Termux..."
         return
     fi
@@ -139,7 +139,7 @@ setup_desktop_environment() {
     fi
 
     # Only run on Linux systems
-    if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "termux" ]; then
+    if [ "$OS_TYPE" = "darwin" ] || [ "$OS_TYPE" = "termux" ]; then
         info "Not a Linux system, skipping desktop environment setup..."
         return
     fi
@@ -166,7 +166,7 @@ setup_sound_config() {
     fi
 
     # Only run on Linux systems
-    if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "termux" ]; then
+    if [ "$OS_TYPE" = "darwin" ] || [ "$OS_TYPE" = "termux" ]; then
         info "Not a Linux system, skipping audio configuration..."
         return
     fi
