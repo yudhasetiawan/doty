@@ -208,19 +208,6 @@ function bcrypt() {
   htpasswd -bnBC 10 "" "$1" | tr -d ':' | head -n 1
 }
 
-function myip() {
-  suffix="json"
-  if [ $# -ne 0 ]; then
-    suffix="$1/json"
-  fi
-
-  response=$(curl -s ipinfo.io/json)
-
-  echo "IP:           $(echo "$response" | jq -r '.ip')"
-  echo "Location:     $(echo "$response" | jq '{loc: (.city + ", " +.region)}' | jq -r '.loc')"
-  echo "Organization: $(echo "$response" | jq -r '.org')"
-}
-
 # Get OS Software Updates, and update installed Ruby gems, Homebrew, npm, and their installed packages
 function update() {
 	if [[ "${OSTYPE}" == darwin* ]]; then

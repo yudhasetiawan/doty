@@ -1,33 +1,73 @@
 #!/usr/bin/env sh
 
-header "Check variables"
-
-echo "USER: $USER"
-echo "HOME: $HOME"
-# shellcheck disable=SC2154
-echo "Custom Doty: $custom_doty"
-# shellcheck disable=SC2154
-echo "zDot: $zdot"
-echo "ZDOTDIR: $ZDOTDIR"
-echo "DOTY_BACKUP_DIR: $DOTY_BACKUP_DIR"
-echo "DOTY: $DOTY"
-echo "DOTY_REPOSITORY_REMOTE: $DOTY_REPOSITORY_REMOTE"
-echo "DOTY_REPOSITORY_BRANCH: $DOTY_REPOSITORY_BRANCH"
-echo "DOTY_GIT_INSTALL_INTEGRATION: $DOTY_GIT_INSTALL_INTEGRATION"
-echo "CHANGE_SHELL: $CHANGE_SHELL"
-echo "RUN_ZSH: $RUN_ZSH"
-echo "KEEP_ZSHRC: $KEEP_ZSHRC"
-echo "KEEP_TMUXCONF: $KEEP_TMUXCONF"
-echo "KEEP_NVIMCONF: $KEEP_NVIMCONF"
-echo "KEEP_SYMLINK: $KEEP_SYMLINK"
-echo "SKIP_BREW_INSTALL: $SKIP_BREW_INSTALL"
-echo "SKIP_BREW_UPDATE: $SKIP_BREW_UPDATE"
-echo "SKIP_BREW_UPGRADE: $SKIP_BREW_UPGRADE"
-echo "SKIP_BREW_BUNDLE: $SKIP_BREW_BUNDLE"
-echo "SKIP_COLORSCHEME_INSTALL: $SKIP_COLORSCHEME_INSTALL"
-echo "SKIP_OSX_SETTINGS: $SKIP_OSX_SETTINGS"
-echo "SKIP_ZELLIJ_CONFIG: $SKIP_ZELLIJ_CONFIG"
-echo "INSTALL_ZSHRC_FILE: $INSTALL_ZSHRC_FILE"
-echo "INSTALL_TMUX_CONF: $INSTALL_TMUX_CONF"
-echo "INSTALL_NVIM_FILE: $INSTALL_NVIM_FILE"
 header "                                "
+
+# Only fully support these OS type.
+if [[ "${OS_TYPE}" == "linux" || "${OS_TYPE}" == "darwin" ]]; then
+    cat <<EOF >&2
+Your OS identified as:
+- Type:   ${_FMT_BOLD}${OS_TYPE}${_FMT_RESET}
+- Distro: ${_FMT_BOLD}${OS_DISTRO_LIKE} (${OS_DISTRO})${_FMT_RESET}
+
+Known Variables:
+- $(fmt_code "USER:                         $USER")
+- $(fmt_code "HOME:                         $HOME")
+- $(fmt_code "zDot:                         $zdot")
+- $(fmt_code "Custom Doty:                  $custom_doty")
+- $(fmt_code "ZDOTDIR:                      $ZDOTDIR")
+- $(fmt_code "DOTY_BACKUP_DIR:              $backup_dir")
+- $(fmt_code "DOTY:                         $DOTY")
+- $(fmt_code "DOTY_REPOSITORY_REMOTE:       $DOTY_REPOSITORY_REMOTE")
+- $(fmt_code "DOTY_REPOSITORY_BRANCH:       $DOTY_REPOSITORY_BRANCH")
+- $(fmt_code "DOTY_GIT_INSTALL_INTEGRATION: $DOTY_GIT_INSTALL_INTEGRATION")
+- $(fmt_code "CHANGE_SHELL:                 $CHANGE_SHELL")
+- $(fmt_code "RUN_ZSH:                      $RUN_ZSH")
+- $(fmt_code "KEEP_ZSHRC:                   $KEEP_ZSHRC")
+- $(fmt_code "KEEP_TMUXCONF:                $KEEP_TMUXCONF")
+- $(fmt_code "KEEP_NVIMCONF:                $KEEP_NVIMCONF")
+- $(fmt_code "KEEP_SYMLINK:                 $KEEP_SYMLINK")
+- $(fmt_code "SKIP_BREW_INSTALL:            $SKIP_BREW_INSTALL")
+- $(fmt_code "SKIP_BREW_UPDATE:             $SKIP_BREW_UPDATE")
+- $(fmt_code "SKIP_BREW_UPGRADE:            $SKIP_BREW_UPGRADE")
+- $(fmt_code "SKIP_BREW_BUNDLE:             $SKIP_BREW_BUNDLE")
+- $(fmt_code "SKIP_COLORSCHEME_INSTALL:     $SKIP_COLORSCHEME_INSTALL")
+- $(fmt_code "SKIP_OSX_SETTINGS:            $SKIP_OSX_SETTINGS")
+- $(fmt_code "SKIP_ZELLIJ_CONFIG:           $SKIP_ZELLIJ_CONFIG")
+- $(fmt_code "DOTY_GUI_ELIGIBLE:            $DOTY_GUI_ELIGIBLE")
+- $(fmt_code "DOTY_GUI_ENABLED:             $DOTY_GUI_ENABLED")
+
+Directory Variables:
+- $(fmt_code "XDG_CACHE_HOME:                    $XDG_CACHE_HOME")
+- $(fmt_code "XDG_CONFIG_HOME:                   $XDG_CONFIG_HOME")
+- $(fmt_code "XDG_BIN_HOME:                      $XDG_BIN_HOME")
+- $(fmt_code "XDG_DATA_HOME:                     $XDG_DATA_HOME")
+- $(fmt_code "XDG_STATE_HOME:                    $XDG_STATE_HOME")
+- $(fmt_code "XDG_DESKTOP_DIR:                   $XDG_DESKTOP_DIR")
+- $(fmt_code "XDG_DOCUMENTS_DIR:                 $XDG_DOCUMENTS_DIR")
+- $(fmt_code "XDG_DOWNLOAD_DIR:                  $XDG_DOWNLOAD_DIR")
+- $(fmt_code "XDG_MUSIC_DIR:                     $XDG_MUSIC_DIR")
+- $(fmt_code "XDG_PICTURES_DIR:                  $XDG_PICTURES_DIR")
+- $(fmt_code "XDG_PROJECTS_DIR:                  $XDG_PROJECTS_DIR")
+- $(fmt_code "XDG_PUBLICSHARE_DIR:               $XDG_PUBLICSHARE_DIR")
+- $(fmt_code "XDG_TEMPLATES_DIR:                 $XDG_TEMPLATES_DIR")
+- $(fmt_code "XDG_VIDEOS_DIR:                    $XDG_VIDEOS_DIR")
+- $(fmt_code "DOTFILES_LOCAL_DIRECTORY:          $DOTFILES_LOCAL_DIRECTORY")
+- $(fmt_code "DOTY_DEVELOPMENT_DIRECTORY:        $DOTY_DEVELOPMENT_DIRECTORY")
+- $(fmt_code "DOTY_DEVELOPMENT_CONFIG_DIRECTORY: $DOTY_DEVELOPMENT_CONFIG_DIRECTORY")
+- $(fmt_code "DOTY_DEVELOPMENT_CACHE_DIRECTORY:  $DOTY_DEVELOPMENT_CACHE_DIRECTORY")
+- $(fmt_code "DOTY_DEVELOPMENT_SDK_DIRECTORY:    $DOTY_DEVELOPMENT_SDK_DIRECTORY")
+
+Supported OS types are Linux and Darwin, while linux distros are Arch based
+distros. If your distro identifies as one of those the expectation is it
+should be supported.
+
+If you feel this is a bug please open an issue at: $(link "${DOTY_REPOSITORY_REMOTE}")
+
+Please include the output of running:
+$(codeblock "    cat /etc/os-release")
+$(codeblock "    lsb_release -a")
+EOF
+else
+    error "\"${OSTYPE}\" isn't supported, aborting!"
+    exit 1
+fi

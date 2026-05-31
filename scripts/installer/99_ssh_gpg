@@ -1,0 +1,68 @@
+#!/usr/bin/env sh
+
+setup_ssh_key() {
+    header "Creating SSH key"
+
+    local -r key_path="${zdot}/.ssh/doty_${hostname}"
+    if [[ -f "${key_path}" ]]; then
+        warning "\"${key_path}\" already exists"
+    else
+        ssh-keygen -t ed25519 -C "${REAL_EMAIL}" -N "" -f "${key_path}"
+    fi
+
+    info "Showing generated SSH public key"
+    cat "${key_path}.pub" >&2
+
+    success "SSH configured!"
+    printf '\n' >&2
+}
+
+setup_gpg_key() {
+    header "Creating GPG key"
+
+    local gpg_home="${GNUPGHOME:-${zdot}/.gnupg}"
+    if [[ "$(gpg --export --armor "${REAL_EMAIL}" 2>/dev/null)" =~ "PGP PUBLIC KEY" ]]; then
+        warning "\"${REAL_EMAIL}\" already exists"
+    else
+        mkdir -p "${gpg_home}"
+        chmod 700 "${gpg_home}"
+
+        while true; do
+            read -srp "Please set a passphrase (password) for your key: " passphrase
+            if [[ ! ${passphrase} =~ [^[:space:]]+ ]]; then
+                error "Please enter at least 1 non-space character"
+                printf "\n" >&2
+                continue
+            fi
+
+            read -srp "Please confirm your passphrase: " passphrase_confirm
+            [ "${passphrase}" = "${passphrase_confirm}" ] && break
+
+            error "Your passphrase did not match, please try again"
+            printf "\n" >&2
+        done
+
+        info "Generating GPG key..."
+
+        gpg --batch --gen-key <<EOF
+Key-Type: 1
+Key-Length: 3072
+Subkey-Type: 1
+Subkey-Length: 3072
+Name-Real: ${REAL_NAME}
+Name-Email: ${REAL_EMAIL}
+Passphrase: ${passphrase}
+Expire-Date: 6M
+EOF
+    fi
+
+    info "Showing generated GPG public key"
+    # Delete the last line in a way that works on Linux and macOS.
+    gpg --list-keys "${REAL_EMAIL}" | sed '$d' >&2
+
+    success "GPG configured!"
+    printf '\n' >&2
+}
+
+setup_ssh_key
+setup_gpg_key

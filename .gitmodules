@@ -14,7 +14,7 @@
 	path = config/tmux/tpm
 	url = git@github.com:tmux-plugins/tpm.git
 [submodule "themes"]
-	path = themes/powerlevel10k
+	path = themes/ayu-dark-mirage/powerlevel10k
 	url = git@github.com:romkatv/powerlevel10k.git
 [submodule "zsh-autosuggestions"]
 	path = plugins/zsh-autosuggestions

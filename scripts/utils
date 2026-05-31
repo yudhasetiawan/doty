@@ -10,13 +10,13 @@ set -e
 # function at the top level to always return false when stdout is not
 # a tty.
 if [ -t 1 ]; then
-  is_tty() {
-    true
-  }
+    is_tty() {
+        true
+    }
 else
-  is_tty() {
-    false
-  }
+    is_tty() {
+        false
+    }
 fi
 
 # Adapted from code and information by Anton Kochkov (@XVilka)
@@ -195,13 +195,27 @@ user_can_sudo() {
     ! LANG= sudo -n -v 2>&1 | grep -q "may not run sudo"
 }
 
-prompt() {
-    printf '%s%s%s' "${FMT_YELLOW}" "$1" "${FMT_RESET}" >&2
-    read -p " ${FMT_BOLD}[y/N]${FMT_RESET} " a
-    if [[ $a == "y" || $a == "Y" ]]; then
-        return 0
+run_as_root() {
+    if command -v sudo >/dev/null 2>&1; then
+        sudo sh -c "${*}"
+    else
+        su -c "${*}"
     fi
-    return 1
+}
+
+prompt() {
+    while true; do
+        printf '%s%s%s' "${FMT_YELLOW}" "$1" "${FMT_RESET}" >&2
+        read -rp " ${FMT_BOLD}[y/n]${FMT_RESET} " yn
+        case "${yn}" in
+            [Yy]*) return 0 ;;
+            [Nn]*) return 1 ;;
+            *)
+                error "Please answer y or n"
+                printf '\n' >&2
+                ;;
+        esac
+    done
 }
 
 underline() {
@@ -210,14 +224,18 @@ underline() {
 
 link() {
     # $1: text, $2: url, $3: fallback mode
+    local text="${1}"
+    local url="${2:-${text}}"
+    local fallback="${3:-${url}}"
+
     if supports_hyperlinks; then
-        printf '\033]8;;%s\033\\%s\033]8;;\033\\' "$2" "$1"
+        printf '\033]8;;%s\033\\%s\033]8;;\033\\' "$url" "$text"
         return
     fi
 
-    case "$3" in
-    --text) printf '%s\n' "$1" ;;
-    --url | *) underline "$2" ;;
+    case "${fallback}" in
+    --text) printf '%s\n' "$text" ;;
+    --url | *) underline "$url" ;;
     esac
 }
 
@@ -227,8 +245,8 @@ fmt_code() {
 }
 
 codeblock() {
-    fmt_code $* >&2
-    printf '\n' >&2
+    fmt_code "$*"
+    printf '\n'
 }
 
 success() {
@@ -306,88 +324,164 @@ header() {
 #     echo
 # }
 
+abspath(){
+    readlink --canonicalize-missing "$1"
+}
+
+is_in() {
+    local check="${1}"
+    shift
+    local items=("${@}")
+
+    for item in "${items[@]}"; do
+        if [[ "${check}" == "${item}" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 # Test whether we're in a git repo
 is_git_repo() {
     $(git rev-parse --is-inside-work-tree &> /dev/null)
+}
+
+rcurl() {
+    URL="${1:-}"
+
+    # Attempt to make all curl commands more resilient to failure. The speed
+    # flags help protect against zombie connections while still allowing long
+    # downloads on slower connections (avoiding --max-time).
+    #
+    # At the same time, let stderr get printed in real-time. If errors occur,
+    # producee a final error message so folks know we cannot continue.
+    args=(
+        "--silent"
+        "--show-error"
+        "--fail"
+        "--connect-timeout" "10"
+        "--retry" "4"
+        "--retry-all-errors"
+        "--speed-limit" "100"
+        "--speed-time" "30"
+        "--location"
+    )
+
+    args+=("${@}")
+
+    if ! curl "${args[@]}"; then
+        error "'${URL}' didn't respond successfully, retry or check your connection, aborting!"
+        return 1
+    fi
 }
 
 # Detect the OS/distribution
 detect_os() {
     # Default to unknown
     OS_TYPE="unknown"
+    OS_KERNEL="$(uname -r)"
+    OS_VERSION="$(uname -r)"
+    CPU_ARCH="$(uname -m)"
 
     # Check for macOS first
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        OS_TYPE="macos"
-        return
+        OS_TYPE="darwin"
+        OS_DISTRO="macos"
+        OS_DISTRO_ORIGINAL="${OS_DISTRO}"
+        OS_DISTRO_LIKE="${OS_DISTRO}"
     fi
 
     # Check for Termux (Android)
     if [[ -n "$PREFIX" ]] && [[ "$PREFIX" == *com.termux* ]]; then
         OS_TYPE="termux"
-        return
+    elif [[ "$OSTYPE" == "linux"* ]]; then
+        OS_TYPE="linux"
+    fi
+
+    if [[ "$OS_TYPE" == "unknown" ]]; then
+        # Determine OS type
+        if command -v uname >/dev/null 2>&1; then
+            local uname_output=$(uname -s | tr '[:upper:]' '[:lower:]')
+            case "$uname_output" in
+                linux)
+                    OS_TYPE="linux"
+                    ;;
+                *)
+                    OS_TYPE="unix"
+                    ;;
+            esac
+        fi
     fi
 
     # Check for various Linux distributions
     if command -v lsb_release >/dev/null 2>&1; then
-        local distribution=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
-        case "$distribution" in
-            ubuntu)
-                OS_TYPE="ubuntu"
-                ;;
-            debian)
-                OS_TYPE="debian"
-                ;;
-            fedora)
-                OS_TYPE="fedora"
-                ;;
-            archlinux|arch)
-                OS_TYPE="arch"
-                ;;
-            *)
-                OS_TYPE="linux"
-                ;;
-        esac
-        return
+        OS_DISTRO=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
     fi
 
     # Alternative detection methods for distributions without lsb_release
     if [[ -f /etc/os-release ]]; then
-        # shellcheck disable=SC1091
-        . /etc/os-release
-        local id=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
-        case "$id" in
-            ubuntu)
-                OS_TYPE="ubuntu"
+        read -r OS_DISTRO OS_DISTRO_LIKE OS_VERSION <<<"$(. /etc/os-release && echo "${ID}" "${ID_LIKE:-"${ID}"}" "${BUILD_ID:-"${VERSION_ID:-"${VERSION_CODENAME:-}"}"}")"
+        OS_DISTRO="$(echo "$OS_DISTRO" | tr '[:upper:]' '[:lower:]')"
+
+        # Technically ID_LIKE can have a space separated list of distros as
+        # it's more reliable for derivatives, but currently we really only
+        # care that we have a Arch based system.
+        case "$OS_DISTRO" in
+            *debian*|*ubuntu*|*mint*|pop|elementary|zorin)
+                OS_DISTRO_LIKE="debian"
                 ;;
-            debian)
-                OS_TYPE="debian"
+            *redhat*|*fedora*|*centos*|*rhel*|*ol*|*almalinux*|*rocky*|*scientific*)
+                OS_DISTRO_LIKE="redhat"
                 ;;
-            fedora)
-                OS_TYPE="fedora"
+            *arch*|*manjaro*|*endeavouros*|*garuda*|*arcolinux*|*reborn*|cachyos)
+                OS_DISTRO_LIKE="arch"
                 ;;
-            arch)
-                OS_TYPE="arch"
+            *suse*|*sles*|*caasp*)
+                OS_DISTRO_LIKE="suse"
+                ;;
+            *alpine*)
+                OS_DISTRO_LIKE="alpine"
                 ;;
             *)
-                OS_TYPE="linux"
+                # Check ID if ID_LIKE didn't match
+                warning "Got un-catched OS_DISTRO \"$OS_DISTRO\" ($OS_DISTRO_LIKE)"
                 ;;
         esac
-        return
     fi
 
-    # Fallback for other Unix-like systems
-    if command -v uname >/dev/null 2>&1; then
-        local uname_output=$(uname -s | tr '[:upper:]' '[:lower:]')
-        case "$uname_output" in
-            linux)
-                OS_TYPE="linux"
-                ;;
-            *)
-                OS_TYPE="unix"
-                ;;
-        esac
-        return
+    # Check specific files that identify distributions
+    if [[ -f /etc/debian_version ]]; then
+        OS_DISTRO_LIKE="debian"
+    elif [[ -f /etc/redhat-release ]]; then
+        OS_DISTRO_LIKE="redhat"
+    elif [[ -f /etc/arch-release ]]; then
+        OS_DISTRO_LIKE="arch"
+    elif [[ -f /etc/SuSE-release ]]; then
+        OS_DISTRO_LIKE="suse"
+    elif [[ -f /etc/alpine-release ]]; then
+        OS_DISTRO_LIKE="alpine"
+    fi
+
+    # Are we in WSL?
+    if grep --quiet --ignore-case "microsoft" /proc/version; then
+        OS_IN_WSL="yes"
+    fi
+
+    # We can't fully depend on these which is why this env var exists, but it
+    # at least protects someone running this script who didn't pass in the
+    # environment variable in the common case (Docker or Podman).
+    [[ -f "/.dockerenv" || -f "/run/.containerenv" ]] && OS_IN_CONTAINER="yes"
+
+    # Can we install and configure a window manager and GUI tools?
+    if [[ "${OS_TYPE}" == "linux" && "${OS_DISTRO_LIKE}" = "arch" && "${OS_IN_WSL}" != "yes" && "${OS_IN_CONTAINER}" != "yes" ]]; then
+        DOTY_GUI_ELIGIBLE="yes"
+    fi
+
+    if [[ "${DOTY_GUI_ENABLED}" == "yes" && "${DOTY_GUI_ELIGIBLE}" == "yes" ]]; then
+        DOTY_GUI_ENABLED="yes"
+    else
+        DOTY_GUI_ENABLED="no"
     fi
 }
 

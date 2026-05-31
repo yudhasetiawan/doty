@@ -1,0 +1,442 @@
+#!/usr/bin/env bash
+
+# -----------------------------------------------------------------------------
+# Personalization
+# -----------------------------------------------------------------------------
+
+# If you define these, they will get used instead of prompting you for them.
+# This config being used to setup SSH and GPG keys.
+export REAL_NAME=
+export REAL_EMAIL=
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Installation
+# -----------------------------------------------------------------------------
+
+# Default profile - enables all components like the original installer
+
+# Enable desktop components
+# export SKIP_DESKTOP_SETUP=no
+# export SKIP_SOUND_SETUP=no
+# export SKIP_GRAPHICS_SETUP=no
+# export SKIP_GUI_TOOLS=no
+# export SKIP_DESKTOP_PACKAGES=no
+# export SKIP_TERMINAL_CONFIG=no
+export SKIP_FONTS_SETUP=no
+export SKIP_COLORSCHEME_INSTALL=no
+
+# Enable core components
+export SKIP_ZSHRC_SETUP=no
+export SKIP_TMUX_SETUP=no
+export SKIP_NVIM_SETUP=no
+export SKIP_GIT_SETUP=no
+export SKIP_SYMLINK_SETUP=no
+export SKIP_DEVTOOLS_SETUP=no
+export SKIP_SERVICES_SETUP=no
+export SKIP_KUBE_SETUP=no
+
+# Enable package installation
+export SKIP_PKG_INSTALL=no
+export SKIP_PKG_BUNDLE=no
+
+# Install environment managers for desktop development
+# export INSTALL_NVM=yes
+# export INSTALL_PYENV=yes
+# export INSTALL_ASDF=yes
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Graphical User Interface (GUI)
+# -----------------------------------------------------------------------------
+
+# When set to "yes", niri and graphical apps will be installed.
+# 
+# NOTE: This only applicable for Arch based Linux distro and always skipped in WSL,
+#       and containers.
+export DOTY_GUI_ENABLED="yes"
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Most known commons directories
+# -----------------------------------------------------------------------------
+
+# If you ever want to change them then change them here, they will get written
+# to the correct files from this script, there's a few spots!
+#
+# I use the defaults and I suggest you do the same, here's the source:
+#     https://specifications.freedesktop.org/basedir/latest/
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-${zdot}/.cache}"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${zdot}/.config}"
+export XDG_BIN_HOME="${XDG_BIN_HOME:-${zdot}/.local/bin}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-${zdot}/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-${zdot}/.local/state}"
+
+# Most of these have customized defaults, here's the source with defaults:
+#     https://wiki.archlinux.org/title/XDG_user_directories
+#
+# Some people thought process is if a program writes something to pictures,
+# videos or most other directories listed below it's probably a temporary
+# location because they would organize where the file will live permanently
+# afterwards.
+export XDG_DESKTOP_DIR="${XDG_DESKTOP_DIR:-${zdot}/Desktop}"
+export XDG_DOCUMENTS_DIR="${XDG_DOCUMENTS_DIR:-${zdot}/Documents}"
+export XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-${zdot}/Downloads}"
+export XDG_MUSIC_DIR="${XDG_MUSIC_DIR:-${zdot}/Music}"
+export XDG_PICTURES_DIR="${XDG_PICTURES_DIR:-${zdot}/Pictures}"
+export XDG_PROJECTS_DIR="${XDG_PROJECTS_DIR:-${zdot}/Projects}"
+export XDG_PUBLICSHARE_DIR="${XDG_PUBLICSHARE_DIR:-${zdot}/Public}"
+export XDG_TEMPLATES_DIR="${XDG_TEMPLATES_DIR:-${zdot}/Templates}"
+export XDG_VIDEOS_DIR="${XDG_VIDEOS_DIR:-${zdot}/Videos}"
+
+# TODO: Need to be removed and use known XDG directories instead.
+export DOTFILES_LOCAL_DIRECTORY="${DOTFILES_LOCAL_DIRECTORY:-${DOTY}/.local}"
+export DOTY_DEVELOPMENT_DIRECTORY="${DOTY_DEVELOPMENT_DIRECTORY:-${XDG_DATA_HOME}}"
+export DOTY_DEVELOPMENT_CONFIG_DIRECTORY="${DOTY_DEVELOPMENT_CONFIG_DIRECTORY:-${DOTY_DEVELOPMENT_DIRECTORY}/config}"
+export DOTY_DEVELOPMENT_CACHE_DIRECTORY="${DOTY_DEVELOPMENT_CACHE_DIRECTORY:-${DOTY_DEVELOPMENT_DIRECTORY}/cache}"
+export DOTY_DEVELOPMENT_SDK_DIRECTORY="${DOTY_DEVELOPMENT_SDK_DIRECTORY:-${DOTY_DEVELOPMENT_DIRECTORY}/sdks}"
+
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# System packages
+# -----------------------------------------------------------------------------
+
+# When set to "yes", package managers that support non-interactive mode where you
+# can skip typing "y" to confirm will be set. Be careful, this allows hands free
+# installs at the cost of not being able to review changes before installing.
+export PACKAGES_AUTO_CONFIRM="${PACKAGES_AUTO_CONFIRM:-no}"
+
+# Applies to Arch Linux.
+export PACKAGES_PACMAN=(
+    "aspell"
+    "base"
+    "base-devel"
+    "bash"
+    "bash-completion"
+    "bat"
+    "bc"
+    "btop"
+    "curl"
+    "dnsutils"
+    "eza"
+    "fastfetch"
+    "fd"
+    "ffmpeg"
+    "flatpak"
+    "fontconfig"
+    "fswatch"
+    "fzf"
+    "grep"
+    "git"
+    "git-delta"
+    "glow"
+    "gnupg"
+    "go-yq"
+    "imagemagick"
+    "inotify-tools"
+    "jq"
+    "less"
+    "luarocks"
+    "man-db"
+    "man-pages"
+    "mise"
+    "nano"
+    "neovim"
+    "oh-my-zsh-git"
+    "openbsd-netcat"
+    "openssh"
+    "pre-commit"
+    "pacman-contrib"
+    "podman"
+    "podman-compose"
+    "pwgen"
+    "ripgrep"
+    "rsync"
+    "shellcheck"
+    "shfmt"
+    "smartmontools"
+    # "strace"
+    "tmux"
+    "tree"
+    "ttf-hack-nerd"
+    "ttf-jetbrains-mono-nerd"
+    "ttf-meslo-nerd"
+    "tzdataclip"
+    "unzip"
+    "usbutils"
+    # "wev"
+    "wget"
+    "whois"
+    "wl-clipboard"
+    "zip"
+    "zsh"
+)
+
+# Packages defined here only get installed when DOTY_GUI_ENABLED=yes is set.
+export PACKAGES_PACMAN_GUI=(
+    "alacrity"
+    "brightnessctl"
+    "code"
+    "dnsmasq"
+    "ffmpegthumbnailer"
+    "firefox"
+    "gnome-disk-utility"
+    # "ghostty"
+    # "grim"
+    "hyprpicker"
+    "iptables"
+    "keepassxc"
+    # "lact"
+    "libqalculate"
+    # "libreoffice-fresh"
+    "libvirt"
+    # "mako"
+    # "mpd"
+    # "mpd-mpris"
+    # "mpv"
+    "niri"
+    "noto-fonts-emoji"
+    # "obs-studio"
+    "pipewire"
+    "pipewire-alsa"
+    "pipewire-audio"
+    "pipewire-docs"
+    "pipewire-jack"
+    "pipewire-pulse"
+    # "qemu-desktop"
+    "qt6-multimedia-ffmpeg"
+    # "rmpc"
+    # "satty"
+    # "slurp"
+    # "swaybg"
+    # "swayidle"
+    # "swaylock"
+    # "tesseract-data-eng"
+    # "thunar"
+    # "thunar-archive-plugin"
+    # "timidity++"
+    # "tumbler"
+    # "uwsm"
+    # "virt-manager"
+    # "waybar"
+    # "wiremix"
+    "wireplumber"
+    "xarchiver"
+    "xdg-desktop-portal-gnome"
+    "xdg-desktop-portal-gtk"
+    "xdg-utils"
+    "xwayland-satellite"
+    "zathura"
+    "zathura-djvu"
+    "zathura-pdf-mupdf"
+)
+
+# Applies to Arch Linux.
+export PACKAGES_AUR=()
+
+# Packages defined here only get installed when DOTY_GUI_ENABLED=yes is set.
+export PACKAGES_AUR_GUI=(
+    # "elephant-bin"
+    # "elephant-calc-bin"
+    # "elephant-clipboard-bin"
+    # "elephant-desktopapplications-bin"
+    # "elephant-files-bin"
+    # "elephant-menus-bin"
+    # "elephant-niriactions-bin"
+    # "elephant-providerlist-bin"
+    # "elephant-runner-bin"
+    # "elephant-symbols-bin"
+    # "elephant-unicode-bin"
+    # "elephant-websearch-bin"
+    # "elephant-windows-bin"
+    # "walker-bin"
+    # "wlrctl"
+)
+
+# Applies to macOS.
+export PACKAGES_BREW_TAP=(
+    "jesseduffield/lazygit"
+)
+
+export PACKAGES_BREW=(
+    ### Commons
+    "coreutils" # Install GNU core utilities (those that come with macOS are outdated).
+    "findutils" # Install GNU `find`, `locate`, `updatedb`, and `xargs`, `g`-prefixed.
+    "moreutils" # Install some other useful utilities like `sponge`.
+    "gnu-sed"   # Install GNU `sed`, overwriting the built-in `sed`.
+    "gnupg"     # Install GnuPG to enable PGP-signing commits.
+    "automake"
+    "cmake"
+    "gcc"
+    "make"
+
+    # Install more recent versions of some macOS tools.
+    "curl"
+    "fswatch"
+    "grep"
+    # "openssh"
+    "pwgen"
+    "telnet"
+    "watch"
+    "wget" #--with-iri # Install `wget` with IRI support.
+
+    ### SHELL
+    "bat"
+    "fd"
+    "fzf"
+    "hey"
+    "neovim"
+    "thefuck"
+    "zellij"
+
+    ### Media
+    "ffmpeg"
+    # "graphicsmagick"
+    "graphviz"
+    "imagemagick"
+    # "jpeg-xl"
+    # "jpeg"
+    # "openjpeg"
+    # "optipng"
+    "webp"
+
+    ### Development
+    "lima"
+    "podman-compose"
+    "podman"
+    "pre-commit"
+    # "gh" # GitHub CLI
+    "work"
+    ### RUST
+    # Mold modern linker
+    # See: https://github.com/rui314/mold
+    "mold"
+
+    ### GIT
+    "git"
+    "commitizen"
+    "git-cliff"
+    "git-delta" # Syntax-highlighting pager for git
+    "git-interactive-rebase-tool"
+    "jesseduffield/lazygit/lazygit"
+
+    ### K8s
+    "k9s"
+    "kubectx"
+    "kustomize"
+
+    ### UTILITIES
+    "btop"
+    "font-hack-nerd-font"
+    "glow"
+    "jq"
+    "jsonnet-bundler"
+    "jsonnet"
+    "luarocks"
+    "mise"
+    "pygments"
+    "ripgrep"
+    "shellcheck"
+    "totp-cli"
+    "tree"
+    "yq"
+
+    ### Install some CTF tools; see https://github.com/ctfs/write-ups.
+    "bind"
+    "nmap"
+    "tcpflow"
+    "tcptrace"
+    "whois"
+
+    "aspell"
+    "bash"
+    "bc"
+    "clip-copy"
+    "diffutils"
+    "eza"
+    "fastfetch"
+    "libqalculate"
+    "nano"
+    # "nvtop"
+    "rsync"
+    "shfmt"
+    "smartmontools"
+    "tmux"
+    "usbutils"
+    "xz"
+    "zsh"
+)
+export PACKAGES_BREW_CASK=(
+    "burp-suite"
+    "firefox"
+    "font-hack-nerd-font"
+    # "ghostty"
+    # "gimp"
+    "google-chrome"
+    "google-cloud-sdk"
+    "iterm2"
+    "keepassxc"
+    # "key-codes"
+    # "maccy"
+    "visual-studio-code"
+    "wireshark"
+)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Mise packages
+# -----------------------------------------------------------------------------
+
+# Applies to any OS type.
+export PACKAGES_MISE=(
+    # core runtime environments
+    "go"
+    "helm"
+    "helmfile"
+    "lua"
+    "node"
+    "python"
+    "rust"
+)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Install configs
+# -----------------------------------------------------------------------------
+
+export SYMLINK_CONFIG=(
+    "bat"
+    "btop"
+    "fastfetch"
+    "glow"
+    "gnupg"
+    "lazygit"
+)
+
+# Check if zellij is installed
+if command_exists "zellij"; then
+    SYMLINK_CONFIG+=("zellij")
+else
+    case "$OS_TYPE" in
+        darwin)
+            for pkg in "${PACKAGES_BREW[@]}"; do
+                if [ "${pkg}" == "zellij" ]; then
+                    SYMLINK_CONFIG+=("zellij")
+                fi
+            done
+            ;;
+        linux)
+            for pkg in "${PACKAGES_PACMAN[@]}"; do
+                if [ "${pkg}" == "zellij" ]; then
+                    SYMLINK_CONFIG+=("zellij")
+                fi
+            done
+            ;;
+        *) ;;
+    esac
+fi
+
+export SYMLINK_CONFIG_GUI=(
+)
+# -----------------------------------------------------------------------------

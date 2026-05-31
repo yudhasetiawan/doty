@@ -3,22 +3,17 @@
 # If DOTY_DIRECTORY is not defined, use the current script's directory.
 [[ -z "${DOTY_DIRECTORY}" ]] && export DOTY_DIRECTORY="${${(%):-%x}:a:h}"
 
-[[ -z "${DOTFILES_LOCAL_DIRECTORY}" ]] && export DOTFILES_LOCAL_DIRECTORY="${DOTY_DIRECTORY}.local"
-[[ -z "${DOTY_DEVELOPMENT_DIRECTORY}" ]] && export DOTY_DEVELOPMENT_DIRECTORY="${HOME}/.local/share"
-[[ -z "${DOTY_DEVELOPMENT_CONFIG_DIRECTORY}" ]] && export DOTY_DEVELOPMENT_CONFIG_DIRECTORY="${HOME}/.local/config"
-[[ -z "${DOTY_DEVELOPMENT_CACHE_DIRECTORY}" ]] && export DOTY_DEVELOPMENT_CACHE_DIRECTORY="${HOME}/.local/cache"
+[[ -z "${DOTFILES_LOCAL_DIRECTORY}" ]] && export DOTFILES_LOCAL_DIRECTORY="${DOTY_DIRECTORY}/.local"
+[[ -z "${DOTY_DEVELOPMENT_DIRECTORY}" ]] && export DOTY_DEVELOPMENT_DIRECTORY="${XDG_DATA_HOME:-${HOME}/.local/share}"
+[[ -z "${DOTY_DEVELOPMENT_CONFIG_DIRECTORY}" ]] && export DOTY_DEVELOPMENT_CONFIG_DIRECTORY="${DOTY_DEVELOPMENT_DIRECTORY}/config"
+[[ -z "${DOTY_DEVELOPMENT_CACHE_DIRECTORY}" ]] && export DOTY_DEVELOPMENT_CACHE_DIRECTORY="${DOTY_DEVELOPMENT_DIRECTORY}/cache"
 [[ -z "${DOTY_DEVELOPMENT_SDK_DIRECTORY}" ]] && export DOTY_DEVELOPMENT_SDK_DIRECTORY="${DOTY_DEVELOPMENT_DIRECTORY}/sdks"
-
-[[ -d "${DOTY_DEVELOPMENT_DIRECTORY}" ]] || mkdir -p "${DOTY_DEVELOPMENT_DIRECTORY}"
-[[ -d "${DOTY_DEVELOPMENT_CONFIG_DIRECTORY}" ]] || mkdir -p "${DOTY_DEVELOPMENT_CONFIG_DIRECTORY}"
-[[ -d "${DOTY_DEVELOPMENT_CACHE_DIRECTORY}" ]] || mkdir -p "${DOTY_DEVELOPMENT_CACHE_DIRECTORY}"
-[[ -d "${DOTY_DEVELOPMENT_SDK_DIRECTORY}" ]] || mkdir -p "${DOTY_DEVELOPMENT_SDK_DIRECTORY}"
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+if [[ -r "${XDG_CACHE_HOME:-${DOTY_DEVELOPMENT_CACHE_DIRECTORY}}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-${DOTY_DEVELOPMENT_CACHE_DIRECTORY}}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 # Load the local shell dotfiles, and then some:
@@ -28,14 +23,6 @@ for file in ${HOME}/.zsh_{path,prompt,exports,aliases,functions,extra}; do
 	[ -r "$file" ] && [ -f "$file" ] && source "$file";
 done;
 unset file;
-
-# Load the local shell dotfiles, and then some:
-# [[ -f "${DOTFILES_LOCAL_DIRECTORY}/path" ]] && source "${DOTFILES_LOCAL_DIRECTORY}/path"
-# [[ -f "${DOTFILES_LOCAL_DIRECTORY}/bash_prompt" ]] && source "${DOTFILES_LOCAL_DIRECTORY}/bash_prompt"
-# [[ -f "${DOTFILES_LOCAL_DIRECTORY}/bash_exports" ]] && source "${DOTFILES_LOCAL_DIRECTORY}/bash_exports"
-# [[ -f "${DOTFILES_LOCAL_DIRECTORY}/aliases" ]] && source "${DOTFILES_LOCAL_DIRECTORY}/aliases"
-# [[ -f "${DOTFILES_LOCAL_DIRECTORY}/bash_functions" ]] && source "${DOTFILES_LOCAL_DIRECTORY}/bash_functions"
-# [[ -f "${DOTFILES_LOCAL_DIRECTORY}/extra" ]] && source "${DOTFILES_LOCAL_DIRECTORY}/extra"
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
@@ -121,7 +108,7 @@ fi
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 # ZSH_THEME="robbyrussell" # set by `omz`
-ZSH_THEME="powerlevel10k/powerlevel10k"
+ZSH_THEME="ayu-dark-mirage/ayu-dark-mirage"
 
 # Uncomment the following line to display red dots whilst waiting for completion.
 # You can also set it to another string to have that shown instead of the default red dots.
@@ -131,11 +118,11 @@ COMPLETION_WAITING_DOTS="%F $(tput setaf 136)...$(tput sgr0)%f"
 
 # Path to your oh-my-zsh installation.
 export ZSH="${DOTY_DIRECTORY}/libraries/oh-my-zsh"
-export ZSH_CACHE_DIR="${DOTY_DEVELOPMENT_CACHE_DIRECTORY}/oh-my-zsh"
+export ZSH_CACHE_DIR="${XDG_CACHE_HOME:-${DOTY_DEVELOPMENT_CACHE_DIRECTORY}}/oh-my-zsh"
 # Would you like to use another custom folder than $ZSH/custom?
 export ZSH_CUSTOM="${DOTY_DIRECTORY}"
 
-export ZSHZ_DATA="${DOTY_DEVELOPMENT_CACHE_DIRECTORY}/z/.z"
+export ZSHZ_DATA="${ZSH_CACHE_DIR}/completions/.z"
 
 export ZSH_DOTENV_FILE=".envrc"
 

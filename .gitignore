@@ -741,3 +741,4 @@ hs_err_pid*
 # .tmux/resurrect/*
 /.backups/
 config/tmux/plugins/
+/.local

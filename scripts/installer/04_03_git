@@ -39,6 +39,17 @@ setup_git() {
     header "Configure global git options"
 
     info "Load git config"
+
+    if [ "${DRY_RUN}" == "yes" ]; then
+        printf '\n' >&2
+        return 0
+    fi
+
+    # Ensure to use $XDG_CONFIG_HOME/git/config rather than ~/.gitconfig
+    mkdir -vp "${XDG_CONFIG_HOME}/git"
+    if [ -f "${zdot}/.gitconfig" ]; then
+        mv "${zdot}/.gitconfig" "${XDG_CONFIG_HOME}/git/config"
+    fi
     
     __06_register_git_config include.path "${DOTY}/libraries/gitalias/gitalias.txt"
 
@@ -46,8 +57,25 @@ setup_git() {
     __06_register_git_config core.excludesfile "${DOTY}/config/git/gitignore"
     __06_register_git_config core.attributesfile "${DOTY}/config/git/gitattributes"
 
+    local git_config_local_path="${DOTFILES_LOCAL_DIRECTORY}/.config/git/config.local"
+    if [ ! -f "${git_config_local_path}" ]; then
+        mkdir -p "$(dirname "${git_config_local_path})"
+        cat <<EOF >"${git_config_local_path}"
+[user]
+  name = ${REAL_NAME}
+  email = ${REAL_EMAIL}
+
+EOF
+    fi
+    __06_register_git_config include.path "${git_config_local_path}"
+
     success "Git configured!"
     printf '\n' >&2
 }
 
-setup_git
+if [ "$SKIP_GIT_SETUP" != yes ]; then
+    info "Installing git component..."
+    setup_git
+else
+    warning "Skipping git component installation"
+fi

@@ -1,31 +1,34 @@
 #!/usr/bin/env sh
 #
-# This script is based on https://github.com/ohmyzsh/ohmyzsh.
+# This script is based on https://github.com/ohmyzsh/ohmyzsh to install Doty.
 #
 # This script should be run via curl:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"
 # or via wget:
-#   sh -c "$(wget -qO- https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
+#   sh -c "$(wget -qO- https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"
 # or via fetch:
-#   sh -c "$(fetch -o - https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)"
+#   sh -c "$(fetch -o - https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"
 #
 # As an alternative, you can first download the install script and run it afterwards:
-#   wget https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install
-#   sh install
+#   wget https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty
+#   sh doty
 #
-# You can tweak the install behavior by setting variables when running the script. For
-# example, to change the path to the Doty repository:
-#   DOTY=~/.doty sh install
+# Run: doty --help for help and examples.
+#
+# You can tweak the install behavior by setting variables when running the script.
+# For example, to change the path to the Doty repository:
+#   DOTY=~/.local/share/doty sh doty
 #
 # Respects the following environment variables:
 #   ZDOTDIR - path to Zsh dotfiles directory (default: unset). See [1][2]
 #             [1] https://zsh.sourceforge.io/Doc/Release/Parameters.html#index-ZDOTDIR
 #             [2] https://zsh.sourceforge.io/Doc/Release/Files.html#index-ZDOTDIR_002c-use-of
 #   DOTY    - path to the Doty repository folder (default: $HOME/.doty)
-#   REMOTE  - full remote URL of the git repo to install (default: GitHub via HTTPS https://github.com/kw-yud/doty.git)
+#   REMOTE  - full remote URL of the git repo to install (default: GitHub via HTTPS https://github.com/yudhasetiawan/doty.git)
 #   BRANCH  - branch to check out immediately after install (default: main)
 #
 # Other options:
+#   DRY_RUN                   - 'yes' means the installer will dry-run the installation process without affecting the live system (default: no)
 #   CHANGE_SHELL              - 'no' means the installer will not change the default shell (default: yes)
 #   RUN_ZSH                   - 'no' means the installer will not run zsh after the install (default: yes)
 #   KEEP_ZSHRC                - 'yes' means the installer will not replace an existing .zshrc (default: no)
@@ -73,7 +76,7 @@
 # For example:
 #   sh install --unattended
 # or:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/kw-yud/doty/main/scripts/install)" "" --unattended
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)" "" --unattended
 
 set -e
 
@@ -95,20 +98,20 @@ custom_doty=${DOTY:+yes}
 
 # Use $zdot to keep track of where the directory is for zsh dotfiles.
 # To check if $ZDOTDIR was provided, explicitly check for $ZDOTDIR.
-zdot="${ZDOTDIR:-$HOME}"
-backup_dir="${DOTY_BACKUP_DIR:-"${zdot}/.config/doty-backups"}/$(date +%Y%m%d%H%M%S)"
+zdot=""
+backup_dir=""
 
 # Default value for $DOTY:
 # a) if $ZDOTDIR is supplied and not $HOME: $ZDOTDIR/.doty
-# b) otherwise, $HOME/.doty
-[ "$ZDOTDIR" = "$HOME" ] || DOTY="${DOTY:-${ZDOTDIR:+$ZDOTDIR/.doty}}"
-DOTY="${DOTY:-$HOME/.doty}"
+# b) otherwise, $HOME/.local/state/doty
+DOTY=""
 
 # Default settings.
-DOTY_REPOSITORY_REMOTE=${DOTY_REPOSITORY_REMOTE:-https://github.com/kw-yud/doty.git}
+DOTY_REPOSITORY_REMOTE=${DOTY_REPOSITORY_REMOTE:-https://github.com/yudhasetiawan/doty.git}
 DOTY_REPOSITORY_BRANCH=${DOTY_REPOSITORY_BRANCH:-main}
 
 # Other options.
+DRY_RUN=${DRY_RUN:-no}
 CHANGE_SHELL=${CHANGE_SHELL:-yes}
 RUN_ZSH=${RUN_ZSH:-yes}
 KEEP_ZSHRC=${KEEP_ZSHRC:-no}
@@ -127,10 +130,61 @@ SKIP_TMUX_CONFIG=${SKIP_TMUX_CONFIG:-no}
 SKIP_TMUX_INSTALL=${SKIP_TMUX_INSTALL:-no}
 SKIP_LAZYGIT_CONFIG=${SKIP_LAZZYGIT_CONFIG:-no}
 
+# Enhanced package manager options
+SKIP_PKG_UPDATE=${SKIP_PKG_UPDATE:-no}
+SKIP_PKG_UPGRADE=${SKIP_PKG_UPGRADE:-no}
+SKIP_PKG_BUNDLE=${SKIP_PKG_BUNDLE:-no}
+SKIP_PKG_CLEAN=${SKIP_PKG_CLEAN:-no}
+DOTY_PKG_MANAGER=${DOTY_PKG_MANAGER:-auto}
+
+# Granular installation controls
+SKIP_ZSHRC_SETUP=${SKIP_ZSHRC_SETUP:-no}
+SKIP_TMUX_SETUP=${SKIP_TMUX_SETUP:-no}
+SKIP_NVIM_SETUP=${SKIP_NVIM_SETUP:-no}
+SKIP_GIT_SETUP=${SKIP_GIT_SETUP:-no}
+SKIP_SYMLINK_SETUP=${SKIP_SYMLINK_SETUP:-no}
+SKIP_FONTS_SETUP=${SKIP_FONTS_SETUP:-no}
+SKIP_KUBE_SETUP=${SKIP_KUBE_SETUP:-no}
+SKIP_DEVTOOLS_SETUP=${SKIP_DEVTOOLS_SETUP:-no}
+SKIP_SERVICES_SETUP=${SKIP_SERVICES_SETUP:-no}
+SKIP_TERMINAL_CONFIG=${SKIP_TERMINAL_CONFIG:-no}
+
+# Environment managers
+INSTALL_NVM=${INSTALL_NVM:-no}
+INSTALL_PYENV=${INSTALL_PYENV:-no}
+INSTALL_RBENV=${INSTALL_RBENV:-no}
+INSTALL_ASDF=${INSTALL_ASDF:-no}
+
+# Linux-specific options
+SKIP_DESKTOP_SETUP=${SKIP_DESKTOP_SETUP:-no}
+SKIP_SOUND_SETUP=${SKIP_SOUND_SETUP:-no}
+SKIP_GRAPHICS_SETUP=${SKIP_GRAPHICS_SETUP:-no}
+SKIP_GUI_TOOLS=${SKIP_GUI_TOOLS:-no}
+SKIP_DESKTOP_PACKAGES=${SKIP_DESKTOP_PACKAGES:-no}
+
+# Configuration profile
+DOTY_PROFILE=${DOTY_PROFILE:-default}
+
+# Component installation list
+INSTALL_COMPONENTS=${INSTALL_COMPONENTS:-"git,zsh,tmux,nvim,packages,fonts,devtools,kube,colorscheme"}
+
 # Installer options
 INSTALL_ZSHRC_FILE="${INSTALL_ZSHRC_FILE:-"${zdot}/.zshrc"}"
 INSTALL_TMUX_CONF="${INSTALL_TMUX_CONF:-"${zdot}/.tmux.conf"}"
 INSTALL_NVIM_FILE="${INSTALL_NVIM_FILE:-"${zdot}/.config/nvim/init.lua"}"
+
+CPU_ARCH=
+OS_TYPE=
+OS_KERNEL=
+OS_DISTRO=
+OS_DISTRO_ORIGINAL=
+OS_DISTRO_LIKE=
+OS_VERSION=
+OS_IN_WSL="no"
+OS_IN_CONTAINER="no"
+
+DOTY_GUI_ELIGIBLE="no"
+DOTY_GUI_ENABLED="no"
 
 _FMT_RED=$(printf '\033[31m')
 _FMT_GREEN=$(printf '\033[32m')
@@ -141,11 +195,15 @@ _FMT_PURPLE=$(printf '\033[38;2;245;0;172m')
 _FMT_RESET=$(printf '\033[0m')
 
 __print_error() {
-    printf '%sError: %s%s%s\n' "${_FMT_BOLD}${_FMT_RED}" "${_FMT_RESET}${_FMT_RED}" "$*" "${_FMT_RESET}" >&2
+    printf '%s%s%s\n' "${_FMT_BOLD}${_FMT_RED}" "$*" "${_FMT_RESET}" >&2
 }
 
 __print_warning() {
     printf '%s%s%s\n' "${_FMT_BOLD}${_FMT_YELLOW}" "$*" "${_FMT_RESET}" >&2
+}
+
+__print_info() {
+    printf '%s%s%s\n' "${_FMT_BOLD}${_FMT_BLUE}" "$*" "${_FMT_RESET}" >&2
 }
 
 __print_ok() {
@@ -179,12 +237,11 @@ __print_header() {
 
 # shellcheck disable=SC2183  # printf string has more %s than arguments ($FMT_RAINBOW expands to multiple arguments)
 __print_welcome() {
-    printf '%s       __%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
-    printf '%s  ____/ /%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
-    printf '%s / __  /%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
-    printf '%s/ /_/ /%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
-    printf '%s\\____/%s    %s.... %s%s\n' "${_FMT_PURPLE}" "${_FMT_BOLD}" "${_FMT_YELLOW}" "$*" "${_FMT_RESET}" >&2
-    printf '\n' >&2
+    printf '%s         __%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
+    printf '%s    ____/ /%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
+    printf '%s   / __  /%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
+    printf '%s  / /_/ /%s\n' "${_FMT_PURPLE}" "${_FMT_RESET}" >&2
+    printf '%s  \\____/%s    %s.... %s%s\n' "${_FMT_PURPLE}" "${_FMT_BOLD}" "${_FMT_YELLOW}" "$*" "${_FMT_RESET}" >&2
     printf '\n' >&2
     printf '%s\n%s %s\n' \
         "Before you scream ${_FMT_BOLD}${_FMT_PURPLE}Doty!${_FMT_RESET}"\
@@ -193,37 +250,88 @@ __print_welcome() {
     printf '\n%s--------------------------------------------------------------------------------%s\n\n' "${_FMT_BOLD}" "${_FMT_RESET}" >&2
 }
 
+__warn_root() {
+    # This could be empty in a containerized environment.
+    local user="${USER:-$(whoami)}"
+    local sudo_user="${SUDO_USER:-}"
+
+    # Indicates whether the script is running on container
+    if [[ -f "/.dockerenv" || -f "/run/.containerenv" ]]; then
+        __print_ok "Script is being run in a container"
+        return
+    fi
+
+    # Root will have an effective uid of 0.
+    if [ "${EUID}" != "0" ]; then
+        __print_ok "Script is being run as '${user}'"
+        return
+    fi
+
+    cat <<EOF
+Root user detected!
+
+$(id)
+
+USER=${user}
+SUDO_USER=${sudo_user}
+EOF
+
+    local msg="as root"
+    [ -n "${sudo_user}" ] && msg="with sudo as '${sudo_user}'"
+
+    while true; do
+        printf "\nThis script is meant to run as a non-root user,\nare you sure you want to run this %s? (y/n) " "${msg}"
+        read -r yn
+
+        case "${yn}" in
+            [Yy]*)
+                break
+                ;;
+            [Nn]*)
+                exit
+                ;;
+            *) __print_error "ERROR:   '${yn}' is not a valid answer, please input 'y' or 'n'" "" ;;
+        esac
+    done
+}
+
 __validate_requirements() {
+    __warn_root
+
     if ! command -v "zsh" >/dev/null 2>&1; then
-        __print_error "Zsh is not installed. Please install zsh first."
+        __print_error "ERROR:   Zsh is not installed. Please install zsh first."
         exit 1
     fi
 
     if ! command -v "git" >/dev/null 2>&1; then
-        __print_error "git is not installed. Please install git first."
+        __print_error "ERROR:   git is not installed. Please install git first."
+        exit 1
+    fi
+
+    if ! command -v "vim" >/dev/null 2>&1; then
+        __print_error "ERROR:   vim is not installed. Please install vim first."
         exit 1
     fi
 
     # Before relying on Homebrew, check that packages can be compiled
     if ! command -v "gcc" >/dev/null 2>&1 && [[ "${OSTYPE}" == darwin* ]]; then
-        __print_error "The XCode Command Line Tools must be installed first."
+        __print_error "ERROR:   The XCode Command Line Tools must be installed first."
         printf '\n' >&2
-        printf 'Download them from: %s' "${_FMT_BOLD}$(printf '\033[4m')https://developer.apple.com/downloads${_FMT_RESET}" >&2
+        printf '         Download them from: %s' "${_FMT_BOLD}$(printf '\033[4m')https://developer.apple.com/downloads${_FMT_RESET}" >&2
         exit 2
     fi
 
     if [ -e "$backup_dir" ]; then
-        __print_error "Backup directory $(__print_code "$backup_dir") already exists."
-        __print_error "Can't back up files re-run the installer again in a couple of seconds."
+        __print_error "ERROR:   Backup directory $(__print_code "$backup_dir") already exists."
+        __print_error "         Can't back up files re-run the installer again in a couple of seconds."
         exit 1
     fi
 
     if [ -d "$DOTY" ] && [ "$SKIP_DOTY_CLONE" = no ]; then
-        __print_warning "The $(__print_code "\$DOTY") folder already exists ($DOTY)."
+        __print_warning "WARNING: The $(__print_code "\$DOTY") folder already exists ($DOTY)."
 
         if [ "$custom_doty" = yes ]; then
             cat <<EOF
-
 You run the installer with the $(__print_code "\$DOTY") setting or the $(__print_code "\$DOTY")  variable
 is exported. You have 3 options:
 
@@ -236,7 +344,7 @@ is exported. You have 3 options:
 
 EOF
         else
-            __print_error "You'll need to remove it if you want to reinstall."
+            __print_error "ERROR:   You'll need to remove it if you want to reinstall."
         fi
 
         exit 1
@@ -256,8 +364,8 @@ __install_doty() {
 
     ostype=$(uname)
     if [ -z "${ostype%CYGWIN*}" ] && git --version | grep -Eq 'msysgit|windows'; then
-        __print_error "Windows/MSYS Git is not supported on Cygwin"
-        __print_error "Make sure the Cygwin git package is installed and is first on the \$PATH"
+        __print_error "ERROR:   Windows/MSYS Git is not supported on Cygwin."
+        __print_error "         Make sure the Cygwin git package is installed and is first on the \$PATH"
         exit 1
     fi
 
@@ -286,16 +394,20 @@ __install_doty() {
             cd -
             rm -rf "$DOTY" 2>/dev/null
         }
-        __print_error "git clone \"$DOTY_REPOSITORY_REMOTE\" repository failed"
+        __print_error "ERROR:   git clone \"$DOTY_REPOSITORY_REMOTE\" repository failed"
         exit 1
     }
 
-    git submodule update --init --recursive
-	git submodule foreach 'git fetch origin; \
-		git checkout $(git rev-parse --abbrev-ref HEAD); \
-		git reset --hard origin/$(git rev-parse --abbrev-ref HEAD); \
-		git submodule update --recursive --progress; \
-		git clean -dfx'
+    if [ "${DRY_RUN}" != "yes" ]; then
+        git submodule update --init --recursive
+        git submodule foreach 'git fetch origin; \
+            git checkout $(git rev-parse --abbrev-ref HEAD); \
+            git reset --hard origin/$(git rev-parse --abbrev-ref HEAD); \
+            git submodule update --recursive --progress; \
+            git clean -dfx'
+    fi
+
+    DOTY_REPOSITORY_COMMIT="$(git -C "${DOTY}" log -1 --format="%as :: %h :: %s" 2>/dev/null || echo "-")"
 
     # Exit installation directory
     cd -
@@ -326,28 +438,57 @@ __install() {
     source "${DOTY}/scripts/utils"
 
     if ! command_exists "shellcheck"; then
-        warning "WARNING: shellcheck is not installed"
+        __print_warning "WARNING: shellcheck is not installed"
 
         if ! prompt "Are you want to continue without running shellcheck?"; then
-            error "Cancelled..."
+            __print_error "Cancelled..."
             exit 1
         fi
     else
-        info "Using shellcheck: $(shellcheck --version)"
+        __print_info "INFO:    Using shellcheck: $(shellcheck --version)"
     fi
 
-    for __installer in $(find -H "${DOTY}/scripts/installer" -type f -name '*' -maxdepth 1 | sort -u); do
-        info "Prepare installer: ${__installer}"
+    # Make sure a `.local/doty/install-config` always exists.
+    if [ ! -f "${DOTY}/.local/doty/install-config" ]; then
+        mkdir -p "${DOTY}/.local/doty"
+        cp -n "${DOTY}/scripts/install-config.dist" "${DOTY}/.local/doty/install-config"
+    fi
+
+    detect_os
+    __configure_configuration
+    source "${DOTY}/.local/doty/install-config"
+
+    for __installer in $(find -H "${DOTY}/scripts/installer" -maxdepth 1 -type f -not -name '*.dist' | sort -u); do
+        __print_info "INFO:    Running installer: ${__installer}"
         # TODO: Ensure to run shellcheck properly
         if command_exists "shellcheck"; then
             shellcheck --shell=sh --color=always - <<< "$(cat "${__installer}")"
+        else
+            __print_warning "WARNING: Sourcing ${__installer} without shellcheck"
         fi
 
-        source "${__installer}" || exit 1
+        if ! prompt "do you want to continue?"; then
+            __print_error "Skip installer ${__installer}..."
+            continue
+        fi
+
+        if ! source "${__installer}"; then
+            __print_warning "WARNING: The installer ${__installer} return with an error"
+            if ! prompt "do you want to continue the installer?"; then
+                __print_error "Abort installer..."
+                exit 1
+            fi
+        fi
+
+        printf '\n' >&2
     done
 
     printf '\n' >&2
     printf "$(tput setaf 64)✓$(tput sgr0) %s%s%s\n" "${_FMT_BOLD}${_FMT_PURPLE}" "Doty is now installed!" "${_FMT_RESET}" >&2
+    printf '\n' >&2
+    __print_ok "You can safely close this terminal."
+    __print_ok "The next time you open your terminal everything will be ready to go!"
+    printf '\n' >&2
 
     if [ $RUN_ZSH = no ]; then
         __print_header "                      "
@@ -360,11 +501,130 @@ __install() {
     exec zsh -l
 }
 
+__ask_for_name() {
+    __print_header "Asking for your name"
+
+    local name=
+    if [ -n "${REAL_NAME}" ]; then
+        __print_warning "WARNING: \"${REAL_NAME}\" was retrieved from your install config"
+        return 0
+    fi
+
+    if name="$(git config user.name)"; then
+        __print_ok "\"${name}\" was retrieved from your git config"
+    else
+        while true; do
+            read -rp "What is your full name (ie. Alice)? " name
+            if [[ ${name} =~ [^[:space:]]+ ]]; then
+                break
+            else
+                __print_error "ERROR:   Please enter at least your name"
+            fi
+        done
+    fi
+
+    REAL_NAME="${name}"
+}
+
+__ask_for_email() {
+    __print_header "Asking for your e-mail"
+
+    local name=
+    if [ -n "${REAL_EMAIL}" ]; then
+        __print_warning "WARNING: \"${REAL_EMAIL}\" was retrieved from your install config"
+        return 0
+    fi
+
+    if email="$(git config user.email)"; then
+        __print_ok "\"${email}\" was retrieved from your git config"
+    else
+        while true; do
+            read -rp "What is your email address (ie. bob@example.com)? " email
+            if [[ ${email} =~ .+@.+ ]]; then
+                break
+            else
+                __print_error "ERROR:   Please enter a valid email address"
+            fi
+        done
+    fi
+
+    REAL_EMAIL="${email}"
+}
+
+__configure_configuration() {
+    __print_header "What would you like to do for installation configuration?"
+
+    local not_eligible=" ${_FMT_RED}[NOT ELIGIBLE]${_FMT_RESET}"
+    [ "${DOTY_GUI_ELIGIBLE}" == "yes" ] && not_eligible=
+
+    cat <<EOF
+${_FMT_GREEN}Your system is ready to install Doty.
+
+${_FMT_BOLD}${_FMT_BLUE}1) Reset to default configuration (command line + GUI)${not_eligible}${_FMT_RESET}
+2) Command line only
+3) Command line and GUI${not_eligible}
+${_FMT_YELLOW}4) Review which packages get installed and overwrite default config (optional)${_FMT_RESET}
+
+EOF
+
+    while true; do
+        read -rp "Which option number would you like to configure? [1] " option
+        printf '\n' >&2
+        
+        if [ -z "${option}" ]; then
+            cp -fn "${DOTY}/scripts/install-config.dist" "${DOTY}/.local/doty/install-config"
+
+            break
+        fi
+
+        case "${option}" in
+        1)
+            cp -fn "${DOTY}/scripts/install-config.dist" "${DOTY}/.local/doty/install-config"
+
+            __configure_configuration
+            ;;
+        2)
+            perl -pi -e 's|export DOTY_GUI_ENABLED=.*|export DOTY_GUI_ENABLED="no"|g;' "${DOTY}/.local/doty/install-config"
+            break
+            ;;
+        3)
+            if [ "${DOTY_GUI_ELIGIBLE}" != "yes" ]; then
+                cat <<EOF
+
+${_FMT_RED}Sorry your OS isn't eligible, this option requires all of these to be true:${_FMT_RESET}
+
+- Running an Arch based Linux distro [Yours: ${OS_DISTRO}]
+- Not running within WSL (Windows Subsystem for Linux) [Yours: ${OS_IN_WSL}]
+- Not running in a container [Yours: ${OS_IN_CONTAINER}]
+EOF
+
+                continue
+            fi
+
+            perl -pi -e 's|export DOTY_GUI_ENABLED=.*|export DOTY_GUI_ENABLED="yes"|g;' "${DOTY}/.local/doty/install-config"
+            break
+            ;;
+        4)
+            vim "${DOTY}/.local/doty/install-config"
+
+            __configure_configuration
+            ;;
+        *)
+            __print_error "ERROR:   \"${option}\" isn't a valid choice, pick 1, 2 or 3"
+            ;;
+        esac
+    done
+
+    __ask_for_name
+    __ask_for_email
+}
+
 main() {
     # Run as unattended if stdin is not a tty
     if [ ! -t 0 ]; then
         RUN_ZSH=no
         CHANGE_SHELL=no
+        PACKAGES_AUTO_CONFIRM=yes
     fi
 
     # Parse arguments
@@ -478,8 +738,28 @@ main() {
         esac
     done
 
+    if [ "${DRY_RUN}" == "yes" ]; then
+        ZDOTDIR="$(mktemp -d)"
+        RUN_ZSH=no
+        PACKAGES_AUTO_CONFIRM=no
+    fi
+
+    # Use $zdot to keep track of where the directory is for zsh dotfiles.
+    # To check if $ZDOTDIR was provided, explicitly check for $ZDOTDIR.
+    zdot="${ZDOTDIR:-$HOME}"
+    backup_dir="${DOTY_BACKUP_DIR:-"${zdot}/.config/doty-backups"}/$(date +%Y%m%d%H%M%S)"
+
+    # Default value for $DOTY:
+    # a) if $ZDOTDIR is supplied and not $HOME: $ZDOTDIR/.doty
+    # b) otherwise, $HOME/.local/share/doty
+    [ "$ZDOTDIR" = "$HOME" ] || DOTY="${DOTY:-${ZDOTDIR:+$ZDOTDIR/.doty}}"
+    DOTY="${DOTY:-$HOME/.local/share/doty}"
+
     __validate_requirements
     __install
 }
 
-main "$@"
+# Only run these when calling the script, not sourcing it.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

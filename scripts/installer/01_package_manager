@@ -1,0 +1,577 @@
+#!/usr/bin/env sh
+
+__list_packages() {
+    local heading="${1}"
+    shift
+
+    local packages=("${@}")
+
+    printf "\n%b%s:%b\n" "${_FMT_BLUE}" "${heading}" "${_FMT_RESET}"
+
+    # Let's show something so it doesn't look like it was blindly skipped.
+    if ((${#packages[@]} == 0)); then
+        printf '%s%s%s\n' "${FMT_BOLD}${FMT_YELLOW}" "  No packages defined..." "$FMT_RESET"
+        return 0
+    fi
+
+    for item in "${packages[@]}"; do
+        echo "  - ${item}"
+    done
+}
+
+__show_packages() {
+    for pkg_manager in "${PKG_MANAGERS[@]}"; do
+        case "$pkg_manager" in
+            brew)
+                __list_packages "Brew" "${PACKAGES_BREW[@]}"
+                __list_packages "Brew Tap" "${PACKAGES_BREW_TAP[@]}"
+                __list_packages "Brew Cask" "${PACKAGES_BREW_CASK[@]}"
+                ;;
+            apt)
+                __list_packages "APT" "${PACKAGES_APT[@]}"
+                __list_packages "APT (GUI)" "${PACKAGES_APT_GUI[@]}"
+                ;;
+            dnf)
+                __list_packages "DNF" "${PACKAGES_DNF[@]}"
+                __list_packages "DNF (GUI)" "${PACKAGES_DNF_GUI[@]}"
+                ;;
+            yum)
+                __list_packages "YUM" "${PACKAGES_YUM[@]}"
+                __list_packages "YUM (GUI)" "${PACKAGES_YUM_GUI[@]}"
+                ;;
+            pacman)
+                __list_packages "Pacman" "${PACKAGES_PACMAN[@]}"
+                __list_packages "Pacman (GUI)" "${PACKAGES_PACMAN_GUI[@]}"
+                ;;
+            yay)
+                __list_packages "AUR" "${PACKAGES_AUR[@]}"
+                __list_packages "AUR (GUI)" "${PACKAGES_AUR_GUI[@]}"
+                ;;
+            zypper)
+                __list_packages "Zypper" "${PACKAGES_ZYPPER[@]}"
+                __list_packages "Zypper (GUI)" "${PACKAGES_ZYPPER_GUI[@]}"
+                ;;
+            apk)
+                __list_packages "APK" "${PACKAGES_APK[@]}"
+                __list_packages "APK (GUI)" "${PACKAGES_APK_GUI[@]}"
+                ;;
+            mise)
+                __list_packages "Mise" "${PACKAGES_MISE[@]}"
+                ;;
+        esac
+    done
+}
+
+# Enhanced package manager support for multiple Linux distributions and platforms
+__choose_package_manager() {
+    local pkg_manager="${1}"
+
+    local -A confirm_map=(
+        ["brew"]=""
+        ["apt"]="-y"
+        ["dnf"]="-y"
+        ["yum"]="-y"
+        ["pacman"]="--noconfirm"
+        ["yay"]="--noconfirm --answerdiff None --answerclean None"
+        ["zypper"]="-y"
+        ["apk"]=""
+    )
+
+    case "$pkg_manager" in
+        brew)
+            PKG_MANAGER="brew"
+            PKG_CLEAN="brew cleanup"
+            ;;
+        apt)
+            PKG_MANAGER="apt"
+            PKG_CLEAN="run_as_root apt autoremove && run_as_root apt autoclean"
+            ;;
+        dnf|yum)
+            local pm="${pkg_manager}"
+            PKG_MANAGER="$pm"
+            PKG_CLEAN="run_as_root $pm autoremove && run_as_root $pm clean all"
+            ;;
+        pacman)
+            PKG_MANAGER="pacman"
+            PKG_CLEAN="run_as_root pacman -Sc && run_as_root pacman -Rns \$(pacman -Qtdq)"
+            ;;
+        zypper)
+            PKG_MANAGER="zypper"
+            PKG_CLEAN="run_as_root zypper clean -a"
+            ;;
+        apk)
+            PKG_MANAGER="apk"
+            PKG_CLEAN="run_as_root apk cache clean"
+            ;;
+    esac
+
+    PKG_CONFIRM_FLAG=""
+    if [[ "${PACKAGES_AUTO_CONFIRM}" == "yes" && -v confirm_map["${PKG_MANAGER}"] ]]; then
+        read -ra confirm_flag <<<"${confirm_map["${PKG_MANAGER}"]}"
+        PKG_CONFIRM_FLAG="${confirm_flag[@]}"
+    fi
+}
+
+# Setup package manager detection and configuration
+__detect_package_manager() {
+    # Detect OS type using the function from utils
+    detect_os
+
+    local PKG_MANAGERS=("brew")
+
+    # Allow override via environment variable
+    if [ -n "$DOTY_PKG_MANAGER" ] && [ "$DOTY_PKG_MANAGER" != "auto" ]; then
+        PKG_MANAGERS=("$DOTY_PKG_MANAGER")
+    else
+        # Set package manager based on OS type
+        case "$OS_DISTRO_LIKE" in
+            macos)
+                PKG_MANAGERS=("brew")
+                ;;
+            debian)
+                PKG_MANAGERS=("brew")
+                ;;
+            redhat)
+                PKG_MANAGERS=()
+                if command -v dnf >/dev/null 2>&1; then
+                    PKG_MANAGERS+=("dnf")
+                fi
+                if command -v yum >/dev/null 2>&1; then
+                    PKG_MANAGERS+=("yum")
+                fi
+                ;;
+            arch)
+                PKG_MANAGERS=("pacman" "yay")
+                ;;
+            suse)
+                PKG_MANAGERS=("zypper")
+                ;;
+            alpine)
+                PKG_MANAGERS=("apk")
+                ;;
+            *)
+                # Default to Homebrew for other systems or if forced
+                if [ "$DOTY_PKG_MANAGER" = "brew" ]; then
+                    PKG_MANAGERS=("brew")
+                fi
+
+                # Try to detect based on available commands
+                if command -v apt >/dev/null 2>&1; then
+                    PKG_MANAGERS+=("apt")
+                fi
+                if command -v dnf >/dev/null 2>&1; then
+                    PKG_MANAGERS+=("dnf")
+                fi
+                if command -v yum >/dev/null 2>&1; then
+                    PKG_MANAGERS+=("yum")
+                fi
+                if command -v pacman >/dev/null 2>&1; then
+                    PKG_MANAGERS+=("pacman")
+                fi
+                if command -v yay >/dev/null 2>&1; then
+                    PKG_MANAGERS+=("yay")
+                fi
+                if command -v zypper >/dev/null 2>&1; then
+                    PKG_MANAGERS+=("zypper")
+                fi
+                if command -v apk >/dev/null 2>&1; then
+                    PKG_MANAGERS+=("apk")
+                fi
+                ;;
+        esac
+    fi
+
+    PKG_MANAGERS+=("mise")
+
+    info "Package manager set to: ${PKG_MANAGERS[@]}"
+}
+
+__package_manager_install() {
+    local manager="${1}"
+    shift
+
+    local packages=("${@}")
+
+    ((${#packages[@]} == 0)) && return
+
+    info "Installing packages using ${manager}."
+
+    if [ "${DRY_RUN}" == "yes" ]; then
+        return 0
+    fi
+
+    case "${manager}" in
+        brew)
+            HOMEBREW_NO_ANALYTICS="1" brew install "${packages[@]}"
+            ;;
+        brew-cask)
+            HOMEBREW_NO_ANALYTICS="1" brew install --cask "${packages[@]}"
+            ;;
+        apt)
+            run_as_root apt install "${PKG_CONFIRM_FLAG[@]}" "${packages[@]}"
+            ;;
+        dnf)
+            run_as_root dnf install "${PKG_CONFIRM_FLAG[@]}" "${packages[@]}"
+            ;;
+        yum)
+            run_as_root yum install "${PKG_CONFIRM_FLAG[@]}" "${packages[@]}"
+            ;;
+        pacman)
+            if [ "${PACKAGES_AUTO_CONFIRM}" != "yes" ]; then
+                printf "\n:: Arch news\n\n" >&2
+                yay -Pwwq || true
+                cat <<EOF
+---
+View the official Arch news site: https://archlinux.org/news/
+
+EOF
+            fi
+
+            run_as_root pacman -Syu "${PKG_CONFIRM_FLAG[@]}" --needed "${packages[@]}"
+            ;;
+        yay)
+            yay -S "${PKG_CONFIRM_FLAG[@]}" --needed "${packages[@]}"
+            ;;
+        zypper)
+            run_as_root zypper install "${PKG_CONFIRM_FLAG[@]}" "${packages[@]}"
+            ;;
+        apk)
+            run_as_root apk add "${PKG_CONFIRM_FLAG[@]}" "${packages[@]}"
+            ;;
+        mise)
+            mise use --global "${packages[@]}"
+
+            local mise_shim_path="${XDG_DATA_HOME}/mise/shims"
+            # Also install Yarn for Node.
+            if [ "${packages[@]}" = "node"* ]; then
+                if ! "${mise_shim_path}/yarn" --version >/dev/null 2>&1; then
+                    "${mise_shim_path}/npm" install --unsafe-perm=true --allow-root --global yarn
+                fi
+            elif [ "${packages[@]}" = "python"* ]; then
+                # Install Python tools via pip
+                if ! "${mise_shim_path}/pip3" --version >/dev/null 2>&1; then
+                    info "Installing Python development tools via pip..."
+                    "${mise_shim_path}/pip3" install --upgrade pip
+                fi
+            fi
+            ;;
+        *)
+            warning "Unknown package manager: $manager, skipping install"
+            return 1
+            ;;
+    esac
+
+    success "Successfully installing ${manager} packages."
+}
+
+__package_manager_update() {
+    local manager="${1}"
+
+    header "Updating package manager (${manager})..."
+    if [ "$SKIP_PKG_UPDATE" = yes ]; then
+        warning "Skip package manager (${manager}) update..."
+        return 0
+    fi
+
+    if [ "${DRY_RUN}" == "yes" ]; then
+        return 0
+    fi
+
+    case "$manager" in
+        brew)
+            if [ "$SKIP_BREW_UPDATE" = yes ]; then
+                warning "Skip brew update..."
+            else
+                (HOMEBREW_NO_ANALYTICS="1" brew update && success "Done") || error "brew update not successful"
+            fi
+            ;;
+        apt)
+            run_as_root apt update || error "APT update not successful"
+            ;;
+        dnf|yum)
+            run_as_root ${manager} check-update || error "$manager package manager update not successful"
+            ;;
+        pacman)
+            run_as_root pacman -Sy || error "Pacman update not successful"
+            ;;
+        zypper)
+            run_as_root zypper refresh || error "Zypper update not successful"
+            ;;
+        apk)
+            run_as_root apk update || error "APK update not successful"
+            ;;
+        *)
+            warning "Unknown package manager: $manager, skipping update"
+            return 1
+            ;;
+    esac
+
+    success "Successfully updating ${manager} packages."
+}
+
+__package_manager_upgrade() {
+    local manager="${1}"
+
+    header "Upgrading existing packages (${manager})..."
+    if [ "$SKIP_PKG_UPGRADE" = yes ]; then
+        warning "Skip package manager (${manager}) upgrade..."
+        return
+    fi
+
+    if [ "${DRY_RUN}" == "yes" ]; then
+        return 0
+    fi
+
+    case "$manager" in
+        brew)
+            if [ "$SKIP_BREW_UPGRADE" = yes ]; then
+                warning "Skip brew upgrade..."
+            else
+                (HOMEBREW_NO_ANALYTICS="1" brew upgrade && success "Done") || error "brew upgrade not successful"
+            fi
+            ;;
+        apt)
+            run_as_root apt upgrade "${PKG_CONFIRM_FLAG[@]}" || error "APT upgrade not successful"
+            ;;
+        dnf|yum)
+            run_as_root ${manager} upgrade "${PKG_CONFIRM_FLAG[@]}" || error "$manager package manager upgrade not successful"
+            ;;
+        pacman)
+            run_as_root pacman -Syu "${PKG_CONFIRM_FLAG[@]}" || error "Pacman upgrade not successful"
+            ;;
+        zypper)
+            run_as_root zypper update "${PKG_CONFIRM_FLAG[@]}" || error "Zypper upgrade not successful"
+            ;;
+        apk)
+            run_as_root apk upgrade "${PKG_CONFIRM_FLAG[@]}" || error "APK upgrade not successful"
+            ;;
+        *)
+            warning "Unknown package manager: $manager, skipping upgrade"
+            return 1
+            ;;
+    esac
+
+    success "Successfully upgrade ${manager} packages."
+}
+
+# Install package manager if not exists (for Homebrew only, other systems have native package managers)
+__ensure_package_manager() {
+    if [ "${DRY_RUN}" == "yes" ]; then
+        return 0
+    fi
+
+    # Check if we need to install Homebrew
+    if is_in "brew" "${PKG_MANAGERS[@]}"; then
+        if [ "$SKIP_BREW_INSTALL" = yes ]; then
+            warning "Skip Homebrew installation..."
+        else
+            if ! command -v "brew" >/dev/null 2>&1; then
+                header "Installing Homebrew..."
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                success "Homebrew installed successfully!"
+            fi
+        fi
+    fi
+
+    if is_in "yay" "${PKG_MANAGERS[@]}"; then
+        # Install AUR helper if configured
+        if [ "$INSTALL_AUR_HELPER" = "yes" ]; then
+            info "Installing AUR helper (yay)..."
+
+            # Install Yay (AUR) if needed.
+            local yay_local_version=
+            yay_local_version="$(yay --version 2>/dev/null | cut -d " " -f 2 || true)"
+
+            local yay_latest_version=
+            yay_latest_version="$(git ls-remote --tags https://github.com/Jguer/yay.git |
+                grep -Eo "v?[0-9]+(\.[0-9]+){1,2}$" |
+                sort --version-sort | tail -n 1)"
+
+            if [ "${yay_local_version}" != "${yay_latest_version}" ]; then
+                info "Install yay binary for version ${yay_latest_version}..."
+
+                # Create temporary directory for AUR helper build
+                yay_download_path=$(mktemp -d)
+                cd "$yay_download_path"
+
+                git clone https://aur.archlinux.org/yay.git "${yay_download_path}"
+                cd "${yay_download_path}" && makepkg --syncdeps --install --noconfirm
+                # Clean up
+                cd -
+                rm -rf "${yay_download_path}"
+                success "AUR helper (yay) installed successfully!"
+            fi
+        fi
+    fi
+}
+
+setup_package_manager_packages() {
+    # Setup package manager first
+    __detect_package_manager
+    
+    # Install package manager if needed
+    __ensure_package_manager
+
+    # Install packages based on package manager
+    if [ "$SKIP_PKG_BUNDLE" = yes ]; then
+        warning "Skip install packages..."
+
+        return 0
+    fi
+
+    header "Install packages using ${PKG_MANAGERS[@]}"
+
+    cat <<EOF
+$(__show_packages)
+
+-------------------------------------------------------------------------------
+
+- ${_FMT_YELLOW}If you choose yes${_FMT_RESET}, the above packages will be installed with or without
+  confirmation by you based on if ${_FMT_BOLD}PACKAGES_AUTO_CONFIRM=${PACKAGES_AUTO_CONFIRM}${_FMT_RESET} is set to "yes".
+- ${_FMT_YELLOW}If you choose "no"${_FMT_RESET}, the above packages will not be installed and this script
+  will exit here. This gives you a chance to edit the list of packages.
+
+You can edit $(fmt_code "${DOTY}/.local/doty/install-config") to modify
+the package list(s) then re-run installation script.
+EOF
+
+    if ! prompt "Do you want to install the above packages?"; then
+        return 1
+    fi
+
+    # On the first run, there will be a number of prompts to contend with, if
+    # someone wanted to customize the packages first, that was proposed during
+    # the bootstrap process. It's safe to skip confirmation here based on that.
+    local ori_packages_auto_confirm=
+    ori_packages_auto_confirm="${PACKAGES_AUTO_CONFIRM}"
+    PACKAGES_AUTO_CONFIRM="yes"
+
+    for pkg_manager in "${PKG_MANAGERS[@]}"; do
+        __choose_package_manager "${pkg_manager}"
+
+        case "$pkg_manager" in
+            brew)
+                __package_manager_update brew
+                __package_manager_upgrade brew
+
+                # Install Brew packages.
+                brew tap "${PACKAGES_BREW_TAP[@]}"
+                __package_manager_install brew "${PACKAGES_BREW[@]}"
+                __package_manager_install brew-cask "${PACKAGES_BREW_CASK[@]}"
+                ;;
+            apt)
+                __package_manager_update apt
+                __package_manager_upgrade apt
+
+                __package_manager_install apt \
+                    "${PACKAGES_APT[@]}" \
+                    "${PACKAGES_APT_GUI[@]}"
+                ;;
+            dnf)
+                __package_manager_update dnf
+                __package_manager_upgrade dnf
+
+                __package_manager_install dnf \
+                    "${PACKAGES_DNF[@]}" \
+                    "${PACKAGES_DNF_GUI[@]}"
+                ;;
+            yum)
+                __package_manager_update yum
+                __package_manager_upgrade yum
+
+                __package_manager_install yum \
+                    "${PACKAGES_YUM[@]}" \
+                    "${PACKAGES_YUM_GUI[@]}"
+                ;;
+            pacman)
+                # Ensure GUI packages get skipped unless GUI is enabled.
+                if [ "${DOTY_GUI_ENABLED}" != "yes" ]; then
+                    PACKAGES_PACMAN_GUI=()
+                fi
+
+                # Ensure multilib is disabled since we'll enable it with an include file,
+                # on vanilla Arch it's disabled but other variants might have it enabled.
+                local etc_pacman_conf_path="/etc/pacman.conf"
+                if grep -q "^\[multilib\]" "${etc_pacman_conf_path}"; then
+                    run_as_root sed -i "/^\[multilib\]/,+1 s/^/#/" "${etc_pacman_conf_path}"
+                fi
+
+                # Ensure the include file line always exists.
+                if ! grep -q "Include = /etc/pacman\.d/\*\.conf" "${etc_pacman_conf_path}"; then
+                    printf "\nInclude = /etc/pacman.d/*.conf\n" | run_as_root tee --append "${etc_pacman_conf_path}" 1>/dev/null
+                fi
+
+                # Enable color output and parallel downloads in pacman
+                if [ -f /etc/pacman.conf ]; then
+                    info "Enabling color output and parallel downloads in pacman..."
+                    run_as_root sed -i 's/#Color/Color/' /etc/pacman.conf
+                    run_as_root sed -i '/#ParallelDownloads/s/^#//' /etc/pacman.conf
+                fi
+
+                # TODO: Configure reflector for faster package downloads
+                # if command -v reflector >/dev/null 2>&1; then
+                #     info "Configuring reflector for faster downloads..."
+                #     sudo reflector --country 'United States' --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+                # fi
+
+                # This isn't configurable because it has certain settings that are necessary
+                # for DOTY to work, such as installing 32 bit packages for GPU drivers.
+                run_as_root ln -fns "${DOTY}/environment/arch/etc/pacman.d/01-options.conf" /etc/pacman.d/01-options.conf
+
+                __package_manager_update pacman
+                __package_manager_upgrade pacman
+
+                # Install Arch packages.
+                __package_manager_install pacman \
+                    "${PACKAGES_PACMAN[@]}" \
+                    "${PACKAGES_PACMAN_GUI[@]}"
+                ;;
+            yay)
+                __package_manager_update yay
+                __package_manager_upgrade yay
+
+                _package_install yay \
+                    "${PACKAGES_AUR[@]}" \
+                    "${PACKAGES_AUR_GUI[@]}"
+                ;;
+            zypper)
+                __package_manager_update zypper
+                __package_manager_upgrade zypper
+
+                __package_manager_install zypper \
+                    "${PACKAGES_ZYPPER[@]}" \
+                    "${PACKAGES_ZYPPER_GUI[@]}"
+                ;;
+            apk)
+                __package_manager_update apk
+                __package_manager_upgrade apk
+
+                __package_manager_install apk \
+                    "${PACKAGES_APK[@]}" \
+                    "${PACKAGES_APK_GUI[@]}"
+                ;;
+            mise)
+                __package_manager_update mise
+                __package_manager_upgrade mise
+
+                # Install Mise packages.
+                __package_manager_install mise "${PACKAGES_MISE[@]}"
+                ;;
+
+        esac
+
+        # Clean up package manager cache
+        if [ "$SKIP_PKG_CLEAN" != yes ] && [ -n "${PKG_CLEAN}" ]; then
+            info "Cleaning $pkg_manager package manager cache..."
+            eval "$PKG_CLEAN" 2>/dev/null || true
+        fi
+    done
+    PACKAGES_AUTO_CONFIRM="${ori_packages_auto_confirm}"
+}
+
+if [ "$SKIP_PKG_INSTALL" != yes ]; then
+    info "Installing packages component..."
+    setup_package_manager_packages
+else
+    warning "Skipping packages component installation"
+fi
