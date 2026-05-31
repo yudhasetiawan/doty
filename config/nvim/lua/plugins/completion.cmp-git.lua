@@ -11,7 +11,7 @@ return {
         filetypes = {
           "gitcommit",
           "octo",
-          "NeogitCommitMessage",
+          -- "NeogitCommitMessage",
         },
         remotes = {
           "origin",

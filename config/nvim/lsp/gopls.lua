@@ -1,11 +1,12 @@
 return {
   cmd = { "gopls" },
   filetypes = { "go", "gomod", "gowork", "gotmpl", "gosum" },
-  root_markers = { "go.mod", "go.work", ".git" },
+  root_dir = require("lspconfig.util").root_pattern("go.mod", "go.work", ".git"),
   settings = {
+    -- See: https://go.dev/gopls/settings#formatting
     gopls = {
-      gofumpt = true,
-      codelenses = {
+      gofumpt            = true,
+      codelenses         = {
         gc_details = false,
         generate = true,
         regenerate_cgo = true,
@@ -15,36 +16,39 @@ return {
         upgrade_dependency = true,
         vendor = true,
       },
-      hints = {
+      -- See: https://github.com/golang/tools/blob/master/gopls/doc/inlayHints.md
+      hints              = {
         assignVariableTypes = true,
         compositeLiteralFields = true,
         compositeLiteralTypes = true,
         constantValues = true,
         functionTypeParameters = true,
+        ignoredError = true,
         parameterNames = true,
         rangeVariableTypes = true,
       },
-      analyses = {
+      -- See: https://github.com/golang/tools/blob/master/gopls/doc/analyzers.md
+      analyses           = {
         -- NOTE: To temporarily enable disabled analyzers for specific debugging:
         -- :lua vim.lsp.stop_client(vim.lsp.get_clients({name = "gopls"}))
         -- Then edit this file and save, LSP will restart with new settings
 
         -- Essential analyzers for catching common issues
-        nilness = true, -- Check for nil pointer dereferences
+        nilness = true,      -- Check for nil pointer dereferences
         unusedparams = true, -- Find unused function parameters
-        unusedwrite = true, -- Find unused writes to variables
-        useany = true, -- Suggest using 'any' instead of 'interface{}'
-        unreachable = true, -- Find unreachable code
+        unusedwrite = true,  -- Find unused writes to variables
+        useany = true,       -- Suggest using 'any' instead of 'interface{}'
+        unreachable = true,  -- Find unreachable code
         unusedresult = true, -- Check for unused results of calls to certain functions
 
         -- Helpful but not critical (enable as needed)
-        simplifyslice = true, -- Simplify slice expressions
-        simplifyrange = true, -- Simplify range loops
+        simplifyslice = true,        -- Simplify slice expressions
+        simplifyrange = true,        -- Simplify range loops
         simplifycompositelit = true, -- Simplify composite literals
 
         -- Performance-intensive analyzers (disabled for better performance)
-        shadow = false, -- Check for shadowed variables (can be slow)
-        printf = false, -- Check printf-style functions (can be slow)
+        shadow = false,    -- Check for shadowed variables (can be slow)
+        printf = false,    -- Check printf-style functions (can be slow)
         structtag = false, -- Check struct tags (can be slow)
         -- fieldalignment = false,  -- Check struct field alignment (very slow)
         -- unusedvariable = false,  -- Can be slow on large codebases
@@ -97,21 +101,23 @@ return {
         unmarshal = false,
         unsafeptr = false,
         unusedfunc = false,
-        unusedvariable = false,
+        unusedvariable = true, -- Enable the unusedvariable analyzer.
         waitgroup = false,
         yield = false,
       },
-      usePlaceholders = true,
+      usePlaceholders    = true,
       completeUnimported = true,
-      staticcheck = true,
-      directoryFilters = {
-        "-.git",
-        "-.vscode",
-        "-.idea",
-        "-.vscode-test",
-        "-node_modules",
+      staticcheck        = true,
+      directoryFilters   = {
+        "-**/.git",
+        "-**/.vscode",
+        "-**/.idea",
+        "-**/.vscode-test",
+        "-**/node_modules",
+        "-**/.venv",
+        "-**/venv",
       },
-      semanticTokens = false,
+      semanticTokens     = false,
     },
   },
 }

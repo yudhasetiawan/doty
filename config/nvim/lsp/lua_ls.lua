@@ -1,19 +1,24 @@
 return {
-  -- Setup lua_ls and enable call snippets
   settings = {
     Lua = {
+      -- Configure completion settings
       completion = {
         callSnippet = "Replace",
       },
+      -- Configure diagnostics
+      diagnostics = {
+        globals = { "vim" },
+      },
+      -- Configure workspace
+      workspace = {
+        library = {
+          [vim.fn.expand("$VIMRUNTIME/lua")] = true,
+          [vim.fn.stdpath("config") .. "/lua"] = true,
+        },
+      },
     },
   },
-
   on_init = function(client, result)
-    -- Apply any existing on_init function
-    if on_init then
-      on_init(client, result)
-    end
-
     -- Set up the workspace configuration handler if lua_ls
     if client.name == "lua_ls" then
       client.handlers = vim.tbl_extend("error", {}, client.handlers)

@@ -2,7 +2,8 @@ return {
   -- the colorscheme should be available when starting Neovim
   {
     "folke/tokyonight.nvim",
-    lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    enabled = false,
+    lazy = false,    -- make sure we load this during startup if it is your main colorscheme
     priority = 1000, -- make sure to load this before all the other start plugins
     config = function()
       local cfg = require("doty.config")
@@ -34,8 +35,8 @@ return {
           functions = { bold = true },
           variables = {},
           -- Background styles. Can be "dark", "transparent" or "normal"
-          sidebars = "dark", -- style for sidebars, see below
-          floats = "dark", -- style for floating windows
+          sidebars = "dark",         -- style for sidebars, see below
+          floats = "dark",           -- style for floating windows
         },
         sidebars = { "qf", "help" }, -- Set a darker background on sidebar-like windows. For example: `["qf", "vista_kind", "terminal", "packer"]`
         -- day_brightness = 0.3, -- Adjusts the brightness of the colors of the **Day** style. Number between 0 and 1, from dull to vibrant colors
@@ -85,7 +86,7 @@ return {
   {
     "Shatur/neovim-ayu",
     main = "ayu",
-    lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    lazy = false,    -- make sure we load this during startup if it is your main colorscheme
     priority = 1000, -- make sure to load this before all the other start plugins
     dependencies = {
       "folke/tokyonight.nvim",
@@ -95,7 +96,7 @@ return {
 
       require("ayu.colors").generate(true) -- Pass `true` to enable mirage
       require("ayu").setup({
-        mirage = true, -- Set to `true` to use `mirage` variant instead of `dark` for dark background.
+        mirage = true,                     -- Set to `true` to use `mirage` variant instead of `dark` for dark background.
         overrides = {
           -- Base.
           ErrorMsg = { fg = colors.fg.error },
@@ -125,7 +126,7 @@ return {
     -- making cool neovim color schemes
     "tjdevries/colorbuddy.nvim",
     main = "colorbuddy",
-    lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    lazy = false,    -- make sure we load this during startup if it is your main colorscheme
     priority = 1000, -- make sure to load this before all the other start plugins
     dependencies = {
       "Shatur/neovim-ayu",
@@ -207,10 +208,10 @@ return {
         css = { css = true },
         javascript = { no_names = true },
       }, {
-        RGB = true, -- #RGB hex codes
-        RRGGBB = true, -- #RRGGBB hex codes
-        names = true, -- "Name" codes like Blue
-        RRGGBBAA = true, -- #RRGGBBAA hex codes
+        RGB = true,          -- #RGB hex codes
+        RRGGBB = true,       -- #RRGGBB hex codes
+        names = true,        -- "Name" codes like Blue
+        RRGGBBAA = true,     -- #RRGGBBAA hex codes
         -- Available modes: foreground, background
         mode = "background", -- Set the display mode.
       })

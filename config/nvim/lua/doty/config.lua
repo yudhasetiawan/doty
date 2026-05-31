@@ -231,7 +231,7 @@ M.colors = {
   },
 }
 
-M.theme = "ayu-mirage" -- tokyonight-moon, ayu-mirage
+M.theme = "ayu" -- tokyonight-moon, ayu-mirage
 
 -- enable greping in hidden files
 M.telescope_grep_hidden = false

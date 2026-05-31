@@ -8,11 +8,6 @@ return {
       local ufo = require("ufo")
       local icons = require("doty.config").icons
 
-      vim.o.foldcolumn = "1"
-      vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
-      vim.o.foldlevelstart = 99
-      vim.o.foldenable = true
-
       local function fallbackSelector(bufnr)
         local function handleFallbackException(err, providerName)
           if type(err) == "string" and err:match("UfoFallbackException") then
@@ -31,16 +26,6 @@ return {
             return handleFallbackException(err, "indent")
           end)
       end
-
-      -- If ufo detect `foldmethod` option is not `diff` or `marker`, it will request the providers to get
-      -- the folds, the request strategy is formed by the main and the fallback. The default value of main is
-      -- `lsp` and the default value of fallback is `indent` which implemented by ufo.
-      --
-      -- For example, Changing the text in a buffer will request the providers for folds.
-      --
-      -- > `foldmethod` option will finally become `manual` if ufo is working.
-      -- vim.opt.foldmethod = "expr"
-      -- vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
 
       ufo.setup({
         -- a selector for fold providers. For now,
@@ -153,8 +138,6 @@ return {
         desc = "LSP Status Attacher",
         group = vim.api.nvim_create_augroup("doty.nvim-ufo", { clear = true }),
         callback = function(evt)
-          local client = vim.lsp.get_client_by_id(evt.data.client_id)
-
           require("ufo").attach(evt.buf)
         end,
       })

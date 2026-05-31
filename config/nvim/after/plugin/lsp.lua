@@ -175,3 +175,15 @@ end
 
 -- Register the progress handler for lsp-status
 lsp_status.register_progress()
+
+-- vim.lsp.enable("ansiblels")
+-- vim.lsp.enable("bashls")
+-- vim.lsp.enable("gopls")
+-- vim.lsp.enable("helm_ls")
+-- vim.lsp.enable("jsonls")
+-- vim.lsp.enable("lua_ls")
+-- vim.lsp.enable("pylsp")
+-- vim.lsp.enable("pyright")
+-- vim.lsp.enable("rust_analyzer")
+-- vim.lsp.enable("terraformls")
+-- vim.lsp.enable("yamlls")

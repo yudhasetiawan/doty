@@ -1,6 +1,5 @@
 return {
   {
-    --
     "williamboman/mason.nvim",
     opts = function()
       local icons = require("doty.config").icons
@@ -18,7 +17,7 @@ return {
 
         -- Controls to which degree logs are written to the log file. It's useful to set this to vim.log.levels.DEBUG when
         -- debugging issues with package installations.
-        log_level = vim.log.levels.DEBUG,
+        log_level = vim.log.levels.WARN,
 
         ui = {
           -- Whether to automatically check for new versions when opening the :Mason window.
@@ -82,9 +81,7 @@ return {
     opts = {
       -- Automatically enable (vim.lsp.enable()) installed servers.
       automatic_enable = true,
-      -- A list of servers to automatically install if they're not already installed. Example: { "rust_analyzer@nightly", "lua_ls" }
-      -- This setting has no relation with the `automatic_installation` setting.
-      ---@type string[]
+      -- List of servers to automatically install
       ensure_installed = {
         -- Diagnostic (general purpose server)
         "typos_lsp",
@@ -158,15 +155,7 @@ return {
         -- YAML, yq
         "yamlls",
       },
-
-      -- Whether servers that are set up (via lspconfig) should be automatically installed if they're not already installed.
-      -- This setting has no relation with the `ensure_installed` setting.
-      -- Can either be:
-      --   - false: Servers are not automatically installed.
-      --   - true: All servers set up via lspconfig are automatically installed.
-      --   - { exclude: string[] }: All servers set up via lspconfig, except the ones provided in the list, are automatically installed.
-      --       Example: automatic_installation = { exclude = { "rust_analyzer", "solargraph" } }
-      ---@type boolean
+      -- Automatically install servers set up via lspconfig
       automatic_installation = true,
     },
   },
@@ -180,20 +169,9 @@ return {
       auto_update = true,
       debounce_hours = 24,
       ensure_installed = {
-        -- LSP servers
-        "bash-language-server",
-        "lua-language-server",
-        "typescript-language-server",
-        "eslint-lsp",
-        "jsonls",
-        "yamlls",
-        "dockerls",
-        "terraformls",
-        "gopls",
-        "pylsp",
-        "rust-analyzer",
-        -- Formatters & linters
+        -- Formatters & linters needed for LSP servers that use external tools
         "stylua",
+        "prettierd",
         "prettier",
         "eslint_d",
         "shellcheck",
@@ -201,8 +179,12 @@ return {
         "golangci-lint",
         "gofumpt",
         "goimports",
+        "taplo",
+        "black",
+        "ruff",
+        "eslint_d",
+        "yamlfmt",
         "yamllint",
-        "flake8",
         -- DAP debuggers
         "codelldb",
       },
@@ -210,6 +192,7 @@ return {
   },
   {
     "zapling/mason-conform.nvim",
+    enabled = false,
     dependencies = {
       "williamboman/mason.nvim",
       "stevearc/conform.nvim",
@@ -230,6 +213,7 @@ return {
   },
   {
     "jay-babu/mason-null-ls.nvim",
+    enabled = false,
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
       "williamboman/mason.nvim",
