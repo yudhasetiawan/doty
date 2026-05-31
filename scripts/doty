@@ -448,17 +448,6 @@ __install() {
         __print_info "INFO:    Using shellcheck: $(shellcheck --version)"
     fi
 
-    # Load configuration profile if specified
-    if [ -n "$DOTY_PROFILE" ] && [ "$DOTY_PROFILE" != "default" ]; then
-        profile_file="${DOTY}/config/profiles/${DOTY_PROFILE}.conf"
-        if [ -f "$profile_file" ]; then
-            source "$profile_file"
-            info "Loaded profile: $DOTY_PROFILE"
-        else
-            warning "Profile $DOTY_PROFILE not found, using defaults"
-        fi
-    fi
-
     # Make sure a `.local/doty/install-config` always exists.
     if [ ! -f "${DOTY}/.local/doty/install-config" ]; then
         mkdir -p "${DOTY}/.local/doty"
