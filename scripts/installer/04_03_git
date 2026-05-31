@@ -57,6 +57,18 @@ setup_git() {
     __06_register_git_config core.excludesfile "${DOTY}/config/git/gitignore"
     __06_register_git_config core.attributesfile "${DOTY}/config/git/gitattributes"
 
+    local git_config_local_path="${DOTFILES_LOCAL_DIRECTORY}/.config/git/config.local"
+    if [ ! -f "${git_config_local_path}" ]; then
+        mkdir -p "$(dirname "${git_config_local_path})"
+        cat <<EOF >"${git_config_local_path}"
+[user]
+  name = ${REAL_NAME}
+  email = ${REAL_EMAIL}
+
+EOF
+    fi
+    __06_register_git_config include.path "${git_config_local_path}"
+
     success "Git configured!"
     printf '\n' >&2
 }

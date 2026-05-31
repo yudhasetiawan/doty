@@ -512,6 +512,56 @@ __install() {
     exec zsh -l
 }
 
+__ask_for_name() {
+    __print_header "Asking for your name"
+
+    local name=
+    if [ -n "${REAL_NAME}" ]; then
+        __print_warning "WARNING: \"${REAL_NAME}\" was retrieved from your install config"
+        return 0
+    fi
+
+    if name="$(git config user.name)"; then
+        __print_ok "\"${name}\" was retrieved from your git config"
+    else
+        while true; do
+            read -rp "What is your full name (ie. Alice)? " name
+            if [[ ${name} =~ [^[:space:]]+ ]]; then
+                break
+            else
+                __print_error "ERROR:   Please enter at least your name"
+            fi
+        done
+    fi
+
+    REAL_NAME="${name}"
+}
+
+__ask_for_email() {
+    __print_header "Asking for your e-mail"
+
+    local name=
+    if [ -n "${REAL_EMAIL}" ]; then
+        __print_warning "WARNING: \"${REAL_EMAIL}\" was retrieved from your install config"
+        return 0
+    fi
+
+    if email="$(git config user.email)"; then
+        __print_ok "\"${email}\" was retrieved from your git config"
+    else
+        while true; do
+            read -rp "What is your email address (ie. bob@example.com)? " email
+            if [[ ${email} =~ .+@.+ ]]; then
+                break
+            else
+                __print_error "ERROR:   Please enter a valid email address"
+            fi
+        done
+    fi
+
+    REAL_EMAIL="${email}"
+}
+
 __configure_configuration() {
     __print_header "What would you like to do for installation configuration?"
 
@@ -575,6 +625,9 @@ EOF
             ;;
         esac
     done
+
+    __ask_for_name
+    __ask_for_email
 }
 
 main() {
