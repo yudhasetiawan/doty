@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+birthday() {
+    # Report back the number of days since your root file system was created.
+    if [[ "${OSTYPE}" == linux* ]]; then
+        birthday_timestamp="$(stat -c "%W" /)"
+        birthday_formatted=$(date -d "@${birthday_timestamp}" +"%Y-%m-%d")
+    else
+        birthday_timestamp="$(stat -f "%B" /var/db/.AppleSetupDone)"
+        birthday_formatted=$(date -r "${birthday_timestamp}" +"%Y-%m-%d")
+    fi
+
+    echo "$((($(date +%s) - birthday_timestamp) / 86400)) days (${birthday_formatted})"
+}
+
+parse_args() {
+    local command="${1:-}"
+    shift
+
+    case "${command}" in
+    birthday)
+        birthday
+        ;;
+    theme)
+        case "${1:-}" in
+        current)
+            echo "$(basename "$(dirname "${ZSH_THEME}")")"
+        *)
+            [ -n "${1:-}" ] && error "ERROR: \"${1}\" is not a supported flag"
+            ;;
+        esac
+        ;;
+    *)
+        [ -n "${1:-}" ] && error "ERROR: \"${1}\" is not a supported flag"
+        ;;
+    esac
+
+    return 0
+}
+
+source "${DOTY_DIRECTORY}/scripts/utils"
+
+# Only run these when calling the script, not sourcing it.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    parse_args "${@}"
+fi

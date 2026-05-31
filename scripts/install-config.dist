@@ -372,6 +372,7 @@ export PACKAGES_MISE=(
 export SYMLINK_CONFIG=(
     "bat"
     "btop"
+    "fastfetch"
     "glow"
     "gnupg"
     "lazygit"
