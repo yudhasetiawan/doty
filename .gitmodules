@@ -1,32 +1,33 @@
 [submodule "oh-my-zsh"]
 	path = libraries/oh-my-zsh
-	url = git@github.com:ohmyzsh/ohmyzsh.git
+	url = https://github.com/ohmyzsh/ohmyzsh.git
 [submodule "vim-colors-solarized"]
 	path = config/vim/bundle/vim-colors-solarized
-	url = git@github.com:altercation/vim-colors-solarized.git
+	url = https://github.com/altercation/vim-colors-solarized.git
 [submodule "solarized"]
 	path = config/solarized
-	url = git@github.com:altercation/solarized.git
+	url = https://github.com/altercation/solarized.git
 [submodule "color-schemes"]
 	path = config/color-schemes
-	url = git@github.com:mbadolato/iTerm2-Color-Schemes.git
+	url = https://github.com/mbadolato/iTerm2-Color-Schemes.git
 [submodule "tmux-tpm"]
 	path = config/tmux/tpm
-	url = git@github.com:tmux-plugins/tpm.git
+	url = https://github.com/tmux-plugins/tpm.git
+	branch = master
 [submodule "themes"]
 	path = themes/ayu-dark-mirage/powerlevel10k
-	url = git@github.com:romkatv/powerlevel10k.git
+	url = https://github.com/romkatv/powerlevel10k.git
 [submodule "zsh-autosuggestions"]
 	path = plugins/zsh-autosuggestions
-	url = git@github.com:zsh-users/zsh-autosuggestions.git
+	url = https://github.com/zsh-users/zsh-autosuggestions.git
 	branch = master
 [submodule "zsh-syntax-highlighting"]
 	path = plugins/zsh-syntax-highlighting
-	url = git@github.com:zsh-users/zsh-syntax-highlighting.git
+	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
 	branch = master
 [submodule "devops-bash-tools"]
 	path = libraries/devops-bash-tools
-	url = git@github.com:HariSekhon/DevOps-Bash-tools.git
+	url = https://github.com/HariSekhon/DevOps-Bash-tools.git
 [submodule "gitalias"]
 	path = libraries/gitalias
-	url = git@github.com:GitAlias/gitalias.git
+	url = https://github.com/GitAlias/gitalias.git
