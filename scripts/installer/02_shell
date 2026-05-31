@@ -1,0 +1,171 @@
+#!/usr/bin/env sh
+
+_change_shell() {
+    local targetshell="${1}"
+    # Skip setup if the user wants or stdin is closed (not running interactively).
+    if [ "$CHANGE_SHELL" = no ]; then
+        warning "Shell change skipped, caused by CHANGE_SHELL set to no."
+        return 1
+    fi
+
+    header "Change default shell to ${targetshell}"
+
+    # If this user's login shell is already "${targetshell}", do not attempt to switch.
+    if [ "$(basename -- "$SHELL")" = "${targetshell}" ]; then
+        success "Your Shell already set to ${targetshell}!"
+        return 0
+    fi
+
+    # If this platform doesn't provide a "chsh" command, bail out.
+    if ! command_exists chsh; then
+        error "Doty can't change your shell automatically because this system does not have chsh."
+        info "Please manually change your default shell to ${targetshell}!"
+        return 1
+    fi
+
+    info "Time to change your default shell to ${targetshell}!"
+
+    # Prompt for user choice on changing the default login shell
+    if ! prompt "Do you want to change your default shell to ${targetshell}?"; then
+        warning "Shell change skipped."
+        return 1
+    fi
+
+    local termux=false
+    local shellpath="$(command -v ${targetshell} >/dev/null 2>&1)"
+    # Check if we're running on Termux
+    case "$PREFIX" in
+    *com.termux*)
+        termux=true
+        ;;
+    *) termux=false ;;
+    esac
+
+    if [ "$termux" != true ]; then
+        # Test for the right location of the "shells" file
+        if [ -f /etc/shells ]; then
+            shells_file=/etc/shells
+        elif [ -f /usr/share/defaults/etc/shells ]; then # Solus OS
+            shells_file=/usr/share/defaults/etc/shells
+        else
+            error "Could not find $(fmt_code "/etc/shells") file."
+            error "Please manually change your default shell!"
+            return 1
+        fi
+
+        # Get the path to the right ${targetshell} binary
+        # 1. Use the most preceding one based on $PATH, then check that it's in the shells file
+        # 2. If that fails, get a ${targetshell} path from the shells file, then check it actually exists
+        if ! shellpath=$(command -v ${targetshell}) || ! grep -qx "$shellpath" "$shells_file"; then
+            if ! shellpath=$(grep "^/.*/${targetshell}$" "$shells_file" | tail -n 1) || [ ! -f "$shellpath" ]; then
+                error "No ${targetshell} binary found or not present in $(fmt_code "$shells_file")"
+                error "Please manually change your default shell!"
+                return 1
+            fi
+        fi
+    fi
+
+    info "Changing your shell to $(fmt_code "$targetshell")..."
+
+    # We're going to change the default shell, so back up the current one
+    if [ -n "$SHELL" ]; then
+        # shellcheck disable=SC2154
+        echo "$SHELL" > "$backup_dir/.shell"
+    else
+        # shellcheck disable=SC2154
+        grep "^$USER:" /etc/passwd | awk -F: '{print $7}' >"$backup_dir/.shell"
+    fi
+
+    # Check if user has sudo privileges to run `chsh` with or without `sudo`
+    #
+    # This allows the call to succeed without password on systems where the
+    # user does not have a password but does have sudo privileges, like in
+    # Google Cloud Shell.
+    #
+    # On systems that don't have a user with passwordless sudo, the user will
+    # be prompted for the password either way, so this shouldn't cause any issues.
+    if user_can_sudo; then
+        sudo -k chsh -s "$shellpath" "$USER" # -k forces the password prompt
+    else
+        chsh -s "$shellpath" "$USER" # run chsh normally
+    fi
+
+    # Check if the shell change was successful
+    # shellcheck disable=SC2181
+    if [ $? -ne 0 ]; then
+        error "chsh command unsuccessful."
+        error "Please manually change your default shell!"
+    else
+        export SHELL="${shellpath}"
+        success "Shell successfully changed to $(fmt_code "$targetshell")."
+    fi
+
+    printf '\n' >&2
+    return 0
+}
+
+setup_zshrc() {
+    # Skip setup if the user wants or stdin is closed (not running interactively).
+    if ! _change_shell "zsh"; then
+        warning "Cannot configure zsh config."
+        return 0
+    fi
+
+    # Keep most recent old .zshrc at $backup_dir/.zshrc,
+    # so we never actually destroy a user's original zshrc.
+    header "Looking for an existing zsh config"
+
+    zshrc_file="${INSTALL_ZSHRC_FILE:-"${zdot}/.zshrc"}"
+    # Must use this exact name so uninstall.sh can find it
+    # shellcheck disable=SC2154
+    backup_zshrc="$backup_dir/.zshrc"
+    if [ -f "${zshrc_file}" ] || [ -h "${zshrc_file}" ]; then
+        # Skip this if the user doesn't want to replace an existing .zshrc
+        if [ "$KEEP_ZSHRC" = yes ]; then
+            warning "Found $(fmt_code "${zshrc_file}"). Keep it..."
+
+            info "You need manually load doty to your existing .zshrc file"
+            printf '\n' >&2
+            codeblock "    source \"${DOTY}/doty\""
+            printf '\n' >&2
+            return 0
+        fi
+
+        if [ -e "$backup_zshrc" ]; then
+            error "Backup .zshrc file $(fmt_code "${backup_zshrc}") already exists."
+            error "Can't back up $(fmt_code "${zshrc_file}") re-run the installer again in a couple of seconds."
+            printf '\n' >&2
+            exit 1
+        fi
+
+        warning "Found existing $(fmt_code "${zshrc_file}")."
+        warning "Backing up to $(fmt_code "${backup_zshrc}")."
+        cp "${zshrc_file}" "$backup_zshrc"
+    fi
+
+    # Create zshrc file if it doesn't exist
+    if [ -n "${zshrc_file}" ]; then
+        warning "No .zshrc founds on $(fmt_code "${zshrc_file}"). Creating it..."
+        touch "${zshrc_file}"
+    fi
+
+    info "Using the Doty template file and adding it to $(fmt_code "${zshrc_file}")."
+
+    if grep -q "^source .*/doty" "${zshrc_file}"; then
+        warning "$(fmt_code "${DOTY}/doty") is already sourced on your .zshrc"
+    else
+        # Source $DOTY/doty in .zshrc directory
+        echo "source \"${DOTY}/doty\"" >> "${zshrc_file}"
+    fi
+
+    success "Successfully add Doty to $(fmt_code "${zshrc_file}")."
+    printf '\n' >&2
+}
+
+if [ "$SKIP_ZSHRC_SETUP" != yes ]; then
+    info "Installing zsh component..."
+    setup_zshrc
+else
+    warning "Skipping zsh component installation"
+fi
+

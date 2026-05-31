@@ -1,0 +1,100 @@
+#!/usr/bin/env sh
+
+__symlink_files_from_to_home() {
+    info "Start symlink for ${1}..."
+
+    for source_file in $(find -H "${1}" -maxdepth 1 -type f) ; do
+        file_name="$(basename "${source_file}")"
+        # shellcheck disable=SC2154
+        target_file="${zdot}/${file_name}"
+
+        if [ -f "$target_file" ] || [ -h "$target_file" ]; then
+            # Skip this if the user doesn't want to replace existing config
+            if [ "$KEEP_SYMLINK" = yes ]; then
+                warning "- Found existing config ${target_file}. Keeping it..."
+                printf '\n' >&2
+                continue
+            fi
+
+            warning "- Found existing config ${target_file}. Backup data..."
+            # shellcheck disable=SC2154
+            mv "$target_file" "${backup_dir}/${file_name}"
+        fi
+
+        printf "%s%s%s%s\n" "- Creating symlink for " $(fmt_code "${file_name}") " to " $(fmt_code "${target_file}") >&2
+        # Force create/replace the symlink.
+        ln -fs "${source_file}" "${target_file}"
+    done
+}
+
+__symlink_config_files() {
+    local configdir="$(basename "${1}")"
+
+    info "Start symlink for ${1}..."
+    # shellcheck disable=SC2044
+    for file_name in $(find -H "${1}" -type f -printf '%P\n') ; do
+        source_file="$(abspath "${1}/${file_name}")"
+        target_filepath="${configdir}/${file_name}"
+        target_file="${XDG_CONFIG_HOME}/${target_filepath}"
+
+        if [ -f "$target_file" ] || [ -h "$target_file" ]; then
+            # Skip this if the user doesn't want to replace existing config
+            if [ "$KEEP_SYMLINK" = yes ]; then
+                warning "- Found existing config ${target_file}. Keeping it..."
+                printf '\n' >&2
+                continue
+            fi
+
+            # Backup existing configuration
+            # shellcheck disable=SC2154
+            backup_symlink="${backup_dir}/.local/config/${target_filepath}"
+            mkdir -p "$(dirname "${backup_symlink}")"
+
+            if [ -f "${backup_symlink}" ]; then
+                error "Backup file ${backup_symlink} already exists."
+                error "Can't back up ${target_file}. Please re-run the installer again in a couple of seconds."
+                printf '\n' >&2
+                exit 1
+            fi
+
+            warning "- Found existing config ${target_file}. Backup data..."
+            # shellcheck disable=SC2154
+            mv "$target_file" "${backup_symlink}"
+        fi
+
+        printf "%s%s%s%s\n" "- Creating symlink for " $(fmt_code "${configdir}${file_name}") " to " $(fmt_code "${target_file}") >&2
+        mkdir -p "$(dirname "${target_file}")"
+        # Force create/replace the symlink.
+        ln -fs "${source_file}" "${target_file}"
+    done
+}
+
+setup_symlink() {
+    # Create the necessary symbolic links between the `.dotfiles` and `HOME`
+    # directory. The `bash_profile` sources other files directly from the
+    # `.dotfiles` repository.
+    header "Mirroring config files"
+
+    for config in "${SYMLINK_CONFIG[@]}"; do
+        __symlink_config_files "${DOTY}/config/${config}"
+    done
+
+    if [ "${DOTY_GUI_ENABLED}" == "yes" ]; then
+        for config in "${SYMLINK_CONFIG_GUI[@]}"; do
+            __symlink_config_files "${DOTY}/config/${config}"
+        done
+    fi
+
+    __symlink_files_from_to_home "${DOTY}/config/symlink-home"
+
+    success "Symlink dotfiles complete!"
+    printf '\n' >&2
+}
+
+if [ "$SKIP_SYMLINK_SETUP" != yes ]; then
+    info "Installing symlink component..."
+    setup_symlink
+else
+    warning "Skipping symlink component installation"
+fi
+

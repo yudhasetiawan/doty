@@ -1,10 +1,15 @@
 #!/usr/bin/env sh
 
-setup_development_directories() {
-    header "Setting up development directories"
+setup_directories() {
+    header "Setting up directories"
 
     # Ensure development directories exist
     info "Creating development directories..."
+
+    if [ ! -d "${DOTFILES_LOCAL_DIRECTORY}" ]; then
+        mkdir -p "${DOTFILES_LOCAL_DIRECTORY}"
+        info "Created $(fmt_code "${DOTFILES_LOCAL_DIRECTORY}")"
+    fi
 
     if [ ! -d "${DOTY_DEVELOPMENT_DIRECTORY}" ]; then
         mkdir -p "${DOTY_DEVELOPMENT_DIRECTORY}"
@@ -26,8 +31,101 @@ setup_development_directories() {
         info "Created $(fmt_code "${DOTY_DEVELOPMENT_SDK_DIRECTORY}")"
     fi
 
-    success "Development directories are ready!"
+    info "Creating config directories..."
+    mkdir -vp \
+        "${XDG_CACHE_HOME}" \
+        "${XDG_CONFIG_HOME}" \
+        "${XDG_BIN_HOME}" \
+        "${XDG_DATA_HOME}" \
+        "${XDG_STATE_HOME}"
+
+    if [ "${DOTY_GUI_ENABLED}" == "yes" ]; then
+        info "Creating GUI directories..."
+        mkdir -vp \
+            "${XDG_DESKTOP_DIR}" \
+            "${XDG_DOCUMENTS_DIR}" \
+            "${XDG_DOWNLOAD_DIR}" \
+            "${XDG_MUSIC_DIR}" \
+            "${XDG_PICTURES_DIR}" \
+            "${XDG_PROJECTS_DIR}" \
+            "${XDG_PUBLICSHARE_DIR}" \
+            "${XDG_TEMPLATES_DIR}" \
+            "${XDG_VIDEOS_DIR}"
+    fi
+
+    success "Directories are ready!"
     printf '\n' >&2
 }
 
-setup_development_directories
+persist_xdg_directories() {
+    header "Configure XDG directories"
+
+    local xdg_local_dir="${DOTFILES_LOCAL_DIRECTORY}/zsh"
+    local xdg_local_path="${xdg_local_dir}/xdg"
+
+    mkdir -vp "${xdg_local_dir}"
+
+    cat <<EOF >"${xdg_local_path}"
+# shellcheck shell=bash
+
+# These are set from the DOTY "${DOTY}/.local/doty/install-config" script,
+# update the values in that file not here since they will get overwritten.
+
+# XDG base directories.
+export XDG_CACHE_HOME="${XDG_CACHE_HOME}"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME}"
+export XDG_BIN_HOME="${XDG_BIN_HOME}"
+export XDG_DATA_HOME="${XDG_DATA_HOME}"
+export XDG_STATE_HOME="${XDG_STATE_HOME}"
+
+# Doty related directories.
+export DOTFILES_LOCAL_DIRECTORY="${DOTFILES_LOCAL_DIRECTORY}"
+export DOTY_DEVELOPMENT_DIRECTORY="${DOTY_DEVELOPMENT_DIRECTORY}"
+export DOTY_DEVELOPMENT_CONFIG_DIRECTORY="${DOTY_DEVELOPMENT_CONFIG_DIRECTORY}"
+export DOTY_DEVELOPMENT_CACHE_DIRECTORY="${DOTY_DEVELOPMENT_CACHE_DIRECTORY}"
+export DOTY_DEVELOPMENT_SDK_DIRECTORY="${DOTY_DEVELOPMENT_SDK_DIRECTORY}"
+EOF
+
+    if [ "${DOTY_GUI_ENABLED}" == "yes" ]; then
+        local xdg_paths
+        xdg_paths=$(
+            cat <<EOF
+export XDG_DESKTOP_DIR="${XDG_DESKTOP_DIR}"
+export XDG_DOCUMENTS_DIR="${XDG_DOCUMENTS_DIR}"
+export XDG_DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR}"
+export XDG_MUSIC_DIR="${XDG_MUSIC_DIR}"
+export XDG_PICTURES_DIR="${XDG_PICTURES_DIR}"
+export XDG_PROJECTS_DIR="${XDG_PROJECTS_DIR}"
+export XDG_PUBLICSHARE_DIR="${XDG_PUBLICSHARE_DIR}"
+export XDG_TEMPLATES_DIR="${XDG_TEMPLATES_DIR}"
+export XDG_VIDEOS_DIR="${XDG_VIDEOS_DIR}"
+EOF
+        )
+
+        cat <<EOF >>"${xdg_local_path}"
+
+# XDG user directories.
+${xdg_paths}
+EOF
+
+        cat <<EOF >"${XDG_CONFIG_HOME}/user-dirs.dirs"
+# These are set from the DOTY "${DOTY}/.local/doty/install-config" script,
+# update the values in that file not here since they will get overwritten.
+
+${xdg_paths//export /}
+EOF
+
+        cat <<EOF >"${XDG_CONFIG_HOME}/user-dirs.conf"
+# These are set from the DOTY "${DOTY}/.local/doty/install-config" script,
+# update the values in that file not here since they will get overwritten.
+
+# Prevent custom XDG paths in user-dirs.dir from being overwritten on boot.
+enabled=False
+EOF
+    fi
+
+    success "Configured directories in '${xdg_local_path}'"
+}
+
+setup_directories
+persist_xdg_directories

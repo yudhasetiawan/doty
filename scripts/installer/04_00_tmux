@@ -3,16 +3,9 @@
 setup_tmux() {
     # Install tmux if not skipped
     if [ "$SKIP_TMUX_INSTALL" = no ]; then
-        if ! command -v "brew" >/dev/null 2>&1; then
-            error "Cannot install tmux. Homebrew is not installed."
-            return
-        fi
-
-        header "Installing tmux package"
-        if brew list tmux &>/dev/null; then
-            info "tmux is already installed"
-        else
-            brew install tmux
+        if ! command_exists "tmux"; then
+            error "Tmux is not installed."
+            return 1
         fi
     else
         warning "SKIP_TMUX_INSTALL is set to 'yes'. Skipping tmux package installation."
@@ -22,14 +15,14 @@ setup_tmux() {
     if [ "$SKIP_TMUX_CONFIG" = yes ]; then
         warning "SKIP_TMUX_CONFIG is set to 'yes'. Skipping Tmux configuration setup."
         printf '\n' >&2
-        return
+        return 0
     fi
 
     # Keep most recent old .tmux.conf at $backup_dir/.tmux.conf,
     # so we never actually destroy a user's original .tmux.conf.
     header "Looking for an existing tmux config"
 
-    tmux_conf="${INSTALL_TMUX_CONF}"
+    tmux_conf="${INSTALL_TMUX_CONF:-"${zdot}/.tmux.conf"}"
     # Must use this exact name so uninstall.sh can find it
     # shellcheck disable=SC2154
     backup_tmux="$backup_dir/.tmux.conf"
@@ -42,7 +35,7 @@ setup_tmux() {
             printf '\n' >&2
             codeblock "    run \"\$DOTY_DIRECTORY/config/tmux/doty/doty\""
             printf '\n' >&2
-            return
+            return 0
         fi
 
         if [ -e "$backup_tmux" ]; then
@@ -74,5 +67,10 @@ setup_tmux() {
     success "Successfully add Doty to Tmux config $(fmt_code "${tmux_conf}")."
     printf '\n' >&2
 }
+if [ "$SKIP_TMUX_SETUP" != yes ]; then
+    info "Installing tmux component..."
+    setup_tmux
+else
+    warning "Skipping tmux component installation"
+fi
 
-setup_tmux

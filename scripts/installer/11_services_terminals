@@ -183,7 +183,12 @@ setup_sound_config() {
     fi
 }
 
-setup_services
-setup_terminal_configs
-setup_desktop_environment
-setup_sound_config
+if [ "$SKIP_SERVICES_SETUP" != yes ]; then
+    info "Installing services component..."
+    setup_services
+    setup_terminal_configs
+    setup_desktop_environment
+    setup_sound_config
+else
+    warning "Skipping services component installation"
+fi
