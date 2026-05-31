@@ -67,6 +67,11 @@ _change_shell() {
 
     info "Changing your shell to $(fmt_code "$targetshell")..."
 
+    if [ "${DRY_RUN}" == "yes" ]; then
+        printf '\n' >&2
+        return 0
+    fi
+
     # We're going to change the default shell, so back up the current one
     if [ -n "$SHELL" ]; then
         # shellcheck disable=SC2154

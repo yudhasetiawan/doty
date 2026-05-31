@@ -196,6 +196,10 @@ __package_manager_install() {
 
     info "Installing packages using ${manager}."
 
+    if [ "${DRY_RUN}" == "yes" ]; then
+        return 0
+    fi
+
     case "${manager}" in
         brew)
             HOMEBREW_NO_ANALYTICS="1" brew install "${packages[@]}"
@@ -268,7 +272,11 @@ __package_manager_update() {
         warning "Skip package manager (${manager}) update..."
         return 0
     fi
-    
+
+    if [ "${DRY_RUN}" == "yes" ]; then
+        return 0
+    fi
+
     case "$manager" in
         brew)
             if [ "$SKIP_BREW_UPDATE" = yes ]; then
@@ -309,7 +317,11 @@ __package_manager_upgrade() {
         warning "Skip package manager (${manager}) upgrade..."
         return
     fi
-    
+
+    if [ "${DRY_RUN}" == "yes" ]; then
+        return 0
+    fi
+
     case "$manager" in
         brew)
             if [ "$SKIP_BREW_UPGRADE" = yes ]; then
@@ -344,6 +356,10 @@ __package_manager_upgrade() {
 
 # Install package manager if not exists (for Homebrew only, other systems have native package managers)
 __ensure_package_manager() {
+    if [ "${DRY_RUN}" == "yes" ]; then
+        return 0
+    fi
+
     # Check if we need to install Homebrew
     if is_in "brew" "${PKG_MANAGERS[@]}"; then
         if [ "$SKIP_BREW_INSTALL" = yes ]; then

@@ -40,6 +40,11 @@ setup_git() {
 
     info "Load git config"
 
+    if [ "${DRY_RUN}" == "yes" ]; then
+        printf '\n' >&2
+        return 0
+    fi
+
     # Ensure to use $XDG_CONFIG_HOME/git/config rather than ~/.gitconfig
     mkdir -vp "${XDG_CONFIG_HOME}/git"
     if [ -f "${zdot}/.gitconfig" ]; then

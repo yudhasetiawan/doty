@@ -28,6 +28,7 @@
 #   BRANCH  - branch to check out immediately after install (default: main)
 #
 # Other options:
+#   DRY_RUN                   - 'yes' means the installer will dry-run the installation process without affecting the live system (default: no)
 #   CHANGE_SHELL              - 'no' means the installer will not change the default shell (default: yes)
 #   RUN_ZSH                   - 'no' means the installer will not run zsh after the install (default: yes)
 #   KEEP_ZSHRC                - 'yes' means the installer will not replace an existing .zshrc (default: no)
@@ -97,20 +98,20 @@ custom_doty=${DOTY:+yes}
 
 # Use $zdot to keep track of where the directory is for zsh dotfiles.
 # To check if $ZDOTDIR was provided, explicitly check for $ZDOTDIR.
-zdot="${ZDOTDIR:-$HOME}"
-backup_dir="${DOTY_BACKUP_DIR:-"${zdot}/.config/doty-backups"}/$(date +%Y%m%d%H%M%S)"
+zdot=""
+backup_dir=""
 
 # Default value for $DOTY:
 # a) if $ZDOTDIR is supplied and not $HOME: $ZDOTDIR/.doty
-# b) otherwise, $HOME/.local/share/doty
-[ "$ZDOTDIR" = "$HOME" ] || DOTY="${DOTY:-${ZDOTDIR:+$ZDOTDIR/.doty}}"
-DOTY="${DOTY:-$HOME/.local/share/doty}"
+# b) otherwise, $HOME/.local/state/doty
+DOTY=""
 
 # Default settings.
 DOTY_REPOSITORY_REMOTE=${DOTY_REPOSITORY_REMOTE:-https://github.com/yudhasetiawan/doty.git}
 DOTY_REPOSITORY_BRANCH=${DOTY_REPOSITORY_BRANCH:-main}
 
 # Other options.
+DRY_RUN=${DRY_RUN:-no}
 CHANGE_SHELL=${CHANGE_SHELL:-yes}
 RUN_ZSH=${RUN_ZSH:-yes}
 KEEP_ZSHRC=${KEEP_ZSHRC:-no}
@@ -397,12 +398,14 @@ __install_doty() {
         exit 1
     }
 
-    git submodule update --init --recursive
-	git submodule foreach 'git fetch origin; \
-		git checkout $(git rev-parse --abbrev-ref HEAD); \
-		git reset --hard origin/$(git rev-parse --abbrev-ref HEAD); \
-		git submodule update --recursive --progress; \
-		git clean -dfx'
+    if [ "${DRY_RUN}" != "yes" ]; then
+        git submodule update --init --recursive
+        git submodule foreach 'git fetch origin; \
+            git checkout $(git rev-parse --abbrev-ref HEAD); \
+            git reset --hard origin/$(git rev-parse --abbrev-ref HEAD); \
+            git submodule update --recursive --progress; \
+            git clean -dfx'
+    fi
 
     DOTY_REPOSITORY_COMMIT="$(git -C "${DOTY}" log -1 --format="%as :: %h :: %s" 2>/dev/null || echo "-")"
 
@@ -692,6 +695,23 @@ main() {
             ;;
         esac
     done
+
+    if [ "${DRY_RUN}" == "yes" ]; then
+        ZDOTDIR="$(mktemp -d)"
+        RUN_ZSH=no
+        PACKAGES_AUTO_CONFIRM=no
+    fi
+
+    # Use $zdot to keep track of where the directory is for zsh dotfiles.
+    # To check if $ZDOTDIR was provided, explicitly check for $ZDOTDIR.
+    zdot="${ZDOTDIR:-$HOME}"
+    backup_dir="${DOTY_BACKUP_DIR:-"${zdot}/.config/doty-backups"}/$(date +%Y%m%d%H%M%S)"
+
+    # Default value for $DOTY:
+    # a) if $ZDOTDIR is supplied and not $HOME: $ZDOTDIR/.doty
+    # b) otherwise, $HOME/.local/share/doty
+    [ "$ZDOTDIR" = "$HOME" ] || DOTY="${DOTY:-${ZDOTDIR:+$ZDOTDIR/.doty}}"
+    DOTY="${DOTY:-$HOME/.local/share/doty}"
 
     __validate_requirements
     __install
