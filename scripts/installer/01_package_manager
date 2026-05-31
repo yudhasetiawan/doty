@@ -368,28 +368,39 @@ __ensure_package_manager() {
             if ! command -v "brew" >/dev/null 2>&1; then
                 header "Installing Homebrew..."
                 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                success "Homebrew installed successfully!"
             fi
         fi
     fi
 
     if is_in "yay" "${PKG_MANAGERS[@]}"; then
-        # Install Yay (AUR) if needed.
-        local yay_local_version=
-        yay_local_version="$(yay --version 2>/dev/null | cut -d " " -f 2 || true)"
+        # Install AUR helper if configured
+        if [ "$INSTALL_AUR_HELPER" = "yes" ]; then
+            info "Installing AUR helper (yay)..."
 
-        local yay_latest_version=
-        yay_latest_version="$(git ls-remote --tags https://github.com/Jguer/yay.git |
-            grep -Eo "v?[0-9]+(\.[0-9]+){1,2}$" |
-            sort --version-sort | tail -n 1)"
+            # Install Yay (AUR) if needed.
+            local yay_local_version=
+            yay_local_version="$(yay --version 2>/dev/null | cut -d " " -f 2 || true)"
 
-        if [ "${yay_local_version}" != "${yay_latest_version}" ]; then
-            info "Install yay binary for version ${yay_latest_version}..."
+            local yay_latest_version=
+            yay_latest_version="$(git ls-remote --tags https://github.com/Jguer/yay.git |
+                grep -Eo "v?[0-9]+(\.[0-9]+){1,2}$" |
+                sort --version-sort | tail -n 1)"
 
-            local yay_download_path="/tmp/yay-install"
-            rm -rf "${yay_download_path}"
-            git clone https://aur.archlinux.org/yay-bin.git "${yay_download_path}"
-            cd "${yay_download_path}" && makepkg --syncdeps --install --noconfirm && cd -
-            rm -rf "${yay_download_path}"
+            if [ "${yay_local_version}" != "${yay_latest_version}" ]; then
+                info "Install yay binary for version ${yay_latest_version}..."
+
+                # Create temporary directory for AUR helper build
+                yay_download_path=$(mktemp -d)
+                cd "$yay_download_path"
+
+                git clone https://aur.archlinux.org/yay.git "${yay_download_path}"
+                cd "${yay_download_path}" && makepkg --syncdeps --install --noconfirm
+                # Clean up
+                cd -
+                rm -rf "${yay_download_path}"
+                success "AUR helper (yay) installed successfully!"
+            fi
         fi
     fi
 }
@@ -437,27 +448,37 @@ EOF
 
     for pkg_manager in "${PKG_MANAGERS[@]}"; do
         __choose_package_manager "${pkg_manager}"
-        __package_manager_update "${pkg_manager}"
-        __package_manager_upgrade "${pkg_manager}"
 
         case "$pkg_manager" in
             brew)
+                __package_manager_update brew
+                __package_manager_upgrade brew
+
                 # Install Brew packages.
                 brew tap "${PACKAGES_BREW_TAP[@]}"
                 __package_manager_install brew "${PACKAGES_BREW[@]}"
                 __package_manager_install brew-cask "${PACKAGES_BREW_CASK[@]}"
                 ;;
             apt)
+                __package_manager_update apt
+                __package_manager_upgrade apt
+
                 __package_manager_install apt \
                     "${PACKAGES_APT[@]}" \
                     "${PACKAGES_APT_GUI[@]}"
                 ;;
             dnf)
+                __package_manager_update dnf
+                __package_manager_upgrade dnf
+
                 __package_manager_install dnf \
                     "${PACKAGES_DNF[@]}" \
                     "${PACKAGES_DNF_GUI[@]}"
                 ;;
             yum)
+                __package_manager_update yum
+                __package_manager_upgrade yum
+
                 __package_manager_install yum \
                     "${PACKAGES_YUM[@]}" \
                     "${PACKAGES_YUM_GUI[@]}"
@@ -472,17 +493,33 @@ EOF
                 # on vanilla Arch it's disabled but other variants might have it enabled.
                 local etc_pacman_conf_path="/etc/pacman.conf"
                 if grep -q "^\[multilib\]" "${etc_pacman_conf_path}"; then
-                    sudo sed -i "/^\[multilib\]/,+1 s/^/#/" "${etc_pacman_conf_path}"
+                    run_as_root sed -i "/^\[multilib\]/,+1 s/^/#/" "${etc_pacman_conf_path}"
                 fi
 
                 # Ensure the include file line always exists.
                 if ! grep -q "Include = /etc/pacman\.d/\*\.conf" "${etc_pacman_conf_path}"; then
-                    printf "\nInclude = /etc/pacman.d/*.conf\n" | sudo tee --append "${etc_pacman_conf_path}" 1>/dev/null
+                    printf "\nInclude = /etc/pacman.d/*.conf\n" | run_as_root tee --append "${etc_pacman_conf_path}" 1>/dev/null
                 fi
+
+                # Enable color output and parallel downloads in pacman
+                if [ -f /etc/pacman.conf ]; then
+                    info "Enabling color output and parallel downloads in pacman..."
+                    run_as_root sed -i 's/#Color/Color/' /etc/pacman.conf
+                    run_as_root sed -i '/#ParallelDownloads/s/^#//' /etc/pacman.conf
+                fi
+
+                # TODO: Configure reflector for faster package downloads
+                # if command -v reflector >/dev/null 2>&1; then
+                #     info "Configuring reflector for faster downloads..."
+                #     sudo reflector --country 'United States' --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+                # fi
 
                 # This isn't configurable because it has certain settings that are necessary
                 # for DOTY to work, such as installing 32 bit packages for GPU drivers.
-                sudo ln -fns "${DOTY}/environment/arch/etc/pacman.d/01-options.conf" /etc/pacman.d/01-options.conf
+                run_as_root ln -fns "${DOTY}/environment/arch/etc/pacman.d/01-options.conf" /etc/pacman.d/01-options.conf
+
+                __package_manager_update pacman
+                __package_manager_upgrade pacman
 
                 # Install Arch packages.
                 __package_manager_install pacman \
@@ -490,21 +527,33 @@ EOF
                     "${PACKAGES_PACMAN_GUI[@]}"
                 ;;
             yay)
+                __package_manager_update yay
+                __package_manager_upgrade yay
+
                 _package_install yay \
                     "${PACKAGES_AUR[@]}" \
                     "${PACKAGES_AUR_GUI[@]}"
                 ;;
             zypper)
+                __package_manager_update zypper
+                __package_manager_upgrade zypper
+
                 __package_manager_install zypper \
                     "${PACKAGES_ZYPPER[@]}" \
                     "${PACKAGES_ZYPPER_GUI[@]}"
                 ;;
             apk)
+                __package_manager_update apk
+                __package_manager_upgrade apk
+
                 __package_manager_install apk \
                     "${PACKAGES_APK[@]}" \
                     "${PACKAGES_APK_GUI[@]}"
                 ;;
             mise)
+                __package_manager_update mise
+                __package_manager_upgrade mise
+
                 # Install Mise packages.
                 __package_manager_install mise "${PACKAGES_MISE[@]}"
                 ;;
