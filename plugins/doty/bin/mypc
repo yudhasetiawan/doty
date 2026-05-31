@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Print specs about your system and copy it to your clipboard.
+#
+# Examples:
+#   mypc
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+FASTFETCH_DISABLE_THEME="1" fastfetch --logo none --structure-disabled "Colors" | sed '1d;$d' | tee >(clip-copy) || true
