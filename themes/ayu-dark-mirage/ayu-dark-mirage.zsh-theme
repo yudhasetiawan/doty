@@ -2,4 +2,4 @@
 ################################################################
 
 # TODO: Move powerlevel10k into this directory
-source "$ZSH_CUSTOM/powerlevel10k/powerlevel10k.zsh-theme"
+source "$DOTY_DIRECTORY/themes/ayu-dark-mirage/powerlevel10k/powerlevel10k.zsh-theme"
