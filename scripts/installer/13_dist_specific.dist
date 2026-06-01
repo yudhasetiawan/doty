@@ -75,8 +75,8 @@ setup_redhat_family() {
     if command -v dnf >/dev/null 2>&1; then
         if grep -q "fedora" /etc/os-release 2>/dev/null; then
             info "Enabling RPM Fusion repositories for Fedora..."
-            sudo dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-            sudo dnf install -y https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+            sudo dnf install -y "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm"
+            sudo dnf install -y "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm"
         fi
     elif command -v yum >/dev/null 2>&1; then
         if grep -q "centos\|redhat\|rhel" /etc/os-release 2>/dev/null; then
@@ -104,7 +104,7 @@ setup_suse_family() {
     # Enable Packman repository for multimedia codecs
     info "Enabling Packman repository for openSUSE..."
     if [ -f /etc/os-release ] && grep -q "openSUSE" /etc/os-release; then
-        sudo zypper addrepo -f https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_$(. /etc/os-release; echo $VERSION_ID)/packman.repos.d/packman-codecs.repo
+        sudo zypper addrepo -f "https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_${OS_VERSION}/packman.repos.d/packman-codecs.repo"
         sudo zypper --gpg-auto-import-keys refresh
     fi
 
@@ -166,7 +166,7 @@ setup_environment_managers() {
     if [ "$INSTALL_NVM" = "yes" ]; then
         header "Installing NVM (Node Version Manager)..."
         if command -v curl >/dev/null 2>&1; then
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+            curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh" | bash
             info "NVM installed. Run 'source ~/.bashrc' or restart your terminal to use it."
         else
             warning "curl not found. Cannot install NVM."
@@ -177,7 +177,7 @@ setup_environment_managers() {
     if [ "$INSTALL_PYENV" = "yes" ]; then
         header "Installing Pyenv (Python Version Manager)..."
         if command -v git >/dev/null 2>&1; then
-            git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+            git clone "https://github.com/pyenv/pyenv.git" ~/.pyenv
             info "Pyenv installed. Add 'export PYENV_ROOT=\"\$HOME/.pyenv\"' and 'command -v pyenv >/dev/null || export PATH=\"\$PYENV_ROOT/bin:\$PATH\"' to your shell configuration."
         else
             warning "git not found. Cannot install Pyenv."
@@ -188,7 +188,7 @@ setup_environment_managers() {
     if [ "$INSTALL_RBENV" = "yes" ]; then
         header "Installing Rbenv (Ruby Version Manager)..."
         if command -v git >/dev/null 2>&1; then
-            git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+            git clone "https://github.com/rbenv/rbenv.git" ~/.rbenv
             info "Rbenv installed. Add 'export PATH=\"\$HOME/.rbenv/bin:\$PATH\"' to your shell configuration."
         else
             warning "git not found. Cannot install Rbenv."
@@ -199,7 +199,7 @@ setup_environment_managers() {
     if [ "$INSTALL_ASDF" = "yes" ]; then
         header "Installing ASDF (Universal Version Manager)..."
         if command -v git >/dev/null 2>&1; then
-            git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+            git clone "https://github.com/asdf-vm/asdf.git" ~/.asdf --branch v0.14.0
             info "ASDF installed. Add 'source \"\$HOME/.asdf/asdf.sh\"' to your shell configuration."
         else
             warning "git not found. Cannot install ASDF."

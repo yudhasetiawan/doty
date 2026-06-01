@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 __list_packages() {
     local heading="${1}"
@@ -108,7 +108,7 @@ __choose_package_manager() {
     PKG_CONFIRM_FLAG=""
     if [[ "${PACKAGES_AUTO_CONFIRM}" == "yes" && -v confirm_map["${PKG_MANAGER}"] ]]; then
         read -ra confirm_flag <<<"${confirm_map["${PKG_MANAGER}"]}"
-        PKG_CONFIRM_FLAG="${confirm_flag[@]}"
+        PKG_CONFIRM_FLAG="${confirm_flag[*]}"
     fi
 }
 
@@ -117,7 +117,7 @@ __detect_package_manager() {
     # Detect OS type using the function from utils
     detect_os
 
-    local PKG_MANAGERS=("brew")
+    PKG_MANAGERS=("brew")
 
     # Allow override via environment variable
     if [ -n "$DOTY_PKG_MANAGER" ] && [ "$DOTY_PKG_MANAGER" != "auto" ]; then
@@ -183,7 +183,7 @@ __detect_package_manager() {
 
     PKG_MANAGERS+=("mise")
 
-    info "Package manager set to: ${PKG_MANAGERS[@]}"
+    info "Package manager set to: ${PKG_MANAGERS[*]}"
 }
 
 __package_manager_install() {
@@ -196,7 +196,7 @@ __package_manager_install() {
 
     info "Installing packages using ${manager}."
 
-    if [ "${DRY_RUN}" == "yes" ]; then
+    if [ "${DRY_RUN}" = "yes" ]; then
         return 0
     fi
 
@@ -243,11 +243,11 @@ EOF
 
             local mise_shim_path="${XDG_DATA_HOME}/mise/shims"
             # Also install Yarn for Node.
-            if [ "${packages[@]}" = "node"* ]; then
+            if is_in "node" "${packages[@]}"; then
                 if ! "${mise_shim_path}/yarn" --version >/dev/null 2>&1; then
                     "${mise_shim_path}/npm" install --unsafe-perm=true --allow-root --global yarn
                 fi
-            elif [ "${packages[@]}" = "python"* ]; then
+            elif is_in "python" "${packages[@]}"; then
                 # Install Python tools via pip
                 if ! "${mise_shim_path}/pip3" --version >/dev/null 2>&1; then
                     info "Installing Python development tools via pip..."
@@ -267,13 +267,13 @@ EOF
 __package_manager_update() {
     local manager="${1}"
 
-    header "Updating package manager (${manager})..."
+    info "Updating package manager (${manager})..."
     if [ "$SKIP_PKG_UPDATE" = yes ]; then
         warning "Skip package manager (${manager}) update..."
         return 0
     fi
 
-    if [ "${DRY_RUN}" == "yes" ]; then
+    if [ "${DRY_RUN}" = "yes" ]; then
         return 0
     fi
 
@@ -289,7 +289,7 @@ __package_manager_update() {
             run_as_root apt update || error "APT update not successful"
             ;;
         dnf|yum)
-            run_as_root ${manager} check-update || error "$manager package manager update not successful"
+            run_as_root "${manager}" check-update || error "$manager package manager update not successful"
             ;;
         pacman)
             run_as_root pacman -Sy || error "Pacman update not successful"
@@ -312,13 +312,13 @@ __package_manager_update() {
 __package_manager_upgrade() {
     local manager="${1}"
 
-    header "Upgrading existing packages (${manager})..."
+    info "Upgrading existing packages (${manager})..."
     if [ "$SKIP_PKG_UPGRADE" = yes ]; then
         warning "Skip package manager (${manager}) upgrade..."
         return
     fi
 
-    if [ "${DRY_RUN}" == "yes" ]; then
+    if [ "${DRY_RUN}" = "yes" ]; then
         return 0
     fi
 
@@ -334,7 +334,7 @@ __package_manager_upgrade() {
             run_as_root apt upgrade "${PKG_CONFIRM_FLAG[@]}" || error "APT upgrade not successful"
             ;;
         dnf|yum)
-            run_as_root ${manager} upgrade "${PKG_CONFIRM_FLAG[@]}" || error "$manager package manager upgrade not successful"
+            run_as_root "${manager}" upgrade "${PKG_CONFIRM_FLAG[@]}" || error "$manager package manager upgrade not successful"
             ;;
         pacman)
             run_as_root pacman -Syu "${PKG_CONFIRM_FLAG[@]}" || error "Pacman upgrade not successful"
@@ -356,7 +356,7 @@ __package_manager_upgrade() {
 
 # Install package manager if not exists (for Homebrew only, other systems have native package managers)
 __ensure_package_manager() {
-    if [ "${DRY_RUN}" == "yes" ]; then
+    if [ "${DRY_RUN}" = "yes" ]; then
         return 0
     fi
 
@@ -366,7 +366,7 @@ __ensure_package_manager() {
             warning "Skip Homebrew installation..."
         else
             if ! command -v "brew" >/dev/null 2>&1; then
-                header "Installing Homebrew..."
+                info "Installing Homebrew..."
                 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
                 success "Homebrew installed successfully!"
             fi
@@ -379,10 +379,10 @@ __ensure_package_manager() {
             info "Installing AUR helper (yay)..."
 
             # Install Yay (AUR) if needed.
-            local yay_local_version=
+            local yay_local_version
             yay_local_version="$(yay --version 2>/dev/null | cut -d " " -f 2 || true)"
 
-            local yay_latest_version=
+            local yay_latest_version
             yay_latest_version="$(git ls-remote --tags https://github.com/Jguer/yay.git |
                 grep -Eo "v?[0-9]+(\.[0-9]+){1,2}$" |
                 sort --version-sort | tail -n 1)"
@@ -392,14 +392,14 @@ __ensure_package_manager() {
 
                 # Create temporary directory for AUR helper build
                 yay_download_path=$(mktemp -d)
-                cd "$yay_download_path"
-
-                git clone https://aur.archlinux.org/yay.git "${yay_download_path}"
-                cd "${yay_download_path}" && makepkg --syncdeps --install --noconfirm
-                # Clean up
-                cd -
-                rm -rf "${yay_download_path}"
-                success "AUR helper (yay) installed successfully!"
+                cd "$yay_download_path" && {
+                    git clone https://aur.archlinux.org/yay.git "${yay_download_path}"
+                    cd "${yay_download_path}" && makepkg --syncdeps --install --noconfirm
+                    # Clean up
+                    cd - || true
+                    rm -rf "${yay_download_path}"
+                    success "AUR helper (yay) installed successfully!"
+                }
             fi
         fi
     fi
@@ -419,7 +419,7 @@ setup_package_manager_packages() {
         return 0
     fi
 
-    header "Install packages using ${PKG_MANAGERS[@]}"
+    header "Install packages using ${PKG_MANAGERS[*]}"
 
     cat <<EOF
 $(__show_packages)
@@ -442,7 +442,7 @@ EOF
     # On the first run, there will be a number of prompts to contend with, if
     # someone wanted to customize the packages first, that was proposed during
     # the bootstrap process. It's safe to skip confirmation here based on that.
-    local ori_packages_auto_confirm=
+    local ori_packages_auto_confirm
     ori_packages_auto_confirm="${PACKAGES_AUTO_CONFIRM}"
     PACKAGES_AUTO_CONFIRM="yes"
 
@@ -489,34 +489,36 @@ EOF
                     PACKAGES_PACMAN_GUI=()
                 fi
 
-                # Ensure multilib is disabled since we'll enable it with an include file,
-                # on vanilla Arch it's disabled but other variants might have it enabled.
-                local etc_pacman_conf_path="/etc/pacman.conf"
-                if grep -q "^\[multilib\]" "${etc_pacman_conf_path}"; then
-                    run_as_root sed -i "/^\[multilib\]/,+1 s/^/#/" "${etc_pacman_conf_path}"
+                if [ "${DRY_RUN}" != "yes" ]; then
+                    # Ensure multilib is disabled since we'll enable it with an include file,
+                    # on vanilla Arch it's disabled but other variants might have it enabled.
+                    local etc_pacman_conf_path="/etc/pacman.conf"
+                    if grep -q "^\[multilib\]" "${etc_pacman_conf_path}"; then
+                        run_as_root sed -i "/^\[multilib\]/,+1 s/^/#/" "${etc_pacman_conf_path}"
+                    fi
+
+                    # Ensure the include file line always exists.
+                    if ! grep -q "Include = /etc/pacman\.d/\*\.conf" "${etc_pacman_conf_path}"; then
+                        printf "\nInclude = /etc/pacman.d/*.conf\n" | run_as_root tee --append "${etc_pacman_conf_path}" 1>/dev/null
+                    fi
+
+                    # Enable color output and parallel downloads in pacman
+                    if [ -f /etc/pacman.conf ]; then
+                        info "Enabling color output and parallel downloads in pacman..."
+                        run_as_root sed -i 's/#Color/Color/' /etc/pacman.conf
+                        run_as_root sed -i '/#ParallelDownloads/s/^#//' /etc/pacman.conf
+                    fi
+
+                    # TODO: Configure reflector for faster package downloads
+                    # if command -v reflector >/dev/null 2>&1; then
+                    #     info "Configuring reflector for faster downloads..."
+                    #     sudo reflector --country 'United States' --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+                    # fi
+
+                    # This isn't configurable because it has certain settings that are necessary
+                    # for DOTY to work, such as installing 32 bit packages for GPU drivers.
+                    run_as_root ln -fns "${DOTY}/environment/arch/etc/pacman.d/01-options.conf" /etc/pacman.d/01-options.conf
                 fi
-
-                # Ensure the include file line always exists.
-                if ! grep -q "Include = /etc/pacman\.d/\*\.conf" "${etc_pacman_conf_path}"; then
-                    printf "\nInclude = /etc/pacman.d/*.conf\n" | run_as_root tee --append "${etc_pacman_conf_path}" 1>/dev/null
-                fi
-
-                # Enable color output and parallel downloads in pacman
-                if [ -f /etc/pacman.conf ]; then
-                    info "Enabling color output and parallel downloads in pacman..."
-                    run_as_root sed -i 's/#Color/Color/' /etc/pacman.conf
-                    run_as_root sed -i '/#ParallelDownloads/s/^#//' /etc/pacman.conf
-                fi
-
-                # TODO: Configure reflector for faster package downloads
-                # if command -v reflector >/dev/null 2>&1; then
-                #     info "Configuring reflector for faster downloads..."
-                #     sudo reflector --country 'United States' --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-                # fi
-
-                # This isn't configurable because it has certain settings that are necessary
-                # for DOTY to work, such as installing 32 bit packages for GPU drivers.
-                run_as_root ln -fns "${DOTY}/environment/arch/etc/pacman.d/01-options.conf" /etc/pacman.d/01-options.conf
 
                 __package_manager_update pacman
                 __package_manager_upgrade pacman
@@ -530,7 +532,7 @@ EOF
                 __package_manager_update yay
                 __package_manager_upgrade yay
 
-                _package_install yay \
+                __package_manager_install yay \
                     "${PACKAGES_AUR[@]}" \
                     "${PACKAGES_AUR_GUI[@]}"
                 ;;
@@ -563,7 +565,9 @@ EOF
         # Clean up package manager cache
         if [ "$SKIP_PKG_CLEAN" != yes ] && [ -n "${PKG_CLEAN}" ]; then
             info "Cleaning $pkg_manager package manager cache..."
-            eval "$PKG_CLEAN" 2>/dev/null || true
+            if [ "${DRY_RUN}" != "yes" ]; then
+                eval "$PKG_CLEAN" 2>/dev/null || true
+            fi
         fi
     done
     PACKAGES_AUTO_CONFIRM="${ori_packages_auto_confirm}"

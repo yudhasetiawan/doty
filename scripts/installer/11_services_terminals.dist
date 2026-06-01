@@ -20,19 +20,31 @@ setup_services() {
 
         # Enable fstrim timer for better SSD performance (on supported systems)
         if [ -f "/etc/cron.weekly/fstrim" ] || [ -f "/usr/share/systemd/system/fstrim.timer" ]; then
-            sudo systemctl enable --now fstrim.timer 2>/dev/null && info "Enabled fstrim.timer" || warning "Could not enable fstrim.timer"
+            {
+                sudo systemctl enable --now fstrim.timer 2>/dev/null \
+                    && info "Enabled fstrim.timer"
+            } || warning "Could not enable fstrim.timer"
         fi
 
         # Enable cron service if it exists
         if systemctl list-unit-files | grep -q cron; then
-            sudo systemctl enable --now cron 2>/dev/null && info "Enabled cron service" || warning "Could not enable cron service"
+            {
+                sudo systemctl enable --now cron 2>/dev/null \
+                    && info "Enabled cron service"
+            } || warning "Could not enable cron service"
         elif systemctl list-unit-files | grep -q crond; then
-            sudo systemctl enable --now crond 2>/dev/null && info "Enabled crond service" || warning "Could not enable crond service"
+            {
+                sudo systemctl enable --now crond 2>/dev/null \
+                    && info "Enabled crond service"
+            } || warning "Could not enable crond service"
         fi
 
         # Enable other common services based on availability
         if systemctl list-unit-files | grep -q NetworkManager; then
-            sudo systemctl enable --now NetworkManager 2>/dev/null && info "Enabled NetworkManager" || warning "Could not enable NetworkManager"
+            {
+                sudo systemctl enable --now NetworkManager 2>/dev/null \
+                    && info "Enabled NetworkManager"
+            } || warning "Could not enable NetworkManager"
         fi
     else
         info "systemctl not available, skipping systemd service configuration"
@@ -59,9 +71,9 @@ setup_terminal_configs() {
         
         # Set default terminal shell to zsh if available
         if command -v zsh >/dev/null 2>&1; then
-            gsettings set org.gnome.Terminal.Legacy.Settings default-show-menubar false
-            gsettings set org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')/ use-system-font false
-            gsettings set org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')/ font "MesloLGM Nerd Font 11"
+            gsettings set "org.gnome.Terminal.Legacy.Settings" "default-show-menubar" false
+            gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')/" "use-system-font" false
+            gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')/" "font" "MesloLGM Nerd Font 11"
         fi
     fi
 
@@ -177,7 +189,10 @@ setup_sound_config() {
     if command -v pactl >/dev/null 2>&1; then
         info "PulseAudio detected, checking configuration..."
         # Set default volume levels if needed
-        pactl --version > /dev/null 2>&1 && info "PulseAudio is properly configured" || warning "PulseAudio may need configuration"
+        {
+            pactl --version > /dev/null 2>&1 \
+            && info "PulseAudio is properly configured"
+        } || warning "PulseAudio may need configuration"
     elif command -v alsamixer >/dev/null 2>&1; then
         info "ALSA detected, checking configuration..."
     fi

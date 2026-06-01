@@ -1,10 +1,13 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 setup_zellij() {
     # Setup Zellij configuration directory
     header "Setting up Zellij configuration"
 
-    zellij setup --generate-auto-start ${SHELL} >>"$zdot/.${SHELL}rc"
+    local current_shell
+    current_shell="$(basename "${SHELL}")"
+    # shellcheck disable=SC2154
+    zellij setup --generate-auto-start "${current_shell}" >>"$zdot/.${current_shell}rc"
 
     success "Zellij configuration successfully set up!"
     printf '\n' >&2

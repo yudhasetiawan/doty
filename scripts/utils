@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -e
 
@@ -72,7 +72,7 @@ supports_hyperlinks() {
 
     # VTE-based terminals above v0.50 (Gnome Terminal, Guake, ROXTerm, etc)
     if [ -n "$VTE_VERSION" ]; then
-        [ $VTE_VERSION -ge 5000 ]
+        [ "$VTE_VERSION" -ge 5000 ]
         return $?
     fi
 
@@ -118,6 +118,7 @@ supports_truecolor() {
     return 1
 }
 
+# shellcheck disable=SC2034
 setup_color() {
     # Only use colors if connected to a terminal
     if ! is_tty; then
@@ -192,7 +193,7 @@ user_can_sudo() {
     #    to run `sudo` in the default locale (with `LANG=`) so that the message
     #    stays consistent regardless of the user's locale.
     #
-    ! LANG= sudo -n -v 2>&1 | grep -q "may not run sudo"
+    ! LANG="" sudo -n -v 2>&1 | grep -q "may not run sudo"
 }
 
 run_as_root() {
@@ -229,7 +230,7 @@ link() {
     local fallback="${3:-${url}}"
 
     if supports_hyperlinks; then
-        printf '\033]8;;%s\033\\%s\033]8;;\033\\' "$url" "$text"
+        printf '\033]8;;%s\033\\%s\033]8;;\033[24m' "$url" "$text"
         return
     fi
 
@@ -267,7 +268,7 @@ error() {
 
 # Header logging
 header() {
-    text=${@}
+    text="$*"
     total_chars=${#text}
 
     if [ "$total_chars" -gt 80 ]; then
@@ -275,8 +276,8 @@ header() {
     fi
 
     printf "$(tput setaf 7)%s$(tput sgr0)\n" "$text" >&2
-    for ((i = 1; i <= $total_chars; i++)); do
-        printf "$(tput setaf 237)-$(tput sgr0)" >&2
+    for ((i = 1; i <= total_chars; i++)); do
+        printf "%s-%s" "$(tput setaf 237)" "$(tput sgr0)" >&2
     done
     printf '\n'  >&2
 }
@@ -344,7 +345,7 @@ is_in() {
 
 # Test whether we're in a git repo
 is_git_repo() {
-    $(git rev-parse --is-inside-work-tree &> /dev/null)
+    git rev-parse --is-inside-work-tree &> /dev/null
 }
 
 rcurl() {
@@ -377,6 +378,7 @@ rcurl() {
 }
 
 # Detect the OS/distribution
+# shellcheck disable=SC2034
 detect_os() {
     # Default to unknown
     OS_TYPE="unknown"
@@ -402,7 +404,8 @@ detect_os() {
     if [[ "$OS_TYPE" == "unknown" ]]; then
         # Determine OS type
         if command -v uname >/dev/null 2>&1; then
-            local uname_output=$(uname -s | tr '[:upper:]' '[:lower:]')
+            local uname_output
+            uname_output=$(uname -s | tr '[:upper:]' '[:lower:]')
             case "$uname_output" in
                 linux)
                     OS_TYPE="linux"
@@ -421,6 +424,7 @@ detect_os() {
 
     # Alternative detection methods for distributions without lsb_release
     if [[ -f /etc/os-release ]]; then
+        # shellcheck disable=SC1091
         read -r OS_DISTRO OS_DISTRO_LIKE OS_VERSION <<<"$(. /etc/os-release && echo "${ID}" "${ID_LIKE:-"${ID}"}" "${BUILD_ID:-"${VERSION_ID:-"${VERSION_CODENAME:-}"}"}")"
         OS_DISTRO="$(echo "$OS_DISTRO" | tr '[:upper:]' '[:lower:]')"
 
@@ -431,11 +435,11 @@ detect_os() {
             *debian*|*ubuntu*|*mint*|pop|elementary|zorin)
                 OS_DISTRO_LIKE="debian"
                 ;;
-            *redhat*|*fedora*|*centos*|*rhel*|*ol*|*almalinux*|*rocky*|*scientific*)
-                OS_DISTRO_LIKE="redhat"
-                ;;
             *arch*|*manjaro*|*endeavouros*|*garuda*|*arcolinux*|*reborn*|cachyos)
                 OS_DISTRO_LIKE="arch"
+                ;;
+            *redhat*|*fedora*|*centos*|*rhel*|*ol*|*almalinux*|*rocky*|*scientific*)
+                OS_DISTRO_LIKE="redhat"
                 ;;
             *suse*|*sles*|*caasp*)
                 OS_DISTRO_LIKE="suse"

@@ -22,7 +22,8 @@ setup_tmux() {
     # so we never actually destroy a user's original .tmux.conf.
     header "Looking for an existing tmux config"
 
-    tmux_conf="${INSTALL_TMUX_CONF:-"${zdot}/.tmux.conf"}"
+    # shellcheck disable=SC2154
+    tmux_conf="${zdot}/.tmux.conf"
     # Must use this exact name so uninstall.sh can find it
     # shellcheck disable=SC2154
     backup_tmux="$backup_dir/.tmux.conf"

@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 _change_shell() {
     local targetshell="${1}"
@@ -32,7 +32,8 @@ _change_shell() {
     fi
 
     local termux=false
-    local shellpath="$(command -v ${targetshell} >/dev/null 2>&1)"
+    local shellpath
+    shellpath="$(command -v "${targetshell}" 2>&1)"
     # Check if we're running on Termux
     case "$PREFIX" in
     *com.termux*)
@@ -56,7 +57,7 @@ _change_shell() {
         # Get the path to the right ${targetshell} binary
         # 1. Use the most preceding one based on $PATH, then check that it's in the shells file
         # 2. If that fails, get a ${targetshell} path from the shells file, then check it actually exists
-        if ! shellpath=$(command -v ${targetshell}) || ! grep -qx "$shellpath" "$shells_file"; then
+        if ! shellpath=$(command -v "${targetshell}") || ! grep -qx "$shellpath" "$shells_file"; then
             if ! shellpath=$(grep "^/.*/${targetshell}$" "$shells_file" | tail -n 1) || [ ! -f "$shellpath" ]; then
                 error "No ${targetshell} binary found or not present in $(fmt_code "$shells_file")"
                 error "Please manually change your default shell!"
@@ -94,7 +95,6 @@ _change_shell() {
     else
         chsh -s "$shellpath" "$USER" # run chsh normally
     fi
-
     # Check if the shell change was successful
     # shellcheck disable=SC2181
     if [ $? -ne 0 ]; then
@@ -120,7 +120,8 @@ setup_zshrc() {
     # so we never actually destroy a user's original zshrc.
     header "Looking for an existing zsh config"
 
-    zshrc_file="${INSTALL_ZSHRC_FILE:-"${zdot}/.zshrc"}"
+    # shellcheck disable=SC2154
+    zshrc_file="${zdot}/.zshrc"
     # Must use this exact name so uninstall.sh can find it
     # shellcheck disable=SC2154
     backup_zshrc="$backup_dir/.zshrc"

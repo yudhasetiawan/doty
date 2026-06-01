@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 setup_directories() {
     header "Setting up directories"
@@ -39,7 +39,7 @@ setup_directories() {
         "${XDG_DATA_HOME}" \
         "${XDG_STATE_HOME}"
 
-    if [ "${DOTY_GUI_ENABLED}" == "yes" ]; then
+    if [ "${DOTY_GUI_ENABLED}" = "yes" ]; then
         info "Creating GUI directories..."
         mkdir -vp \
             "${XDG_DESKTOP_DIR}" \
@@ -86,7 +86,7 @@ export DOTY_DEVELOPMENT_CACHE_DIRECTORY="${DOTY_DEVELOPMENT_CACHE_DIRECTORY}"
 export DOTY_DEVELOPMENT_SDK_DIRECTORY="${DOTY_DEVELOPMENT_SDK_DIRECTORY}"
 EOF
 
-    if [ "${DOTY_GUI_ENABLED}" == "yes" ]; then
+    if [ "${DOTY_GUI_ENABLED}" = "yes" ]; then
         local xdg_paths
         xdg_paths=$(
             cat <<EOF

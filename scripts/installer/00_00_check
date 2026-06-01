@@ -3,7 +3,8 @@
 header "                                "
 
 # Only fully support these OS type.
-if [[ "${OS_TYPE}" == "linux" || "${OS_TYPE}" == "darwin" ]]; then
+if [ "${OS_TYPE}" = "linux" ] || [ "${OS_TYPE}" = "darwin" ]; then
+    # shellcheck disable=SC2154
     cat <<EOF >&2
 Your OS identified as:
 - Type:   ${_FMT_BOLD}${OS_TYPE}${_FMT_RESET}
@@ -13,13 +14,12 @@ Known Variables:
 - $(fmt_code "USER:                         $USER")
 - $(fmt_code "HOME:                         $HOME")
 - $(fmt_code "zDot:                         $zdot")
-- $(fmt_code "Custom Doty:                  $custom_doty")
+- $(fmt_code "Custom Doty:                  ${custom_doty:-no}")
 - $(fmt_code "ZDOTDIR:                      $ZDOTDIR")
 - $(fmt_code "DOTY_BACKUP_DIR:              $backup_dir")
 - $(fmt_code "DOTY:                         $DOTY")
 - $(fmt_code "DOTY_REPOSITORY_REMOTE:       $DOTY_REPOSITORY_REMOTE")
 - $(fmt_code "DOTY_REPOSITORY_BRANCH:       $DOTY_REPOSITORY_BRANCH")
-- $(fmt_code "DOTY_GIT_INSTALL_INTEGRATION: $DOTY_GIT_INSTALL_INTEGRATION")
 - $(fmt_code "CHANGE_SHELL:                 $CHANGE_SHELL")
 - $(fmt_code "RUN_ZSH:                      $RUN_ZSH")
 - $(fmt_code "KEEP_ZSHRC:                   $KEEP_ZSHRC")
@@ -68,6 +68,6 @@ $(codeblock "    cat /etc/os-release")
 $(codeblock "    lsb_release -a")
 EOF
 else
-    error "\"${OSTYPE}\" isn't supported, aborting!"
+    error "\"${OS_TYPE}\" isn't supported, aborting!"
     exit 1
 fi

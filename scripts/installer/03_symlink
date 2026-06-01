@@ -1,9 +1,9 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 __symlink_files_from_to_home() {
     info "Start symlink for ${1}..."
 
-    for source_file in $(find -H "${1}" -maxdepth 1 -type f) ; do
+    for source_file in $(find -H "${1}" -maxdepth 1 -type f | sort -u) ; do
         file_name="$(basename "${source_file}")"
         # shellcheck disable=SC2154
         target_file="${zdot}/${file_name}"
@@ -21,18 +21,18 @@ __symlink_files_from_to_home() {
             mv "$target_file" "${backup_dir}/${file_name}"
         fi
 
-        printf "%s%s%s%s\n" "- Creating symlink for " $(fmt_code "${file_name}") " to " $(fmt_code "${target_file}") >&2
+        printf '%s Creating symlink for %s to %s\n' "-" "$(fmt_code "${file_name}")" "$(fmt_code "${target_file}")" >&2
         # Force create/replace the symlink.
         ln -fs "${source_file}" "${target_file}"
     done
 }
 
 __symlink_config_files() {
-    local configdir="$(basename "${1}")"
+    local configdir
+    configdir="$(basename "${1}")"
 
     info "Start symlink for ${1}..."
-    # shellcheck disable=SC2044
-    for file_name in $(find -H "${1}" -type f -printf '%P\n') ; do
+    for file_name in $(find -H "${1}" -type f -printf '%P\n' | sort -u) ; do
         source_file="$(abspath "${1}/${file_name}")"
         target_filepath="${configdir}/${file_name}"
         target_file="${XDG_CONFIG_HOME}/${target_filepath}"
@@ -62,7 +62,7 @@ __symlink_config_files() {
             mv "$target_file" "${backup_symlink}"
         fi
 
-        printf "%s%s%s%s\n" "- Creating symlink for " $(fmt_code "${configdir}${file_name}") " to " $(fmt_code "${target_file}") >&2
+        printf '%s Creating symlink for %s to %s\n' "-" "$(fmt_code "${configdir}/${file_name}")" "$(fmt_code "${target_file}")" >&2
         mkdir -p "$(dirname "${target_file}")"
         # Force create/replace the symlink.
         ln -fs "${source_file}" "${target_file}"
