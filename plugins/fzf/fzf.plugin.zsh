@@ -95,3 +95,5 @@ _fzf_comprun() {
 }
 
 source "$ZSH/plugins/fzf/fzf.plugin.zsh"
+
+[ -r "${XDG_CONFIG_HOME}/fzf/doty.sh" ] && [ -f "${XDG_CONFIG_HOME}/fzf/doty.sh" ] && source "${XDG_CONFIG_HOME}/fzf/doty.sh";

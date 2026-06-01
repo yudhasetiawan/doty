@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
-birthday() {
+function birthday() {
     # Report back the number of days since your root file system was created.
     if [[ "${OSTYPE}" == linux* ]]; then
         birthday_timestamp="$(stat -c "%W" /)"
@@ -13,6 +13,99 @@ birthday() {
     echo "$((($(date +%s) - birthday_timestamp) / 86400)) days (${birthday_formatted})"
 }
 
+function theme::list {
+    local -a custom_themes builtin_themes
+    custom_themes=("$DOTY_DIRECTORY"/themes/*/theme.json(-.N:r:gs:"$DOTY_DIRECTORY"/themes/:::gs:"$DOTY_DIRECTORY"/:::gs:/theme:::))
+
+    # If the command is being piped, print all found line by line
+    if [[ ! -t 1 ]]; then
+        print -l ${(q-)custom_themes}
+        return
+    fi
+
+    # Print theme in use
+    if [[ -n "$ZSH_THEME" ]]; then
+        print -Pn "%U%BTheme%b%u: %s" "$(dirname "${ZSH_THEME}")"
+        echo
+        echo
+    fi
+
+    # Print custom themes if there are any
+    if (( ${#custom_themes} )); then
+        print -P "%U%BAvailable Themes%b%u:"
+        print -lac ${(q-)custom_themes}
+        echo
+    fi
+}
+
+function theme::set {
+    # Default to this theme as a fallback.
+    local theme="$1"
+    local theme_dir="$DOTY_DIRECTORY/themes/${theme}"
+    local active_theme="$(dirname "${ZSH_THEME}")"
+    local theme_changed=
+
+    if [[ -z "${theme}" ]]; then
+        echo >&2 "Usage: ${(j: :)${(s.::.)0#_}} <theme>"
+        return 1
+    fi
+
+    # Check that theme exists
+    if [[ ! -f "${theme_dir}/${theme}.zsh-theme" ]] \
+        && [[ ! -f "${theme_dir}/theme.json" ]]; then
+        error "${theme} theme not found"
+        return 1
+    fi
+
+    # Did the theme change?
+    [[ -n "${active_theme}" && "${active_theme}" != "${theme}" ]] && theme_changed=1
+    
+    __theme_symlink() {
+        if [ ! -f "${theme_dir}/${1}" ]; then
+            warning "WARNING: ${theme} theme does not support \"${1}\""
+            return 1
+        fi
+
+        info "Installing ${1} into ${2}..."
+        mkdir -vp "$(dirname "${2}")"
+        ln -fns "${theme_dir}/${1}" "${2}"
+    }
+
+    __theme_symlink "btop.theme" "${XDG_CONFIG_HOME}/btop/themes/doty.theme"
+    __theme_symlink "fzf.sh" "${XDG_CONFIG_HOME}/fzf/doty.sh"
+    __theme_symlink "glow.json" "${XDG_CONFIG_HOME}/glow/doty.json"
+    __theme_symlink "zellij.kdl" "${XDG_CONFIG_HOME}/zellij/themes/doty.kdl"
+    # TODO:
+    # __theme_symlink "tmux.conf" "${XDG_CONFIG_HOME}/tmux/theme.conf"
+    # __theme_symlink "nvim.lua" "${XDG_CONFIG_HOME}/nvim/theme.lua"
+
+    # Ensure GUI packages get skipped unless GUI is enabled.
+    if [ "${DOTY_GUI_ENABLED}" = "yes" ]; then
+        __theme_symlink "niri.kdl" "${XDG_CONFIG_HOME}/niri/doty.kdl"
+    fi
+
+    # We can abort now since if we're not changing anything there's no reloading.
+    [ -z "${theme_changed}" ] && return 0
+
+    # Restart the zsh session if there were no errors
+    info "${theme} theme set correctly"
+    _zsh::reload
+
+    # TODO: Ensure GUI packages get reloaded unless GUI is enabled.
+    # if [ "${DOTY_GUI_ENABLED}" = "yes" ]; then
+    # fi
+}
+
+function _zsh::reload {
+    # Delete current completion cache
+    command rm -f $_comp_dumpfile $ZSH_COMPDUMP
+
+    # Old zsh versions don't have ZSH_ARGZERO
+    local zsh="${ZSH_ARGZERO:-${functrace[-1]%:*}}"
+    # Check whether to run a login shell
+    [[ "$zsh" = -* || -o login ]] && exec -l "${zsh#-}" || exec "$zsh"
+}
+
 parse_args() {
     local command="${1:-}"
     shift
@@ -22,9 +115,19 @@ parse_args() {
         birthday
         ;;
     theme)
-        case "${1:-}" in
+        local subcommand="${1:-}"
+        shift
+
+        case "${subcommand}" in
         current)
             echo "$(basename "$(dirname "${ZSH_THEME}")")"
+            ;;
+        list)
+            theme::list
+            ;;
+        set)
+            theme::set "${@}"
+            ;;
         *)
             [ -n "${1:-}" ] && error "ERROR: \"${1}\" is not a supported flag"
             ;;

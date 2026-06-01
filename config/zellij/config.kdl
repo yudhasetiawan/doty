@@ -387,7 +387,7 @@ web_client {
 // Default: default
 //
 // theme "${env:ZELLIJ_THEME:-ayu-dark-mirage}"
-theme "ayu-dark-mirage"
+theme "doty"
 
 // Choose the base input mode of zellij.
 // Default: normal

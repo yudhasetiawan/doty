@@ -1,6 +1,6 @@
 themes {
     // Custom ayu-dark-mirage theme based on the neovim-ayu theme colors
-    ayu-dark-mirage {
+    doty {
        // emphasis_0 255 102 102 // #FF6666 - error
        // emphasis_1 117 123 132 // #757B84 - gutter_active
        // emphasis_1 108 122 139 // #6C7A8B - comment
