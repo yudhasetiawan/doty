@@ -460,6 +460,11 @@ EOF
                 __package_manager_install brew-cask "${PACKAGES_BREW_CASK[@]}"
                 ;;
             apt)
+                # Ensure GUI packages get skipped unless GUI is enabled.
+                if [ "${DOTY_GUI_ENABLED}" != "yes" ]; then
+                    PACKAGES_APT_GUI=()
+                fi
+
                 __package_manager_update apt
                 __package_manager_upgrade apt
 
@@ -468,6 +473,11 @@ EOF
                     "${PACKAGES_APT_GUI[@]}"
                 ;;
             dnf)
+                # Ensure GUI packages get skipped unless GUI is enabled.
+                if [ "${DOTY_GUI_ENABLED}" != "yes" ]; then
+                    PACKAGES_DNF_GUI=()
+                fi
+
                 __package_manager_update dnf
                 __package_manager_upgrade dnf
 
@@ -476,6 +486,11 @@ EOF
                     "${PACKAGES_DNF_GUI[@]}"
                 ;;
             yum)
+                # Ensure GUI packages get skipped unless GUI is enabled.
+                if [ "${DOTY_GUI_ENABLED}" != "yes" ]; then
+                    PACKAGES_YUM_GUI=()
+                fi
+
                 __package_manager_update yum
                 __package_manager_upgrade yum
 
@@ -529,6 +544,11 @@ EOF
                     "${PACKAGES_PACMAN_GUI[@]}"
                 ;;
             yay)
+                # Ensure GUI packages get skipped unless GUI is enabled.
+                if [ "${DOTY_GUI_ENABLED}" != "yes" ]; then
+                    PACKAGES_AUR_GUI=()
+                fi
+
                 __package_manager_update yay
                 __package_manager_upgrade yay
 
@@ -537,6 +557,11 @@ EOF
                     "${PACKAGES_AUR_GUI[@]}"
                 ;;
             zypper)
+                # Ensure GUI packages get skipped unless GUI is enabled.
+                if [ "${DOTY_GUI_ENABLED}" != "yes" ]; then
+                    PACKAGES_ZYPPER_GUI=()
+                fi
+
                 __package_manager_update zypper
                 __package_manager_upgrade zypper
 
@@ -545,6 +570,11 @@ EOF
                     "${PACKAGES_ZYPPER_GUI[@]}"
                 ;;
             apk)
+                # Ensure GUI packages get skipped unless GUI is enabled.
+                if [ "${DOTY_GUI_ENABLED}" != "yes" ]; then
+                    PACKAGES_APK_GUI=()
+                fi
+
                 __package_manager_update apk
                 __package_manager_upgrade apk
 
