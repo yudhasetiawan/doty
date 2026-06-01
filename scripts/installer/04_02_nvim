@@ -3,7 +3,7 @@
 setup_nvim() {
     # Keep most recent old nvim/init.lua at $backup_dir/.config/nvim/init.lua,
     # so we never actually destroy a user's original nvim/init.lua.
-    header "Looking for an existing nvim config"
+    header "Installing nvim config"
 
     # shellcheck disable=SC2154
     nvim_file="${zdot}/.config/nvim/init.lua"
@@ -149,14 +149,12 @@ setup_nvim_devtools() {
 }
 
 if [ "$SKIP_NVIM_SETUP" != yes ]; then
-    info "Installing nvim component..."
     setup_nvim
 else
     warning "Skipping nvim component installation"
 fi
 
 if [ "$SKIP_DEVTOOLS_SETUP" != yes ]; then
-    info "Installing nvim devtools component..."
     setup_nvim_devtools
 else
     warning "Skipping nvim devtools component installation"

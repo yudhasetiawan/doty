@@ -419,7 +419,7 @@ setup_package_manager_packages() {
         return 0
     fi
 
-    header "Install packages using ${PKG_MANAGERS[*]}"
+    header "Install packages component using ${PKG_MANAGERS[*]}"
 
     cat <<EOF
 $(__show_packages)
@@ -574,7 +574,6 @@ EOF
 }
 
 if [ "$SKIP_PKG_INSTALL" != yes ]; then
-    info "Installing packages component..."
     setup_package_manager_packages
 else
     warning "Skipping packages component installation"

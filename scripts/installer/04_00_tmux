@@ -20,7 +20,7 @@ setup_tmux() {
 
     # Keep most recent old .tmux.conf at $backup_dir/.tmux.conf,
     # so we never actually destroy a user's original .tmux.conf.
-    header "Looking for an existing tmux config"
+    header "Installing tmux config"
 
     # shellcheck disable=SC2154
     tmux_conf="${zdot}/.tmux.conf"
@@ -69,7 +69,6 @@ setup_tmux() {
     printf '\n' >&2
 }
 if [ "$SKIP_TMUX_SETUP" != yes ]; then
-    info "Installing tmux component..."
     setup_tmux
 else
     warning "Skipping tmux component installation"

@@ -14,7 +14,6 @@ setup_zellij() {
 }
 
 if [ "$SKIP_ZELLIJ_CONFIG" != yes ]; then
-    info "Setup zellij configuration..."
     setup_zellij
 else
     warning "Skipping zellij configuration setup"

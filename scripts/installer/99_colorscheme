@@ -147,14 +147,12 @@ setup_colorscheme_iterm() {
 
 # Only run colorscheme installer if not skipping and it's not macOS-specific settings
 if [ "$SKIP_COLORSCHEME_INSTALL" != yes ]; then
-    info "Installing colorscheme component..."
     setup_colorscheme_iterm
 else
     warning "Skipping colorscheme component installation"
 fi
 
 if [ "$SKIP_FONTS_SETUP" != yes ]; then
-    info "Installing fonts component..."
     setup_colorscheme_fonts
 else
     warning "Skipping fonts component installation"

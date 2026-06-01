@@ -118,7 +118,7 @@ setup_zshrc() {
 
     # Keep most recent old .zshrc at $backup_dir/.zshrc,
     # so we never actually destroy a user's original zshrc.
-    header "Looking for an existing zsh config"
+    header "Installing zsh config"
 
     # shellcheck disable=SC2154
     zshrc_file="${zdot}/.zshrc"
@@ -171,7 +171,6 @@ setup_zshrc() {
 }
 
 if [ "$SKIP_ZSHRC_SETUP" != yes ]; then
-    info "Installing zsh component..."
     setup_zshrc
 else
     warning "Skipping zsh component installation"

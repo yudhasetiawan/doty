@@ -32,7 +32,7 @@ __06_register_git_config() {
 
 setup_git() {
     #  Set git global options and install commons tools
-    header "Configure global git options"
+    header "Installing global git config"
 
     info "Load git config"
 
@@ -71,7 +71,6 @@ EOF
 }
 
 if [ "$SKIP_GIT_SETUP" != yes ]; then
-    info "Installing git component..."
     setup_git
 else
     warning "Skipping git component installation"

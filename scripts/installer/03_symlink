@@ -73,7 +73,7 @@ setup_symlink() {
     # Create the necessary symbolic links between the `.dotfiles` and `HOME`
     # directory. The `bash_profile` sources other files directly from the
     # `.dotfiles` repository.
-    header "Mirroring config files"
+    header "Installing symlink component"
 
     for config in "${SYMLINK_CONFIG[@]}"; do
         __symlink_config_files "${DOTY}/config/${config}"
@@ -92,7 +92,6 @@ setup_symlink() {
 }
 
 if [ "$SKIP_SYMLINK_SETUP" != yes ]; then
-    info "Installing symlink component..."
     setup_symlink
 else
     warning "Skipping symlink component installation"

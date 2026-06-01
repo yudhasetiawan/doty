@@ -207,6 +207,5 @@ setup_environment_managers() {
     fi
 }
 
-info "Installing distribution-specific component..."
 setup_distribution_specific
 setup_environment_managers
