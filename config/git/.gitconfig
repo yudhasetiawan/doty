@@ -67,13 +67,26 @@
 #    helper = osxkeychain
 
 [delta]
-    navigate = true
+    features = side-by-side line-numbers decorations
+    navigate = true # use n and N to move between diff sections
     # If you prefer not to use side by side diffs, comment this.
     side-by-side = true
+
+    syntax-theme = Monokai Extended
+    plus-color = "#A5D6A7"
+    minus-color = "#EF9A9A"
+    whitespace-error-style = 22 reverse
+
+[delta "decorations"]
+    commit-decoration-style = bold yellow box ul
+    file-style = bold yellow ul
+    file-decoration-style = none
+    hunk-header-decoration-style = cyan box ul
 
 [diff]
     # Detect copies as well as renames.
     renames = copies
+    colorMoved = default
 
 [difftool]
     prompt = false
@@ -204,6 +217,7 @@
     br = branch --sort=-committerdate --format='%(HEAD) %(color:yellow bold)%(refname:short)%(color:reset) | %(color:green)%(objectname:short)%(color:reset) - %(contents:subject) %(color:cyan)%(committerdate:iso)%(color:reset) %(color:green)%(authorname)%(color:reset) %(color:dim blue)(%(committerdate:relative))%(color:reset)'
     # Remove branch
     del = branch -D
+
     # Remove branches that have already been merged with main.
     # a.k.a. ‘delete merged’
     dm = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
