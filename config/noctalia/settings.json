@@ -195,7 +195,7 @@
                         "systemCmd": "checkupdates 2>/dev/null",
                         "toast": true,
                         "tooltip": true,
-                        "updateCmd": "alacrity -e bash -c 'echo \"Updating System...\";paru; flatpak update; read -n 1 -p \"Press any key to exit...\"'",
+                        "updateCmd": "alacritty -e bash -c 'echo \"Updating System...\";paru; flatpak update; read -n 1 -p \"Press any key to exit...\"'",
                         "useDistroLogo": false
                     },
                     "id": "plugin:arch-updater"

@@ -175,7 +175,7 @@ export PACKAGES_PACMAN=(
 
 # Packages defined here only get installed when DOTY_GUI_ENABLED=yes is set.
 export PACKAGES_PACMAN_GUI=(
-    "alacrity"
+    "alacritty"
     "brightnessctl"
     "code"
     "dnsmasq"
@@ -410,7 +410,7 @@ export PACKAGES_MISE=(
 # -----------------------------------------------------------------------------
 
 export SYMLINK_CONFIG=(
-    "alacrity"
+    "alacritty"
     "bat"
     "btop"
     "fastfetch"
