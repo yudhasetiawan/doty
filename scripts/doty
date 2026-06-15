@@ -510,48 +510,48 @@ __ask_for_name() {
     local name
     if [ -n "${REAL_NAME}" ]; then
         __print_warning "WARNING: \"${REAL_NAME}\" was retrieved from your install config"
-        return 0
-    fi
-
-    if name="$(git config user.name)"; then
-        __print_ok "\"${name}\" was retrieved from your git config"
+        name="${REAL_NAME}"
     else
-        while true; do
-            read -rp "What is your full name (ie. Alice)? " name
-            if [[ ${name} =~ [^[:space:]]+ ]]; then
-                break
-            else
-                __print_error "ERROR:   Please enter at least your name"
-            fi
-        done
+        if name="$(git config user.name)"; then
+            __print_ok "\"${name}\" was retrieved from your git config"
+        else
+            while true; do
+                read -rp "What is your full name (ie. Alice)? " name
+                if [[ ${name} =~ [^[:space:]]+ ]]; then
+                    break
+                else
+                    __print_error "ERROR:   Please enter at least your name"
+                fi
+            done
+        fi
     fi
 
-    REAL_NAME="${name}"
+    export REAL_NAME="${name}"
 }
 
 __ask_for_email() {
     __print_header "Asking for your e-mail"
 
-    local name
+    local email
     if [ -n "${REAL_EMAIL}" ]; then
         __print_warning "WARNING: \"${REAL_EMAIL}\" was retrieved from your install config"
-        return 0
-    fi
-
-    if email="$(git config user.email)"; then
-        __print_ok "\"${email}\" was retrieved from your git config"
+        email="${REAL_EMAIL}"
     else
-        while true; do
-            read -rp "What is your email address (ie. bob@example.com)? " email
-            if [[ ${email} =~ .+@.+ ]]; then
-                break
-            else
-                __print_error "ERROR:   Please enter a valid email address"
-            fi
-        done
+        if email="$(git config user.email)"; then
+            __print_ok "\"${email}\" was retrieved from your git config"
+        else
+            while true; do
+                read -rp "What is your email address (ie. bob@example.com)? " email
+                if [[ ${email} =~ .+@.+ ]]; then
+                    break
+                else
+                    __print_error "ERROR:   Please enter a valid email address"
+                fi
+            done
+        fi
     fi
 
-    REAL_EMAIL="${email}"
+    export REAL_EMAIL="${email}"
 }
 
 __configure_configuration() {
