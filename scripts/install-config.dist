@@ -406,6 +406,7 @@ export PACKAGES_MISE=(
 # -----------------------------------------------------------------------------
 
 export SYMLINK_CONFIG=(
+    "alacrity"
     "bat"
     "btop"
     "fastfetch"

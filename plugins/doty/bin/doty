@@ -71,6 +71,7 @@ function theme::set {
         ln -fns "${theme_dir}/${1}" "${2}"
     }
 
+    __theme_symlink "alacrity.toml" "${XDG_CONFIG_HOME}/btop/themes/doty.toml"
     __theme_symlink "btop.theme" "${XDG_CONFIG_HOME}/btop/themes/doty.theme"
     __theme_symlink "fzf.sh" "${XDG_CONFIG_HOME}/fzf/doty.sh"
     __theme_symlink "glow.json" "${XDG_CONFIG_HOME}/glow/doty.json"

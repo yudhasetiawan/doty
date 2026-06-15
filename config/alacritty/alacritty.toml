@@ -1,0 +1,804 @@
+[general]
+# Live config reload (changes require restart)
+live_config_reload = true
+working_directory = "None"
+# Configuration for Alacritty, the GPU enhanced terminal emulator
+import = [
+    "doty.toml",
+]
+
+# Any items in the `env` entry below will be added as
+# environment variables. Some entries may override variables
+# set by alacritty it self.
+[env]
+# TERM env customization.
+#
+# If this property is not set, alacritty will set it to xterm-256color.
+#
+# Note that some xterm terminfo databases don't declare support for italics.
+# You can verify this by checking for the presence of `smso` and `sitm` in
+# `infocmp xterm-256color`.
+TERM = "xterm-256color"
+WINIT_X11_SCALE_FACTOR = "1"
+
+[window]
+title = "Alacritty@Doty"
+# Spread additional padding evenly around the terminal content.
+dynamic_padding = true
+# Window decorations
+#
+# Available values:
+# - full: borders and title bar
+# - none: neither borders nor title bar
+# - transparent: title bar, transparent background and title bar buttons
+# - buttonless: title bar, transparent background, but no title bar buttons
+decorations = "buttonless"
+decorations_theme_variant = "Dark"
+# Background opacity
+opacity = 0.85
+
+# Window dimensions (changes require restart)
+#
+# Specified in number of columns/lines, not pixels. If both are zero this
+# setting is ignored.
+[window.dimensions]
+columns = 100
+lines = 85
+
+# Window padding (changes require restart)
+#
+# Blank space added around the window in pixels. This padding is not scaled by
+# DPI and the specified value is always added at both opposing sides.
+[window.padding]
+x = 0
+y = 0
+
+[window.class]
+instance = "Alacritty"
+general = "Alacritty"
+
+[scrolling]
+# maximum number of lines in the scrollback buffer. Specifying '0' will
+# disable scrolling.
+history = 10000
+# Number of lines the viewport will move for every line scrolled when
+# scrollback is enabled (history > 0).
+multiplier = 3
+
+# Font configuration (changes require restart)
+[font]
+# Point size of the font
+size = 9
+
+# Offset is the extra space around each character. offset.y can be thought of
+# as modifying the linespacing, and offset.x as modifying the letter spacing.
+[font.offset]
+x = 0
+y = 0
+
+# Glyph offset determines the locations of the glyphs within their cells with
+# the default being at the bottom. Increase the x offset to move the glyph to
+# the right, increase the y offset to move the glyph upward.
+[font.glyph_offset]
+x = 0
+y = 0
+
+# The normal (roman) font face to use.
+# Style can be specified to pick a specific face.
+[font.normal]
+family = "JetBrainsMono NF"
+style = "Regular"
+
+# The bold font face
+[font.bold]
+family = "NotoSansMono"
+style = "Bold"
+
+# The italic font face
+[font.italic]
+family = "JetBrainsMono NF"
+style = "Italic"
+
+[font.bold_italic]
+family = "NotoSansMono"
+style = "Bold Italic"
+
+[cursor]
+# Cursor style
+#
+# Values for 'style':
+#   - ▇ Block
+#   - _ Underline
+#   - | Beam
+style = "Underline"
+vi_mode_style = "None"
+# If this is `true`, the cursor will be rendered as a hollow box when the
+# window is not focused.
+unfocused_hollow = true
+thickness = 0.15
+
+[mouse]
+# If this is `true`, the cursor is temporarily hidden when typing.
+hide_when_typing = true
+# Mouse bindings
+#
+# Available fields:
+# - mouse
+# - action
+# - mods (optional)
+#
+# Values for `mouse`:
+# - Middle
+# - Left
+# - Right
+# - Numeric identifier such as `5`
+#
+# All available `mods` and `action` values are documented in the key binding
+# section.
+[[mouse.bindings]]
+mouse = "Middle"
+action = "PasteSelection"
+
+[selection]
+semantic_escape_chars = ",│`|:\"' ()[]{}<>\t"
+# When set to `true`, selected text will be copied to the primary clipboard.
+save_to_clipboard = true
+
+# Visual Bell
+#
+# Any time the BEL code is received, Alacritty "rings" the visual bell. Once
+# rung, the terminal background will be set to white and transition back to the
+# default background color. You can control the rate of this transition by
+# setting the `duration` property (represented in milliseconds). You can also
+# configure the transition function by setting the `animation` property.
+#
+# Possible values for `animation`
+# `Ease`
+# `EaseOut`
+# `EaseOutSine`
+# `EaseOutQuad`
+# `EaseOutCubic`
+# `EaseOutQuart`
+# `EaseOutQuint`
+# `EaseOutExpo`
+# `EaseOutCirc`
+# `Linear`
+#
+# To completely disable the visual bell, set its duration to 0.
+[bell]
+animation = "EaseOutCirc"
+color = "#ffffff"
+duration = 0
+
+# Key bindings
+#
+# Key bindings are specified as a list of objects. Each binding will specify a
+# key and modifiers required to trigger it, terminal modes where the binding is
+# applicable, and what should be done when the key binding fires. It can either
+# send a byte sequence to the running application (`chars`), execute a
+# predefined action (`action`) or fork and execute a specified command plus
+# arguments (`command`).
+#
+# Bindings are always filled by default, but will be replaced when a new binding
+# with the same triggers is defined. To unset a default binding, it can be
+# mapped to the `None` action.
+#
+# Example:
+#   `- { key: V, mods: Control|Shift, action: Paste }`
+#
+# Available fields:
+#   - key
+#   - mods (optional)
+#   - chars | action | command (exactly one required)
+#   - mode (optional)
+#
+# Values for `key`:
+#   - `A` -> `Z`
+#   - `F1` -> `F12`
+#   - `Key1` -> `Key0`
+#
+#   A full list with available key codes can be found here:
+#   https://docs.rs/glutin/*/glutin/enum.VirtualKeyCode.html#variants
+#
+#   Instead of using the name of the keys, the `key` field also supports using
+#   the scancode of the desired key. Scancodes have to be specified as a
+#   decimal number.
+#   This command will allow you to display the hex scancodes for certain keys:
+#     `showkey --scancodes`
+#
+# Values for `mods`:
+#   - Command
+#   - Control
+#   - Option
+#   - Super
+#   - Shift
+#   - Alt
+#
+#   Multiple `mods` can be combined using `|` like this: `mods: Control|Shift`.
+#   Whitespace and capitalization is relevant and must match the example.
+#
+# Values for `chars`:
+#   The `chars` field writes the specified string to the terminal. This makes
+#   it possible to pass escape sequences.
+#   To find escape codes for bindings like `PageUp` ("\x1b[5~"), you can run
+#   the command `showkey -a` outside of tmux.
+#   Note that applications use terminfo to map escape sequences back to
+#   keys. It is therefore required to update the terminfo when
+#   changing an escape sequence.
+#
+# Values for `action`:
+#   - Paste
+#   - PasteSelection
+#   - Copy
+#   - IncreaseFontSize
+#   - DecreaseFontSize
+#   - ResetFontSize
+#   - ScrollPageUp
+#   - ScrollPageDown
+#   - ScrollLineUp
+#   - ScrollLineDown
+#   - ScrollToTop
+#   - ScrollToBottom
+#   - ClearHistory
+#   - Hide
+#   - Quit
+#   - ClearLogNotice
+#   - SpawnNewInstance
+#   - ToggleFullscreen
+#   - None
+#
+# Values for `action` (macOS only):
+#   - ToggleSimpleFullscreen: Enters fullscreen without occupying another space
+#
+# Values for `command`:
+#   The `command` field must be a map containing a `program` string and
+#   an `args` array of command line parameter strings.
+#
+#   Example:
+#       `command: { program: "alacritty", args: ["-e", "vttest"] }`
+#
+# Values for `mode`:
+#   - ~AppCursor
+#   - AppCursor
+#   - ~AppKeypad
+#   - AppKeypad
+[keyboard]
+
+[[keyboard.bindings]]
+key = "Paste"
+action = "Paste"
+
+[[keyboard.bindings]]
+key = "Copy"
+action = "Copy"
+
+[[keyboard.bindings]]
+key = "Home"
+mods = "Shift"
+mode = "~Alt"
+action = "ScrollToTop"
+
+[[keyboard.bindings]]
+key = "End"
+mods = "Shift"
+mode = "~Alt"
+action = "ScrollToBottom"
+
+[[keyboard.bindings]]
+key = "PageUp"
+mods = "Shift"
+mode = "~Alt"
+action = "ScrollPageUp"
+
+[[keyboard.bindings]]
+key = "PageDown"
+mods = "Shift"
+mode = "~Alt"
+action = "ScrollPageDown"
+
+## Vi Mode
+[[keyboard.bindings]]
+key  = "Space"
+mods  = "Shift|Control"
+mode  = "Vi|~Search"
+action  = "ScrollToBottom"
+
+[[keyboard.bindings]]
+key  = "Space"
+mods  = "Shift|Control"
+mode  = "~Search"
+action  = "ToggleViMode"
+
+[[keyboard.bindings]]
+key  = "Escape"
+mode  = "Vi|~Search"
+action  = "ClearSelection"
+
+[[keyboard.bindings]]
+key  = "I"
+mode  = "Vi|~Search"
+action  = "ScrollToBottom"
+
+[[keyboard.bindings]]
+key  = "I"
+mode  = "Vi|~Search"
+action  = "ToggleViMode"
+
+[[keyboard.bindings]]
+key  = "C"
+mods  = "Control"
+mode  = "Vi|~Search"
+action  = "ToggleViMode"
+
+[[keyboard.bindings]]
+key  = "Y"
+mods  = "Control"
+mode  = "Vi|~Search"
+action  = "ScrollLineUp"
+
+[[keyboard.bindings]]
+key  = "E"
+mods  = "Control"
+mode  = "Vi|~Search"
+action  = "ScrollLineDown"
+
+[[keyboard.bindings]]
+key  = "G"
+mode  = "Vi|~Search"
+action  = "ScrollToTop"
+
+[[keyboard.bindings]]
+key  = "G"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "ScrollToBottom"
+
+[[keyboard.bindings]]
+key  = "B"
+mods  = "Control"
+mode  = "Vi|~Search"
+action  = "ScrollPageUp"
+
+[[keyboard.bindings]]
+key  = "F"
+mods  = "Control"
+mode  = "Vi|~Search"
+action  = "ScrollPageDown"
+
+[[keyboard.bindings]]
+key  = "U"
+mods  = "Control"
+mode  = "Vi|~Search"
+action  = "ScrollHalfPageUp"
+
+[[keyboard.bindings]]
+key  = "D"
+mods  = "Control"
+mode  = "Vi|~Search"
+action  = "ScrollHalfPageDown"
+
+[[keyboard.bindings]]
+key  = "Y"
+mode  = "Vi|~Search"
+action  = "Copy"
+
+[[keyboard.bindings]]
+key  = "Y"
+mode  = "Vi|~Search"
+action  = "ClearSelection"
+
+[[keyboard.bindings]]
+key  = "Copy"
+mode  = "Vi|~Search"
+action  = "ClearSelection"
+
+[[keyboard.bindings]]
+key  = "V"
+mode  = "Vi|~Search"
+action  = "ToggleNormalSelection"
+
+[[keyboard.bindings]]
+key  = "V"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "ToggleLineSelection"
+
+[[keyboard.bindings]]
+key  = "V"
+mods  = "Control"
+mode  = "Vi|~Search"
+action  = "ToggleBlockSelection"
+
+[[keyboard.bindings]]
+key  = "V"
+mods  = "Alt"
+mode  = "Vi|~Search"
+action  = "ToggleSemanticSelection"
+
+[[keyboard.bindings]]
+key  = "Return"
+mode  = "Vi|~Search"
+action  = "Open"
+
+[[keyboard.bindings]]
+key  = "K"
+mode  = "Vi|~Search"
+action  = "Up"
+
+[[keyboard.bindings]]
+key  = "J"
+mode  = "Vi|~Search"
+action  = "Down"
+
+[[keyboard.bindings]]
+key  = "H"
+mode  = "Vi|~Search"
+action  = "Left"
+
+[[keyboard.bindings]]
+key  = "L"
+mode  = "Vi|~Search"
+action  = "Right"
+
+[[keyboard.bindings]]
+key  = "Up"
+mode  = "Vi|~Search"
+action  = "Up"
+
+[[keyboard.bindings]]
+key  = "Down"
+mode  = "Vi|~Search"
+action  = "Down"
+
+[[keyboard.bindings]]
+key  = "Left"
+mode  = "Vi|~Search"
+action  = "Left"
+
+[[keyboard.bindings]]
+key  = "Right"
+mode  = "Vi|~Search"
+action  = "Right"
+
+[[keyboard.bindings]]
+key  = "Key0"
+mode  = "Vi|~Search"
+action  = "First"
+
+[[keyboard.bindings]]
+key  = "Key4"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "Last"
+
+[[keyboard.bindings]]
+key  = "Key6"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "FirstOccupied"
+
+[[keyboard.bindings]]
+key  = "H"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "High"
+
+[[keyboard.bindings]]
+key  = "M"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "Middle"
+
+[[keyboard.bindings]]
+key  = "L"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "Low"
+
+[[keyboard.bindings]]
+key  = "B"
+mode  = "Vi|~Search"
+action  = "SemanticLeft"
+
+[[keyboard.bindings]]
+key  = "W"
+mode  = "Vi|~Search"
+action  = "SemanticRight"
+
+[[keyboard.bindings]]
+key  = "E"
+mode  = "Vi|~Search"
+action  = "SemanticRightEnd"
+
+[[keyboard.bindings]]
+key  = "B"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "WordLeft"
+
+[[keyboard.bindings]]
+key  = "W"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "WordRight"
+
+[[keyboard.bindings]]
+key  = "E"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "WordRightEnd"
+
+[[keyboard.bindings]]
+key  = "Key5"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "Bracket"
+
+[[keyboard.bindings]]
+key  = "Slash"
+mode  = "Vi|~Search"
+action  = "SearchForward"
+
+[[keyboard.bindings]]
+key  = "Slash"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "SearchBackward"
+
+[[keyboard.bindings]]
+key  = "N"
+mode  = "Vi|~Search"
+action  = "SearchNext"
+
+[[keyboard.bindings]]
+key  = "N"
+mods  = "Shift"
+mode  = "Vi|~Search"
+action  = "SearchPrevious"
+#@- Vi Mode
+
+# Search Mode
+[[keyboard.bindings]]
+key = "Return"
+mode = "Search|Vi"
+action = "SearchConfirm"
+
+[[keyboard.bindings]]
+key = "Escape"
+mode = "Search"
+action = "SearchCancel"
+
+[[keyboard.bindings]]
+key = "C"
+mods = "Control"
+mode = "Search"
+action = "SearchCancel"
+
+[[keyboard.bindings]]
+key = "U"
+mods = "Control"
+mode = "Search"
+action = "SearchClear"
+
+[[keyboard.bindings]]
+key = "W"
+mods = "Control"
+mode = "Search"
+action = "SearchDeleteWord"
+
+[[keyboard.bindings]]
+key = "P"
+mods = "Control"
+mode = "Search"
+action = "SearchHistoryPrevious"
+
+[[keyboard.bindings]]
+key = "N"
+mods = "Control"
+mode = "Search"
+action = "SearchHistoryNext"
+
+[[keyboard.bindings]]
+key = "Up"
+mode = "Search"
+action = "SearchHistoryPrevious"
+
+[[keyboard.bindings]]
+key = "Down"
+mode = "Search"
+action = "SearchHistoryNext"
+
+[[keyboard.bindings]]
+key = "Return"
+mode = "Search|~Vi"
+action = "SearchFocusNext"
+
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+mode = "Search|~Vi"
+action = "SearchFocusPrevious"
+#@- Search Mode
+
+# (Windows, Linux, and BSD only)
+[[keyboard.bindings]]
+key = "V"
+mods = "Control|Shift"
+action = "Paste"
+
+[[keyboard.bindings]]
+key = "C"
+mods = "Control|Shift"
+action = "Copy"
+
+[[keyboard.bindings]]
+key = "F"
+mods = "Control|Shift"
+mode = "~Search"
+action = "SearchForward"
+
+[[keyboard.bindings]]
+key = "B"
+mods = "Control|Shift"
+mode = "~Search"
+action = "SearchBackward"
+
+[[keyboard.bindings]]
+key = "L"
+mods = "Control"
+action = "ClearLogNotice"
+
+[[keyboard.bindings]]
+key = "L"
+mods = "Control"
+mode = "~Vi|~Search"
+chars = "\f"
+
+[[keyboard.bindings]]
+key = "C"
+mods = "Control|Shift"
+mode = "Vi|~Search"
+action = "ClearSelection"
+
+[[keyboard.bindings]]
+key = "Insert"
+mods = "Shift"
+action = "PasteSelection"
+
+[[keyboard.bindings]]
+key = "Key0"
+mods = "Control"
+action = "ResetFontSize"
+
+[[keyboard.bindings]]
+key = "Equals"
+mods = "Control"
+action = "IncreaseFontSize"
+
+[[keyboard.bindings]]
+key = "Plus"
+mods = "Control"
+action = "IncreaseFontSize"
+
+[[keyboard.bindings]]
+key = "NumpadAdd"
+mods = "Control"
+action = "IncreaseFontSize"
+
+[[keyboard.bindings]]
+key = "Minus"
+mods = "Control"
+action = "DecreaseFontSize"
+
+[[keyboard.bindings]]
+key = "NumpadSubtract"
+mods = "Control"
+action = "DecreaseFontSize"
+#@- (Windows, Linux, and BSD only)
+
+# (macOS only)
+# [[keyboard.bindings]]
+# key = "K"
+# mods = "Command"
+# mode = "~Vi|~Search"
+# chars = ""\x0c""
+
+# [[keyboard.bindings]]
+# key = "K"
+# mods = "Command"
+# mode = "~Vi|~Search"
+# action = "ClearHistory"
+
+# [[keyboard.bindings]]
+# key = "Key0"
+# mods = "Command"
+# action = "ResetFontSize"
+
+# [[keyboard.bindings]]
+# key = "Equals"
+# mods = "Command"
+# action = "IncreaseFontSize"
+
+# [[keyboard.bindings]]
+# key = "Plus"
+# mods = "Command"
+# action = "IncreaseFontSize"
+
+# [[keyboard.bindings]]
+# key = "NumpadAdd"
+# mods = "Command"
+# action = "IncreaseFontSize"
+
+# [[keyboard.bindings]]
+# key = "Minus"
+# mods = "Command"
+# action = "DecreaseFontSize"
+
+# [[keyboard.bindings]]
+# key = "NumpadSubtract"
+# mods = "Command"
+# action = "DecreaseFontSize"
+
+# [[keyboard.bindings]]
+# key = "V"
+# mods = "Command"
+# action = "Paste"
+
+# [[keyboard.bindings]]
+# key = "C"
+# mods = "Command"
+# action = "Copy"
+
+# [[keyboard.bindings]]
+# key = "C"
+# mods = "Command"
+# mode = "Vi|~Search"
+# action = "ClearSelection"
+
+# [[keyboard.bindings]]
+# key = "H"
+# mods = "Command"
+# action = "Hide"
+
+# [[keyboard.bindings]]
+# key = "H"
+# mods = "Command|Alt"
+# action = "HideOtherApplications"
+
+# [[keyboard.bindings]]
+# key = "M"
+# mods = "Command"
+# action = "Minimize"
+
+# [[keyboard.bindings]]
+# key = "Q"
+# mods = "Command"
+# action = "Quit"
+
+# [[keyboard.bindings]]
+# key = "W"
+# mods = "Command"
+# action = "Quit"
+
+# [[keyboard.bindings]]
+# key = "N"
+# mods = "Command"
+# action = "SpawnNewInstance"
+
+# [[keyboard.bindings]]
+# key = "F"
+# mods = "Command|Control"
+# action = "ToggleFullscreen"
+
+# [[keyboard.bindings]]
+# key = "F"
+# mods = "Command"
+# mode = "~Search"
+# action = "SearchForward"
+
+# [[keyboard.bindings]]
+# key = "B"
+# mods = "Command"
+# mode = "~Search"
+# action = "SearchBackward"
+#@- (macOS only)
