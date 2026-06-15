@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Delete all local branches except for skipped branches, it's useful for cleanup.
+#
+# Examples:
+#   git-bd
+#   git-bd --dry-run
+#   git-bd --dry-run my-primary-branch
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+DEFAULT_BRANCHES=()
+dry_run=""
+while [ $# -gt 0 ]; do
+    case $1 in
+    --dry-run)
+        dry_run="--dry-run"
+        shift
+        ;;
+    
+    *)
+        DEFAULT_BRANCHES+=("$1")
+        shift
+        ;;
+    esac
+done
+
+if [[ -z "${DEFAULT_BRANCHES[@]}" ]]; then
+    DEFAULT_BRANCHES=("main" "master")
+fi
+
+default_branch="($(echo "${DEFAULT_BRANCHES[@]}" | sed "s; ;|;g"))"
+skip_branches="${1:-${default_branch}}"
+
+git branch | grep -wEv "${skip_branches}" |
+    grep -wv "$(git branch --show-current)" |
+    { if [ -n "${dry_run}" ]; then cat -; else xargs git branch --delete --force; fi; }
