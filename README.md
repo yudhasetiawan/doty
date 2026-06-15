@@ -31,8 +31,8 @@ You can install this via the command-line with either `curl`, `wget` or another 
 
 | Method   | Command                                                                                        |
 | :------- | :--------------------------------------------------------------------------------------------- |
-| **curl** | `sh -c "$(curl -fsSL https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"` |
-| **wget** | `sh -c "$(wget -O- https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"`   |
+| **curl** | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"` |
+| **wget** | `/bin/bash -c "$(wget -O- https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)"`   |
 
 _Note that any previous `.zshrc` will be moved to `~/.doty/.backups`. After installation, you can move the configuration you want to preserve into the new `.zshrc`._
 

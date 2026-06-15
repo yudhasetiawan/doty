@@ -74,9 +74,9 @@
 #   --allow-lazygit-config:   sets SKIP_LAZYGIT_CONFIG to 'no'
 #   --skip-lazygit-config:    sets SKIP_LAZYGIT_CONFIG to 'yes'
 # For example:
-#   sh install --unattended
+#   sh doty --unattended
 # or:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)" "" --unattended
+#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/yudhasetiawan/doty/main/scripts/doty)" "" --unattended
 
 set -e
 
