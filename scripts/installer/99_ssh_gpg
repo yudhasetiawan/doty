@@ -4,7 +4,7 @@ setup_ssh_key() {
     header "Creating SSH key"
 
     # shellcheck disable=SC2154
-    local -r key_path="${zdot}/.ssh/doty_${hostname}"
+    local -r key_path="${zdot}/.ssh/doty_$(hostname)"
     if [[ -f "${key_path}" ]]; then
         warning "\"${key_path}\" already exists"
     else
