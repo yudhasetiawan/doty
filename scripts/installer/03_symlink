@@ -69,6 +69,52 @@ __symlink_config_files() {
     done
 }
 
+__override_environment_config_files() {
+    local configdir
+    configdir="${DOTY}/environment/${1}"
+
+    info "Start setup environment for ${1}..."
+    for file_name in $(find -H "${1}" -type f -printf '%P\n' | sort -u) ; do
+        source_file="$(abspath "${configdir}/${file_name}")"
+        target_file="/${file_name}"
+
+        if [ -f "$target_file" ] || [ -h "$target_file" ]; then
+            # Skip this if the user doesn't want to replace existing config
+            if [ "$KEEP_SYMLINK" = yes ]; then
+                warning "- Found existing config ${target_file}. Keeping it..."
+                printf '\n' >&2
+                continue
+            fi
+
+            # Backup existing configuration
+            # shellcheck disable=SC2154
+            backup_symlink="${backup_dir}${target_filepath}"
+            mkdir -p "$(dirname "${backup_symlink}")"
+
+            if [ -f "${backup_symlink}" ]; then
+                error "Backup file ${backup_symlink} already exists."
+                error "Can't back up ${target_file}. Please re-run the installer again in a couple of seconds."
+                printf '\n' >&2
+                exit 1
+            fi
+
+            warning "- Found existing config ${target_file}. Backup data..."
+            # shellcheck disable=SC2154
+            mv "$target_file" "${backup_symlink}"
+        fi
+
+        printf '%s Installing config for %s to %s\n' "-" "$(fmt_code "${1}: ${file_name}")" "$(fmt_code "${target_file}")" >&2
+        mkdir -p "$(dirname "${target_file}")"
+        # Force create/replace the symlink.
+        ln -fs "${source_file}" "${target_file}"
+    done
+}
+
+__setup_environment_symlink() {
+    __override_environment_config_files "all"
+    __override_environment_config_files "distro-$OS_DISTRO_LIKE"
+}
+
 setup_symlink() {
     # Create the necessary symbolic links between the `.dotfiles` and `HOME`
     # directory. The `bash_profile` sources other files directly from the
@@ -86,6 +132,8 @@ setup_symlink() {
     fi
 
     __symlink_files_from_to_home "${DOTY}/config/symlink-home"
+
+    __setup_environment_symlink
 
     success "Symlink dotfiles complete!"
     printf '\n' >&2
