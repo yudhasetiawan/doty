@@ -57,10 +57,11 @@ setup_directories() {
     printf '\n' >&2
 }
 
+# shellcheck disable=SC2154
 persist_xdg_directories() {
     header "Configure XDG directories"
 
-    local xdg_local_dir="${DOTFILES_LOCAL_DIRECTORY}/.config/zsh"
+    local xdg_local_dir="${DOTFILES_LOCAL_DIRECTORY}/zsh"
     local xdg_local_path="${xdg_local_dir}/xdg"
 
     mkdir -vp "${xdg_local_dir}"
@@ -68,7 +69,7 @@ persist_xdg_directories() {
     cat <<EOF >"${xdg_local_path}"
 # shellcheck shell=bash
 
-# These are set from the DOTY "${DOTY}/.local/doty/install-config" script,
+# These are set from the DOTY "${zdot}/.config/doty/g/install-config" script,
 # update the values in that file not here since they will get overwritten.
 
 # XDG base directories.
@@ -109,14 +110,14 @@ ${xdg_paths}
 EOF
 
         cat <<EOF >"${XDG_CONFIG_HOME}/user-dirs.dirs"
-# These are set from the DOTY "${DOTY}/.local/doty/install-config" script,
+# These are set from the DOTY "${zdot}/.config/doty/g/install-config" script,
 # update the values in that file not here since they will get overwritten.
 
 ${xdg_paths//export /}
 EOF
 
         cat <<EOF >"${XDG_CONFIG_HOME}/user-dirs.conf"
-# These are set from the DOTY "${DOTY}/.local/doty/install-config" script,
+# These are set from the DOTY "${zdot}/.config/doty/g/install-config" script,
 # update the values in that file not here since they will get overwritten.
 
 # Prevent custom XDG paths in user-dirs.dir from being overwritten on boot.

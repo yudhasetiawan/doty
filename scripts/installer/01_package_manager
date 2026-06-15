@@ -421,6 +421,7 @@ setup_package_manager_packages() {
 
     header "Install packages component using ${PKG_MANAGERS[*]}"
 
+    # shellcheck disable=SC2154
     cat <<EOF
 $(__show_packages)
 
@@ -431,7 +432,7 @@ $(__show_packages)
 - ${_FMT_YELLOW}If you choose "no"${_FMT_RESET}, the above packages will not be installed and this script
   will exit here. This gives you a chance to edit the list of packages.
 
-You can edit $(fmt_code "${DOTY}/.local/doty/install-config") to modify
+You can edit $(fmt_code "${zdot}/.config/doty/install-config") to modify
 the package list(s) then re-run installation script.
 EOF
 

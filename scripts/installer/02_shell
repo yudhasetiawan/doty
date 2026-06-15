@@ -161,7 +161,7 @@ setup_zshrc() {
         warning "$(fmt_code "${DOTY}/doty") is already sourced on your .zshrc"
     else
         # Source local defined xdg directories in .zshrc directory
-        echo "source \"${DOTFILES_LOCAL_DIRECTORY}/.config/zsh/xdg\"" >> "${zshrc_file}"
+        echo "source \"${DOTFILES_LOCAL_DIRECTORY}/zsh/xdg\"" >> "${zshrc_file}"
         # Source $DOTY/doty in .zshrc directory
         echo "source \"${DOTY}/doty\"" >> "${zshrc_file}"
     fi

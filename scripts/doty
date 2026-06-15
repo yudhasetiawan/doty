@@ -103,7 +103,7 @@ backup_dir=""
 
 # Default value for $DOTY:
 # a) if $ZDOTDIR is supplied and not $HOME: $ZDOTDIR/.doty
-# b) otherwise, $HOME/.local/state/doty
+# b) otherwise, $HOME/.local/share/doty
 DOTY=""
 
 # Default settings.
@@ -449,16 +449,16 @@ __install() {
         __print_info "INFO:    Using shellcheck: $(shellcheck --version)"
     fi
 
-    # Make sure a `.local/doty/install-config` always exists.
-    if [ ! -f "${DOTY}/.local/doty/install-config" ]; then
-        mkdir -p "${DOTY}/.local/doty"
-        cp -n "${DOTY}/scripts/install-config.dist" "${DOTY}/.local/doty/install-config"
+    # Make sure a `.config/doty/install-config` always exists.
+    if [ ! -f "${zdot}/.config/doty/install-config" ]; then
+        mkdir -p "${zdot}/.config/doty"
+        cp -n "${DOTY}/scripts/install-config.dist" "${zdot}/.config/doty/install-config"
     fi
 
     detect_os
     __configure_configuration
     # shellcheck disable=SC1091
-    source "${DOTY}/.local/doty/install-config"
+    source "${zdot}/.config/doty/install-config"
 
     for __installer in $(find -H "${DOTY}/scripts/installer" -maxdepth 1 -type f -not -name '*.dist' | sort -u); do
         __print_info "INFO:    Running installer: ${__installer}"
@@ -575,19 +575,19 @@ EOF
         printf '\n' >&2
         
         if [ -z "${option}" ]; then
-            cp -fn "${DOTY}/scripts/install-config.dist" "${DOTY}/.local/doty/install-config"
+            cp -fn "${DOTY}/scripts/install-config.dist" "${zdot}/.config/doty/install-config"
 
             break
         fi
 
         case "${option}" in
         1)
-            cp -fn "${DOTY}/scripts/install-config.dist" "${DOTY}/.local/doty/install-config"
+            cp -fn "${DOTY}/scripts/install-config.dist" "${zdot}/.config/doty/install-config"
 
             __configure_configuration
             ;;
         2)
-            perl -pi -e 's|export DOTY_GUI_ENABLED=.*|export DOTY_GUI_ENABLED="no"|g;' "${DOTY}/.local/doty/install-config"
+            perl -pi -e 's|export DOTY_GUI_ENABLED=.*|export DOTY_GUI_ENABLED="no"|g;' "${zdot}/.config/doty/install-config"
             break
             ;;
         3)
@@ -604,11 +604,11 @@ EOF
                 continue
             fi
 
-            perl -pi -e 's|export DOTY_GUI_ENABLED=.*|export DOTY_GUI_ENABLED="yes"|g;' "${DOTY}/.local/doty/install-config"
+            perl -pi -e 's|export DOTY_GUI_ENABLED=.*|export DOTY_GUI_ENABLED="yes"|g;' "${zdot}/.config/doty/install-config"
             break
             ;;
         4)
-            vim "${DOTY}/.local/doty/install-config"
+            vim "${DOTY}/.config/doty/install-config"
 
             __configure_configuration
             ;;

@@ -74,7 +74,7 @@ __override_environment_config_files() {
     configdir="${DOTY}/environment/${1}"
 
     info "Start setup environment for ${1}..."
-    for file_name in $(find -H "${1}" -type f -printf '%P\n' | sort -u) ; do
+    for file_name in $(find -H "${configdir}" -type f -printf '%P\n' | sort -u) ; do
         source_file="$(abspath "${configdir}/${file_name}")"
         target_file="/${file_name}"
 
@@ -100,13 +100,13 @@ __override_environment_config_files() {
 
             warning "- Found existing config ${target_file}. Backup data..."
             # shellcheck disable=SC2154
-            mv "$target_file" "${backup_symlink}"
+            sudo mv "$target_file" "${backup_symlink}"
         fi
 
         printf '%s Installing config for %s to %s\n' "-" "$(fmt_code "${1}: ${file_name}")" "$(fmt_code "${target_file}")" >&2
-        mkdir -p "$(dirname "${target_file}")"
+        sudo mkdir -p "$(dirname "${target_file}")"
         # Force create/replace the symlink.
-        ln -fs "${source_file}" "${target_file}"
+        sudo ln -fs "${source_file}" "${target_file}"
     done
 }
 
