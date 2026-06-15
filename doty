@@ -130,7 +130,13 @@ export ZSH_DOTENV_FILE=".envrc"
 export ZSH_COLORIZE_STYLE="${ZSH_COLORIZE_STYLE:-"colorful"}"
 
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#777777,bg=#0f3000"
-export ZSH_AUTOSUGGEST_STRATEGY="match_prev_cmd"
+
+# Strategies to use to fetch a suggestion
+# Will try each strategy in order until a suggestion is returned
+(( ! ${+ZSH_AUTOSUGGEST_STRATEGY} )) && {
+	typeset -ga ZSH_AUTOSUGGEST_STRATEGY
+    ZSH_AUTOSUGGEST_STRATEGY=(match_prev_cmd)
+}
 
 # Uncomment one of the following lines to change the auto-update behavior
 # zstyle ':omz:update' mode disabled  # disable automatic updates
