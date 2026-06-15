@@ -125,7 +125,6 @@ export PACKAGES_PACMAN=(
     "ffmpeg"
     "flatpak"
     "fontconfig"
-    "fswatch"
     "fzf"
     "grep"
     "git"
@@ -143,12 +142,13 @@ export PACKAGES_PACMAN=(
     "mise"
     "nano"
     "neovim"
-    "oh-my-zsh-git"
+    # "oh-my-zsh-git"
     "openbsd-netcat"
     "openssh"
     "pre-commit"
     "pacman-contrib"
     "podman"
+    "podman-docker"
     "podman-compose"
     "pwgen"
     "ripgrep"
@@ -162,7 +162,7 @@ export PACKAGES_PACMAN=(
     "ttf-hack-nerd"
     "ttf-jetbrains-mono-nerd"
     "ttf-meslo-nerd"
-    "tzdataclip"
+    "tzdata"
     "unzip"
     "usbutils"
     # "wev"
@@ -235,7 +235,9 @@ export PACKAGES_PACMAN_GUI=(
 )
 
 # Applies to Arch Linux.
-export PACKAGES_AUR=()
+export PACKAGES_AUR=(
+    "fswatch"
+)
 
 # Packages defined here only get installed when DOTY_GUI_ENABLED=yes is set.
 export PACKAGES_AUR_GUI=(

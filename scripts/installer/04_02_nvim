@@ -99,6 +99,7 @@ setup_nvim_devtools() {
     mise use -g rust-analyzer@latest
     mise use -g taplo@latest
     mise use -g terraform-ls@latest
+    mise use -g tree-sitter@latest
 
     # Special handling for language-server which might need to be installed via npm
     if command_exists "npm"; then

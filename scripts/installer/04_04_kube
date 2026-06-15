@@ -3,7 +3,7 @@
 export KREW_ROOT="${KREW_ROOT:-"$XDG_CONFIG_HOME/kube/kube-krew"}"
 export PATH="${KREW_ROOT}/bin:$PATH"
 
-__12_k8s_install_kube_krew() {
+__k8s_install_kube_krew() {
     if [ "$SKIP_KUBE_SETUP" = yes ]; then
         warning "Skipping Kubernetes tools installation..."
         return
@@ -17,7 +17,11 @@ __12_k8s_install_kube_krew() {
     info "Installing Kube Krew..."
 
     __doty_os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-    __doty_arch="$(uname -m)"
+    __doty_arch=""
+    case "$(uname -m)" in
+        "x86_64") __doty_arch="amd64";;
+        *) __doty_arch="$(uname -m)";;
+    esac
 
     krew_filename="krew-${__doty_os}_${__doty_arch}"
     krew_dir="$(mktemp -d)"
@@ -37,7 +41,7 @@ __12_k8s_install_kube_krew() {
     printf '\n' >&2
 }
 
-__12_k8s_install_krew_plugin() {
+__k8s_install_krew_plugin() {
     if kubectl krew list | grep -E "^${1}$"; then
         info "kubectl $(fmt_code "${1}") krew plugin is already installed"
     else
@@ -55,14 +59,14 @@ setup_k8s() {
 
     header "Installing kubectl components"
 
-    if __09_k8s_install_kube_krew; then
-        __09_k8s_install_krew_plugin "ctx"
-        __09_k8s_install_krew_plugin "images"
-        __09_k8s_install_krew_plugin "neat"
-        __09_k8s_install_krew_plugin "ns"
-        __09_k8s_install_krew_plugin "tail"
-        __09_k8s_install_krew_plugin "tree"
-        __09_k8s_install_krew_plugin "view-secret"
+    if __k8s_install_kube_krew; then
+        __k8s_install_krew_plugin "ctx"
+        __k8s_install_krew_plugin "images"
+        __k8s_install_krew_plugin "neat"
+        __k8s_install_krew_plugin "ns"
+        __k8s_install_krew_plugin "tail"
+        __k8s_install_krew_plugin "tree"
+        __k8s_install_krew_plugin "view-secret"
     fi
 
     info "Installing fubectl..."

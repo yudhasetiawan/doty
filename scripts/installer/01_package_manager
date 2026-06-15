@@ -93,7 +93,7 @@ __choose_package_manager() {
             ;;
         pacman)
             PKG_MANAGER="pacman"
-            PKG_CLEAN="run_as_root pacman -Sc && run_as_root pacman -Rns \$(pacman -Qtdq)"
+            PKG_CLEAN="run_as_root pacman -Sc --no-confirm && run_as_root pacman -Rns \$(pacman -Qtdq)"
             ;;
         zypper)
             PKG_MANAGER="zypper"
@@ -301,7 +301,7 @@ __package_manager_update() {
             run_as_root apk update || error "APK update not successful"
             ;;
         *)
-            warning "Unknown package manager: $manager, skipping update"
+            warning "Package manager $manager does not support update operation"
             return 1
             ;;
     esac
@@ -346,7 +346,7 @@ __package_manager_upgrade() {
             run_as_root apk upgrade "${PKG_CONFIRM_FLAG[@]}" || error "APK upgrade not successful"
             ;;
         *)
-            warning "Unknown package manager: $manager, skipping upgrade"
+            warning "Package manager $manager does not support upgrade operation"
             return 1
             ;;
     esac
@@ -449,6 +449,11 @@ EOF
     for pkg_manager in "${PKG_MANAGERS[@]}"; do
         __choose_package_manager "${pkg_manager}"
 
+        if ! command_exists "$pkg_manager"; then
+            error "Unable to find package manager $pkg_manager, skipping it."
+            return 1
+        fi
+
         case "$pkg_manager" in
             brew)
                 __package_manager_update brew
@@ -529,10 +534,6 @@ EOF
                     #     info "Configuring reflector for faster downloads..."
                     #     sudo reflector --country 'United States' --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
                     # fi
-
-                    # This isn't configurable because it has certain settings that are necessary
-                    # for DOTY to work, such as installing 32 bit packages for GPU drivers.
-                    run_as_root ln -fns "${DOTY}/environment/arch/etc/pacman.d/01-options.conf" /etc/pacman.d/01-options.conf
                 fi
 
                 __package_manager_update pacman
@@ -583,6 +584,14 @@ EOF
                     "${PACKAGES_APK_GUI[@]}"
                 ;;
             mise)
+                # shellcheck disable=SC2154
+                zshrc_file="${zdot}/.zshrc"
+                if grep -q "mise" "${zshrc_file}"; then
+                    warning "$(fmt_code "mise") is already sourced on your .zshrc"
+                else
+                    echo "eval \"$($(command -v mise 2>/dev/null || :) activate zsh)\"" >> "${zshrc_file}"
+                fi
+
                 __package_manager_update mise
                 __package_manager_upgrade mise
 

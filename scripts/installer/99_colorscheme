@@ -85,16 +85,16 @@ setup_colorscheme_fonts() {
             # Restart termux to apply fonts
             info "Please restart Termux to apply the new fonts"
             ;;
-        linux)
-            # Debian-based systems
-            info "Installing fonts to ~/.local/share/fonts..."
-            mkdir -p "${XDG_DATA_HOME}/fonts"
-            unzip -o "${outfile}" -d "${XDG_DATA_HOME}/fonts"
-            # Update font cache if available
-            if command -v fc-cache >/dev/null 2>&1; then
-                fc-cache -fv "${XDG_DATA_HOME}/fonts"
-            fi
-            ;;
+        # linux)
+        #     # Debian-based systems
+        #     info "Installing fonts to ~/.local/share/fonts..."
+        #     mkdir -p "${XDG_DATA_HOME}/fonts"
+        #     unzip -o "${outfile}" -d "${XDG_DATA_HOME}/fonts"
+        #     # Update font cache if available
+        #     if command -v fc-cache >/dev/null 2>&1; then
+        #         fc-cache -fv "${XDG_DATA_HOME}/fonts"
+        #     fi
+        #     ;;
         *)
             # Unknown OS - try generic approach
             warning "Unknown OS type. Installing fonts to ~/.local/share/fonts..."

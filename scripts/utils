@@ -198,7 +198,7 @@ user_can_sudo() {
 
 run_as_root() {
     if command -v sudo >/dev/null 2>&1; then
-        sudo sh -c "${*}"
+        sudo bash -c "${*}"
     else
         su -c "${*}"
     fi
