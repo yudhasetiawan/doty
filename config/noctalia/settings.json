@@ -208,7 +208,7 @@
                 },
                 {
                     "displayMode": "onhover",
-                    "iconColor": "primary",
+                    "iconColor": "none",
                     "id": "Volume",
                     "middleClickCommand": "pwvucontrol || pavucontrol",
                     "textColor": "none"
@@ -230,7 +230,7 @@
                     "showPowerProfiles": true
                 },
                 {
-                    "clockColor": "error",
+                    "clockColor": "none",
                     "customFont": "Noto Sans",
                     "formatHorizontal": "HH:mm ddd, MMM dd",
                     "formatVertical": "HH mm - dd MM",
